@@ -8,6 +8,7 @@
   nix.settings = {
     auto-optimise-store = true;
     trusted-users = [ base.username ];
+    accept-flake-config = true;
     experimental-features = [
       "nix-command"
       "flakes"
