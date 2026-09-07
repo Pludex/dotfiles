@@ -1092,7 +1092,7 @@
         "vscode-extensions": "vscode-extensions",
         "waycal": "waycal",
         "wezterm-types": "wezterm-types",
-        "wps-office": "wps-office"
+        "wps-fonts": "wps-fonts"
       }
     },
     "rust-overlay": {
@@ -1500,23 +1500,19 @@
         "type": "github"
       }
     },
-    "wps-office": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
+    "wps-fonts": {
+      "flake": false,
       "locked": {
-        "lastModified": 1763010066,
-        "narHash": "sha256-6CHqEYyIBm+NK+pyCWDk04To2ZuX4TFH1tSwL+FbUMc=",
-        "owner": "alex-karev",
-        "repo": "wpsoffice-flake",
-        "rev": "ebd64051f3ac2f7ca82111af300e3e01531e15c9",
+        "lastModified": 1717955483,
+        "narHash": "sha256-LB7/VHTB3tPOqXoq0kaCw7VmaE4ZRSbwDvzhxPMsz+k=",
+        "owner": "ferion11",
+        "repo": "ttf-wps-fonts",
+        "rev": "f4131f029934a76ea90336c8ee4929c5c78588f4",
         "type": "github"
       },
       "original": {
-        "owner": "alex-karev",
-        "repo": "wpsoffice-flake",
+        "owner": "ferion11",
+        "repo": "ttf-wps-fonts",
         "type": "github"
       }
     },

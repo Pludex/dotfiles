@@ -331,9 +331,9 @@
       flake = false;
     };
 
-    wps-office = {
-      url = "github:alex-karev/wpsoffice-flake";
-      inputs.nixpkgs.follows = "nixpkgs";
+    wps-fonts = {
+      url = "github:ferion11/ttf-wps-fonts";
+      flake = false;
     };
   };
 }

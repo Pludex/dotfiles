@@ -6,6 +6,7 @@
       vaultwarden-sync = final.callPackage ./vaultwarden-sync { };
       vivaldi-sync = final.callPackage ./vivaldi-sync { };
       volume-control = final.callPackage ./volume-control { };
+      wps = final.callPackage ./wps { };
       nixvim = final.callPackage ./nixvim.nix { };
       sklauncher = final.callPackage ./sklauncher.nix { };
       waycal = final.callPackage ./waycal.nix { };
