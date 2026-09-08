@@ -1,7 +1,6 @@
 {
   programs.fuzzel = {
     enable = true;
-
   };
 
   programs.niri.settings.binds = {
