@@ -4,6 +4,8 @@
     relativenumber = true;
     modeline = false;
 
+    conceallevel = 2;
+
     signcolumn = "yes";
     cursorline = true;
 
