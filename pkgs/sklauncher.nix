@@ -1,4 +1,9 @@
-{ sources, pkgs, ... }:
+{
+  sources,
+  pkgs,
+  base,
+  ...
+}:
 let
   baseApp = pkgs.appimageTools.wrapType2 {
     pname = "sklauncher";
@@ -27,10 +32,7 @@ let
     comment = "An alternative Minecraft launcher";
     exec = "${baseApp}/bin/sklauncher";
 
-    icon = builtins.fetchurl {
-      url = "https://skmedix.pl/favicon.ico";
-      sha256 = "1nqmb1bcpcjz2bzqy7jdcl65x8bs4nvkb8012ifwscqq1grs2arw";
-    };
+    icon = "${base.assets}/icons/sklauncher.webp";
 
     categories = [ "Game" ];
     terminal = false;
