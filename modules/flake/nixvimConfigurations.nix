@@ -1,4 +1,4 @@
-  { lib, flake-parts-lib, ... }:
+{ lib, flake-parts-lib, ... }:
 let
   configurationType = lib.mkOptionType {
     name = "configuration";

@@ -1,6 +1,6 @@
 {
   imports = [
-     ./autocompletion.nix
+    ./autocompletion.nix
     ./diagnostic.nix
     ./formatter.nix
     ./hightlight.nix
