@@ -28,7 +28,7 @@
 tab        q          w          e          r          t          y          u          i          o          p          [          ]          \
 caps       a          s          d          f          g          h          j          k          l          ;          '          enter
            z          x          c          v          b          n          m          ,          .          /
-lsft       rsft
+lsft       rsft       lalt
 spc
 end
 )
@@ -38,7 +38,7 @@ end
 tab        ;          ,          .          p          y          f          g          c          r          l          /          @at        \
 esc        a          o          e          u          i          d          h          t          n          s          -          enter
            '          q          j          k          x          b          m          w          v          z
-@pdv_shift @pdv_shift
+@pdv_shift @pdv_shift @alt
 @spc_ly
 @to_qw
 )
@@ -51,7 +51,7 @@ esc        a          o          e          u          i          d          h  
 tab        @colon     @lt        @gt        S-p        S-y        S-f        S-g        S-c        S-r        S-l        @quest     @caret     @pipe
 esc        S-a        S-o        S-e        S-u        S-i        S-d        S-h        S-t        S-n        S-s        @unds      enter
            @dquo      S-q        S-j        S-k        S-x        S-b        S-m        S-w        S-v        S-z
-_          _
+_          _          _
 @spc_ly
 @to_qw
 )
@@ -61,7 +61,7 @@ tab        f1         f2         f3         f4         f5         f6         f7 
 tab        @tilda     @pct       7          5          3          1          9          0          2          4          6          8          `
 @dlr       @amp       [          @lbrace    @rbrace    @lpar      =          @ast       @rpar      @plus      ]          @excl      @hash
            @dquo      q          j          k          x          b          m          w          v          z
-_          _
+_          _          _
 spc
 @to_qw
 )
@@ -71,7 +71,7 @@ spc
 tab        q          w          e          r          t          y          u          i          o          p          [          ]          \
 esc        a          s          d          f          g          h          j          k          l          ;          '          enter
            z          x          c          v          b          n          m          ,          .          /
-@qw_shift  @qw_shift
+@qw_shift  @qw_shift  @alt
 @spc_ly
 @to_dv
 )
@@ -82,18 +82,35 @@ esc        a          s          d          f          g          h          j  
 tab        S-q        S-w        S-e        S-r        S-t        S-y        S-u        S-i        S-o        S-p        @lbrace    @rbrace    @pipe
 esc        S-a        S-s        S-d        S-f        S-g        S-h        S-j        S-k        S-l        @colon     @dquo      enter
            S-z        S-x        S-c        S-v        S-b        S-n        S-m        @lt        @gt        @quest
-_          _
+_          _          _
 @spc_ly
 @to_dv
 )
 
+;; Held while lalt is held, on top of whichever base layer is active.
+;; Only h and l are overridden; everything else falls through (_).
+(deflayer nav
+_          _          _          _          _          _          _          _          _          _          _          _          _
+_          _          _          _          _          _          _          _          _          _          _          _          _          _
+_          _          _          _          _          _          @nav_left  _          _          @nav_right _          _          _
+           _          _          _          _          _          _          _          _          _          _
+_          _          _
+_
+_
+)
+
 (defalias
   to_dv (layer-switch programmer-dvorak)
-
   to_qw (layer-switch qwerty)
-  spc_ly (tap-hold 250 250 spc (layer-toggle programmer-dvorak-space))
+
+  ;; spc_ly (tap-hold 250 250 spc (layer-toggle programmer-dvorak-space))
   ;; spc_ly (tap-hold-press 300 300 spc (layer-toggle programmer-dvorak-space))
+  spc_ly (tap-hold 250 250 spc (layer-while-held programmer-dvorak-space))
 
   pdv_shift (layer-while-held programmer-dvorak-shift)
   qw_shift  (layer-while-held qwerty-shift)
+
+  alt (tap-hold 200 200 lalt (multi lalt (layer-while-held nav)))
+  nav_left  (multi (release-key lalt) C-left)
+  nav_right (multi (release-key lalt) C-right)
 )
