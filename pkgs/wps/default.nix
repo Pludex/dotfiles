@@ -1,14 +1,14 @@
 {
   pkgs,
   lib ? pkgs.lib,
+  base,
 }:
 
 let
   # ===== Settings =====
   allowNetwork = false; # Network off by default
-  fixIcons = true; # Fix icons by replacing 2023 with 2019
+  fixIcons = true;
   package = pkgs.wpsoffice-cn; # WPS Office package to use
-  killWpsCloudSvr = true; # Kill wpscloudsvr background process on exit
   scale = null; # QT_SCALE_FACTOR, e.g. "1.5"
 
   bwrapPackage = pkgs.bubblewrap;
@@ -68,8 +68,8 @@ let
   mkWrappedApp =
     exec:
     pkgs.writeShellScriptBin exec ''
-      ${bwrapPackage}/bin/bwrap ${lib.concatStringsSep " " bwrapArgs} ${package}/bin/${exec} "$@" &
-      ${lib.optionalString killWpsCloudSvr "${pkgs.procps}/bin/pkill wpscloudsvr || true"}
+      ${bwrapPackage}/bin/bwrap ${lib.concatStringsSep " " bwrapArgs} ${package}/bin/${exec} "$@"
+      ${pkgs.procps}/bin/pkill -9 -f "office6" || true
     '';
 
   apps = [
@@ -105,7 +105,9 @@ pkgs.stdenv.mkDerivation {
       newfile="$out/share/applications/$(basename "$file")"
       cp "$file" "$newfile"
       sed -i "s|${package}|$out|g" "$newfile"
-      ${lib.optionalString fixIcons ''sed -i '/^Icon=/s/2023/2019/g' "$newfile"''}
+      ${lib.optionalString fixIcons ''
+        sed -i "s|^Icon=.*|Icon=${base.assets}/icons/wpsoffice.webp|g" "$newfile"
+      ''}
     done
   '';
 
