@@ -30,6 +30,7 @@
         "${l}/yml-yaml.nix"
 
         "${r}/leetcode.nix"
+        "${r}/obsidian"
       ];
     };
 
