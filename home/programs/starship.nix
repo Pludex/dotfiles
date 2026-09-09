@@ -6,7 +6,7 @@
     enableTransience = true;
     settings = {
       add_newline = true;
-      format = "$directory$git_branch$git_status$dotnet$line_break$character";
+      # format = "$directory$git_branch$git_status$dotnet$line_break$character";
 
       character = {
         success_symbol = "${base.glyphs.nix.logo} ${base.glyphs.prompt}";
