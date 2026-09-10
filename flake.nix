@@ -113,13 +113,6 @@
               desktop = "niri";
               system = "x86_64-linux";
             };
-
-            "tunglinh@tldesktop" = builder.mkHome {
-              name = "tunglinh@tldesktop";
-              profile = "tl";
-              desktop = "plasma6";
-              system = "x86_64-linux";
-            };
           };
 
           nixosConfigurations = {
@@ -136,14 +129,6 @@
               profile = "desktop";
               desktop = "niri";
               host = "dp7530";
-              system = "x86_64-linux";
-            };
-
-            tldesktop = builder.mkNixos {
-              name = "tldekstop";
-              profile = "tl";
-              desktop = "plasma6";
-              host = "tldekstop";
               system = "x86_64-linux";
             };
 
@@ -338,5 +323,7 @@
       url = "github:ferion11/ttf-wps-fonts";
       flake = false;
     };
+
+    flake-compat.url = "github:edolstra/flake-compat";
   };
 }
