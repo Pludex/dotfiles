@@ -21,6 +21,7 @@
       "doom-emacs-unstraightened.cachix.org-1:O5oOlRPnmQEvVaFyuMTmthCEooHbrg54WgSLR07tmg4="
       "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
     ];
+    substitute = true;
     allow-unfree = true;
     auto-optimise-store = true;
   };
@@ -295,6 +296,13 @@
 
     jetbrains-plugins = {
       url = "github:nix-community/nix-jetbrains-plugins";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # vm
+
+    nix-virt = {
+      url = "github:AshleyYakeley/NixVirt";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

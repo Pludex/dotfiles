@@ -86,7 +86,8 @@
         "${s}/ngrok.nix"
         "${s}/vaultwarden.nix"
 
-        "${v}/libvirtd.nix"
+        "${v}/core/libvirt.nix"
+        "${v}/win10.nix"
       ];
     };
 }
