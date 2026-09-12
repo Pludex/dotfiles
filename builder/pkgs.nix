@@ -2,16 +2,16 @@
   extraOverlays,
   inputs,
   nixpkgsConfig,
-  argv,
+  args,
 }:
 let
-  inherit (argv) base;
+  inherit (args) base;
 
   overlays =
     extraOverlays
-    ++ [ (final: prev: argv) ]
-    ++ (import "${base.overlays}" argv)
-    ++ (import "${base.pkgs}" argv);
+    ++ [ (final: prev: args) ]
+    ++ (import "${base.overlays}" args)
+    ++ (import "${base.pkgs}" args);
   config = nixpkgsConfig;
 in
 {

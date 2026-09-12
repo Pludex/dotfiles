@@ -1,4 +1,4 @@
-{ inputs, argv, ... }: [
+{ inputs, args, ... }: [
   (final: prev: {
     myPkgs = {
       audio-manager = final.callPackage ./audio-manager { };
@@ -11,7 +11,7 @@
       sklauncher = final.callPackage ./sklauncher.nix { };
       waycal = final.callPackage ./waycal.nix { };
     }
-    // (import ./nixvim.nix (argv // { pkgs = final; }));
+    // (import ./nixvim.nix (args // { pkgs = final; }));
 
     nixos-live = inputs.self.nixosConfigurations.nixos-live.config.system.build.isoImage;
   })

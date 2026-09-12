@@ -1,11 +1,11 @@
 {
   mkPkgs,
   mkNixosModules,
-  argv,
+  args,
   mkHome,
 }:
 let
-  inherit (argv) inputs;
+  inherit (args) inputs;
 
   configOptions = { lib, ... }: {
 
@@ -67,6 +67,6 @@ in
     in
     inputs.nixpkgs.lib.nixosSystem {
       inherit modules pkgs;
-      specialArgs = argv;
+      specialArgs = args;
     };
 }

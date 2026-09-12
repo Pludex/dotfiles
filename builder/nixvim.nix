@@ -1,10 +1,10 @@
 {
   mkPkgs,
   mkNixvimModules,
-  argv,
+  args,
 }:
 let
-  inherit (argv) inputs;
+  inherit (args) inputs;
 in
 {
   mk =
@@ -23,7 +23,7 @@ in
     in
     inputs.nixvim.lib.evalNixvim {
       inherit modules;
-      extraSpecialArgs = argv;
+      extraSpecialArgs = args;
     };
 
   mkPackage =

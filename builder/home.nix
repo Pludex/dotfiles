@@ -1,10 +1,10 @@
 {
   mkPkgs,
   mkHomeModules,
-  argv,
+  args,
 }:
 let
-  inherit (argv) inputs base;
+  inherit (args) inputs base;
 
   configOptions = { lib, ... }: {
     options.standalone = lib.mkOption {
@@ -57,7 +57,7 @@ in
     in
     inputs.home-manager.lib.homeManagerConfiguration {
       inherit modules pkgs;
-      extraSpecialArgs = argv;
+      extraSpecialArgs = args;
     };
 
   mkNonStandalone =
@@ -81,7 +81,7 @@ in
       useUserPackages = true;
       backupFileExtension = "hm-backup";
 
-      extraSpecialArgs = argv;
+      extraSpecialArgs = args;
 
       users.${base.username} = {
         imports = modules;

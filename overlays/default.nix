@@ -1,4 +1,4 @@
-argv:
+args:
 let
   dir = builtins.readDir ./.;
   names = builtins.sort builtins.lessThan (builtins.attrNames dir);
@@ -11,6 +11,6 @@ let
     name: dir.${name} == "directory" && builtins.pathExists (./. + "/${name}/default.nix")
   ) names;
 
-  importFile = name: import (./. + "/${name}") argv;
+  importFile = name: import (./. + "/${name}") args;
 in
 (map importFile nixFiles) ++ (map importFile subdirs)
