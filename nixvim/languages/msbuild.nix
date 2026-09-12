@@ -4,6 +4,8 @@
     enable = true;
     package = pkgs.myPkgs.msbuild-ls;
     cmd = [
+      "${pkgs.coreutils}/bin/env"
+      "DOTNET_ROOT=${pkgs.dotnet-sdk}"
       "${pkgs.dotnet-sdk}/bin/dotnet"
       "${pkgs.myPkgs.msbuild-ls}/lib/msbuild-project-tools-server/MSBuildProjectTools.LanguageServer.Host.dll"
     ];
