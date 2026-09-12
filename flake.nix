@@ -247,6 +247,11 @@
       flake = false;
     };
 
+    msbuild-project-tools-server = {
+      url = "github:/tintoy/msbuild-project-tools-server/v0.7.0";
+      flake = false;
+    };
+
     # emacs
 
     nix-doom-emacs-unstraightened = {

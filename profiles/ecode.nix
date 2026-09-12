@@ -20,6 +20,7 @@
         "${l}/lua.nix"
         "${l}/md.nix"
         "${l}/mdx.nix"
+        "${l}/msbuild.nix"
         "${l}/nix.nix"
         "${l}/nushell.nix"
         "${l}/python.nix"

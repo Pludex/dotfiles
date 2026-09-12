@@ -3,6 +3,7 @@
     myPkgs = {
       audio-manager = final.callPackage ./audio-manager { };
       brightness-control = final.callPackage ./brightness-control { };
+      msbuild-ls = final.callPackage ./msbuild-ls { };
       vaultwarden-sync = final.callPackage ./vaultwarden-sync { };
       vivaldi-sync = final.callPackage ./vivaldi-sync { };
       volume-control = final.callPackage ./volume-control { };

@@ -611,6 +611,23 @@
         "type": "github"
       }
     },
+    "msbuild-project-tools-server": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1784859762,
+        "narHash": "sha256-4ylX5+3zMvZMV1QbsOoTpDUaskbA7lhymq21cEroK3k=",
+        "owner": "tintoy",
+        "repo": "msbuild-project-tools-server",
+        "rev": "a941799f2b8548d3d5756adb622a15eff73f8416",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tintoy",
+        "ref": "v0.7.0",
+        "repo": "msbuild-project-tools-server",
+        "type": "github"
+      }
+    },
     "niri": {
       "inputs": {
         "niri-stable": "niri-stable",
@@ -1082,6 +1099,7 @@
         "home-manager": "home-manager_2",
         "jetbrains-plugins": "jetbrains-plugins",
         "lanzaboote": "lanzaboote",
+        "msbuild-project-tools-server": "msbuild-project-tools-server",
         "niri": "niri",
         "nix-doom-emacs-unstraightened": "nix-doom-emacs-unstraightened",
         "nix-firefox-addons": "nix-firefox-addons",
