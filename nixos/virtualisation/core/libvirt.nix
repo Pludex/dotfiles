@@ -7,11 +7,7 @@
 {
   virtualisation.libvirt = {
     enable = true;
-    # qemu = {
-    #   package = pkgs.qemu_kvm;
-    #   runAsRoot = false;
-    #   swtpm.enable = true;
-    # };
+    swtpm.enable = true;
   };
 
   environment.systemPackages = with pkgs; [
