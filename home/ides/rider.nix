@@ -1,7 +1,7 @@
 { pkgs, inputs, ... }:
 let
   extra-path = with pkgs; [
-    dotnet-sdk_10
+    dotnet.sdk
     msbuild
     roslyn
     omnisharp-roslyn
