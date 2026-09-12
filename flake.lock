@@ -490,19 +490,19 @@
         "type": "github"
       }
     },
-    "ghostty-cursor-shaders": {
+    "ghostty-cursor": {
       "flake": false,
       "locked": {
-        "lastModified": 1781606293,
-        "narHash": "sha256-B7B6K7Ee4uJlW8zzLP3ILgddnbcIQyNimY+rVllzbR0=",
-        "owner": "sahaj-b",
-        "repo": "ghostty-cursor-shaders",
-        "rev": "0a274beac8b93ee6ce6b94402b7313a0417b8e38",
+        "lastModified": 1776132650,
+        "narHash": "sha256-NHeCd/avyJ8SaYW8pYWcetwVroFQNokN7saiWCMu3TM=",
+        "owner": "hced",
+        "repo": "ghostty-cursor-trails",
+        "rev": "78f597cf66427bc382077e5e33f26981a86bb207",
         "type": "github"
       },
       "original": {
-        "owner": "sahaj-b",
-        "repo": "ghostty-cursor-shaders",
+        "owner": "hced",
+        "repo": "ghostty-cursor-trails",
         "type": "github"
       }
     },
@@ -1095,7 +1095,7 @@
         "firefox-mods-2": "firefox-mods-2",
         "flake-compat": "flake-compat",
         "flake-parts": "flake-parts",
-        "ghostty-cursor-shaders": "ghostty-cursor-shaders",
+        "ghostty-cursor": "ghostty-cursor",
         "home-manager": "home-manager_2",
         "jetbrains-plugins": "jetbrains-plugins",
         "lanzaboote": "lanzaboote",

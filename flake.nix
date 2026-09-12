@@ -285,8 +285,8 @@
 
     # ghostty
 
-    ghostty-cursor-shaders = {
-      url = "github:sahaj-b/ghostty-cursor-shaders";
+    ghostty-cursor = {
+      url = "github:hced/ghostty-cursor-trails";
       flake = false;
     };
 

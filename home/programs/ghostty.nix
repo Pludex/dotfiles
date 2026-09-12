@@ -5,7 +5,7 @@
 
     settings = {
       scrollbar = "never";
-      custom-shader = [ "${inputs.ghostty-cursor-shaders}/cursor_sweep.glsl" ];
+      custom-shader = [ "${inputs.ghostty-cursor}/boo-cursor.glsl" ];
       custom-shader-animation = "always";
 
       window-padding-x = 5;
