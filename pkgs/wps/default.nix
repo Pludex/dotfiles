@@ -8,7 +8,7 @@ let
   # ===== Settings =====
   allowNetwork = false; # Network off by default
   fixIcons = true;
-  package = pkgs.wpsoffice-cn; # WPS Office package to use
+  package = pkgs.stable.wpsoffice-cn; # WPS Office package to use
   scale = null; # QT_SCALE_FACTOR, e.g. "1.5"
 
   bwrapPackage = pkgs.bubblewrap;

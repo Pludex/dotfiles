@@ -2,10 +2,11 @@
 {
   programs.obsidian = {
     enable = true;
+    package = pkgs.stable.obsidian;
     cli.enable = true;
 
     defaultSettings = {
-      communityPlugins = with pkgs.obsidianPlugins; [
+      communityPlugins = with pkgs.stable.obsidianPlugins; [
         dataview
         obsidian-git
         obsidian-vimrc-support

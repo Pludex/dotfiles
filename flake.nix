@@ -50,6 +50,11 @@
         nixpkgsConfig = {
           allowUnfree = true;
           allowBroken = true;
+
+          permittedInsecurePackages = [
+            "electron-41.10.6"
+          ];
+
           problems.handlers = {
             zfs.broken = "ignore";
           };
@@ -156,9 +161,15 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    treefmt-nix.url = "github:numtide/treefmt-nix";
 
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    flake-compat.url = "github:edolstra/flake-compat";
     nur = {
       url = "github:nix-community/NUR";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -202,7 +213,7 @@
       flake = false;
     };
 
-    # niri
+    # wm
 
     niri = {
       # url = "github:sodiboo/niri-flake";
@@ -219,8 +230,6 @@
       url = "github:lonerOrz/nsticky";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # plasma
 
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
@@ -292,7 +301,7 @@
 
     jetbrains-plugins = {
       url = "github:nix-community/nix-jetbrains-plugins";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
     };
 
     # vm
@@ -328,6 +337,5 @@
       flake = false;
     };
 
-    flake-compat.url = "github:edolstra/flake-compat";
   };
 }

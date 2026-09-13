@@ -16,7 +16,7 @@ let
     p."IdeaVIM"
     p."com.nightfox.theme"
   ];
-  riderWithPlugins = pkgs.jetbrains.plugins.addPlugins pkgs.jetbrains.rider plugins;
+  riderWithPlugins = pkgs.stable.jetbrains.plugins.addPlugins pkgs.stable.jetbrains.rider plugins;
 
   rider = riderWithPlugins.overrideAttrs (attrs: {
     postInstall = ''

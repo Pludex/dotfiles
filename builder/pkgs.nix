@@ -14,13 +14,36 @@ let
     ++ (import "${base.pkgs}" args);
   config = nixpkgsConfig;
 in
-{
+rec {
   mkPkgs =
     {
       system,
       extraNixpkgsArgs ? { },
+      extraNixpkgsStableArgs ? { },
     }:
     import inputs.nixpkgs (
+      {
+        inherit config;
+        localSystem = system;
+        overlays = [
+          (final: prev: {
+            stable = mkPkgsStable {
+              inherit system;
+              extraNixpkgsArgs = extraNixpkgsStableArgs;
+            };
+          })
+        ]
+        ++ overlays;
+      }
+      // extraNixpkgsArgs
+    );
+
+  mkPkgsStable =
+    {
+      system,
+      extraNixpkgsArgs ? { },
+    }:
+    import inputs.nixpkgs-stable (
       {
         inherit overlays config;
         localSystem = system;
