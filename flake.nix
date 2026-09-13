@@ -190,6 +190,7 @@
     chaotic = {
       url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
     };
 
     # home
@@ -336,6 +337,5 @@
       url = "github:ferion11/ttf-wps-fonts";
       flake = false;
     };
-
   };
 }
