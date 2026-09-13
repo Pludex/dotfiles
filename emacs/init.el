@@ -4,7 +4,7 @@
 
 (load (concat (file-name-directory load-file-name) "packages.el"))
 
-(load (concat (file-name-directory load-file-name) "lisp/ui/ui.el"))
+(load (concat (file-name-directory load-file-name) "ui/ui.el"))
 
 (require 'ui)
 
