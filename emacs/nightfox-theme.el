@@ -1,5 +1,6 @@
 ;;; nightfox-theme.el --- A port of nightfox.nvim -*- lexical-binding: t; -*-
 
+(require 'autothemer)
 (autothemer-deftheme nightfox "A port of nightfox.nvim"
 
   ;; Specify the color classes used by the theme

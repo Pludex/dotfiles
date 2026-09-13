@@ -122,7 +122,9 @@
     "chaotic": {
       "inputs": {
         "flake-schemas": "flake-schemas",
-        "home-manager": "home-manager",
+        "home-manager": [
+          "home-manager"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -173,6 +175,29 @@
       "original": {
         "owner": "ipetkov",
         "repo": "crane",
+        "type": "github"
+      }
+    },
+    "emacs-overlays": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixpkgs-stable": [
+          "nixpkgs-stable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789271706,
+        "narHash": "sha256-L7nyJANRZCE+EXnGLol7soeoJCuwem1wp6nnKDgnjic=",
+        "owner": "nix-community",
+        "repo": "emacs-overlay",
+        "rev": "f1cf5561179d32f4ec83c630872b4bceec6a8f2b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "emacs-overlay",
         "type": "github"
       }
     },
@@ -454,27 +479,6 @@
       }
     },
     "home-manager": {
-      "inputs": {
-        "nixpkgs": [
-          "chaotic",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1788651960,
-        "narHash": "sha256-v9wJd32eZ2bvhBzVOd7TIjLQd011P7nwOhjKtWlci5I=",
-        "owner": "nix-community",
-        "repo": "home-manager",
-        "rev": "2c0350c759688177331b8f5242311fae8877bdb3",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "home-manager",
-        "type": "github"
-      }
-    },
-    "home-manager_2": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
@@ -994,12 +998,13 @@
         "catppuccin": "catppuccin",
         "chaotic": "chaotic",
         "claude-desktop": "claude-desktop",
+        "emacs-overlays": "emacs-overlays",
         "firefox-mods": "firefox-mods",
         "firefox-mods-2": "firefox-mods-2",
         "flake-compat": "flake-compat",
         "flake-parts": "flake-parts",
         "ghostty-cursor": "ghostty-cursor",
-        "home-manager": "home-manager_2",
+        "home-manager": "home-manager",
         "jetbrains-plugins": "jetbrains-plugins",
         "lanzaboote": "lanzaboote",
         "msbuild-project-tools-server": "msbuild-project-tools-server",

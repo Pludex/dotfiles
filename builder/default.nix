@@ -77,6 +77,7 @@ let
         mkHome = home.mkNonStandalone;
       };
       nixvim = import ./nixvim.nix { inherit mkPkgs mkNixvimModules args; };
+      emacs = import ./emacs.nix { inherit mkPkgs args; };
     in
     {
       inherit mkPkgs;
@@ -84,6 +85,7 @@ let
       mkHome = home.mk;
       mkNixvim = nixvim.mk;
       mkNvimPkg = nixvim.mkPackage;
+      inherit (emacs) mkEmacsPackage;
     };
 
   output = mkBuilderWithSelf { self = output; };

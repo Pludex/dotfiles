@@ -34,6 +34,7 @@ rec {
   modules = "${flake}/modules";
   pkgs = "${flake}/pkgs";
   overlays = "${flake}/overlays";
+  emacs = "${flake}/emacs";
 
   nixos = rec {
     root = "${flake}/nixos";

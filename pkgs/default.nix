@@ -1,4 +1,10 @@
-{ inputs, args, ... }: [
+{
+  inputs,
+  args,
+  builder,
+  ...
+}:
+[
   (final: prev: {
     myPkgs = {
       audio-manager = final.callPackage ./audio-manager { };
@@ -10,6 +16,8 @@
       wps = final.callPackage ./wps { };
       sklauncher = final.callPackage ./sklauncher.nix { };
       waycal = final.callPackage ./waycal.nix { };
+
+      emacs = builder.mkEmacsPackage { system = final.stdenv.system; };
     }
     // (import ./nixvim.nix (args // { pkgs = final; }));
 

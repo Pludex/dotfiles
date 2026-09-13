@@ -45,6 +45,7 @@
           nur.overlays.default
           treesitter-kanata.overlays.default
           obsidian-extensions.overlays.default
+          emacs-overlays.overlays.default
         ];
 
         nixpkgsConfig = {
@@ -190,6 +191,7 @@
     chaotic = {
       url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
     };
 
     # home
@@ -311,6 +313,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # emacs
+    emacs-overlays = {
+      url = "github:nix-community/emacs-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs-stable.follows = "nixpkgs-stable";
+    };
+
     # miscelaneous
 
     nix-flatpak.url = "github:gmodena/nix-flatpak/v0.7.0";
@@ -336,6 +345,5 @@
       url = "github:ferion11/ttf-wps-fonts";
       flake = false;
     };
-
   };
 }

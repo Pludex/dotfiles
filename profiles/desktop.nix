@@ -23,7 +23,6 @@
         "${a}/vivaldi.nix"
         "${a}/wps.nix"
 
-        "${p}/emacs"
         "${p}/fastfetch"
         # "${p}/firefox"
         # "${p}/floorp"
@@ -39,6 +38,7 @@
         "${p}/carapace.nix"
         "${p}/delta.nix"
         "${p}/direnv.nix"
+        "${p}/emacs.nix"
         "${p}/eza.nix"
         "${p}/fd.nix"
         "${p}/fish.nix"
