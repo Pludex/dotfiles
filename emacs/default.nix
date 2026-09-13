@@ -1,6 +1,3 @@
-_:
-{
-optionalValue = {
-    fiel  =1;
-  };
+_: {
+  optionalValue = { };
 }

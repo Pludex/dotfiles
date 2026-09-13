@@ -72,6 +72,7 @@ in
       emacsWithPackages = pkgs.emacsWithPackagesFromUsePackage {
         config = "${configEmacs}/packages.el";
         alwaysEnsure = true;
+        package = pkgs.emacs-pgtk;
       };
 
       emacsWrapped = pkgs.writeShellScriptBin "emacs" ''
