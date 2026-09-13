@@ -26,7 +26,7 @@ rec {
   repoGh = "https://github.com/pbcdev210/nix-config";
 
   flake = inputs.self;
-  assets = "${flake}/assets";
+  assets = ../assets;
   desktops = "${flake}/desktops";
   profiles = "${flake}/profiles";
   hosts = "${flake}/hosts";
