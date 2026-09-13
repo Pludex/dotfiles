@@ -70,7 +70,7 @@ in
       '';
 
       emacsWithPackages = pkgs.emacsWithPackagesFromUsePackage {
-        config = "${configEmacs}/init.el";
+        config = "${configEmacs}/packages.el";
         alwaysEnsure = true;
       };
 
