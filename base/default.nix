@@ -27,33 +27,33 @@ rec {
 
   flake = inputs.self;
   assets = ../assets;
-  desktops = "${flake}/desktops";
-  profiles = "${flake}/profiles";
-  hosts = "${flake}/hosts";
-  data = "${flake}/data";
-  modules = "${flake}/modules";
-  pkgs = "${flake}/pkgs";
-  overlays = "${flake}/overlays";
-  emacs = "${flake}/emacs";
+  desktops = ../desktops;
+  profiles = ../profiles;
+  hosts = ../hosts;
+  data = ../data;
+  modules = ../modules;
+  pkgs = ../pkgs;
+  overlays = ../overlays;
+  emacs = ../emacs;
 
-  nixos = rec {
-    root = "${flake}/nixos";
-    services = "${root}/services";
-    virtualisation = "${root}/virtualisation";
+  nixos = {
+    root = ../nixos;
+    services = ../nixos/services;
+    virtualisation = ../nixos/virtualisation;
   };
 
-  home = rec {
-    root = "${flake}/home";
-    programs = "${root}/programs";
-    services = "${root}/services";
-    develop = "${root}/develop";
-    apps = "${root}/apps";
-    ides = "${root}/ides";
+  home = {
+    root = ../home;
+    programs = ../home/programs;
+    services = ../home/services;
+    develop = ../home/develop;
+    apps = ../home/apps;
+    ides = ../home/ides;
   };
 
-  nixvim = rec {
-    root = "${flake}/nixvim";
-    languages = "${root}/languages";
+  nixvim = {
+    root = ../nixvim;
+    languages = ../nixvim/languages;
   };
 
   paths = rec {

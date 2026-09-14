@@ -9,6 +9,7 @@
     ./programs
     ./services
     ./gtk.nix
+    ./man.nix
     ./nix-config.nix
     ./sops.nix
     ./theme.nix
