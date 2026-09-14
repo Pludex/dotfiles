@@ -9,4 +9,6 @@
   packagesFile = ./packages.el;
 
   package = pkgs.emacs-pgtk;
+
+  extraEmacsPackages = epkgs: [ ];
 }

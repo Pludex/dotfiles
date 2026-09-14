@@ -9,12 +9,13 @@ in
       pkgs = mkPkgs { inherit system; };
       inherit (pkgs) lib;
 
-      cfg = import "${base.emacs}/default.nix" { inherit pkgs; } // args;
+      cfg = import "${base.emacs}/default.nix" ({ inherit pkgs; } // args);
 
       earlyInit = cfg.earlyInit or "";
       extraPackages = cfg.extraPackages or [ ];
       emacsPackage = cfg.package or pkgs.emacs;
       packagesFile = cfg.packagesFile;
+      extraEmacsPackages = cfg.extraEmacsPackages or (_: [ ]);
 
       earlyInitEl = pkgs.writeText "early-init.el" earlyInit;
 
@@ -29,6 +30,7 @@ in
         config = packagesFile;
         alwaysEnsure = true;
         package = emacsPackage;
+        inherit extraEmacsPackages;
       };
 
       emacsWrapped = pkgs.symlinkJoin {

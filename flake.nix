@@ -314,6 +314,7 @@
     };
 
     # emacs
+
     emacs-overlays = {
       url = "github:nix-community/emacs-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
