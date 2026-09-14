@@ -178,6 +178,78 @@
         "type": "github"
       }
     },
+    "doom-emacs": {
+      "inputs": {
+        "doomdir": "doomdir",
+        "doomemacs": "doomemacs",
+        "doomemacs-modules": "doomemacs-modules",
+        "emacs-overlay": [
+          "emacs-overlays"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789305657,
+        "narHash": "sha256-XSlgitqh1XpSpnZgGKP7JQOVurP45AM1E9yw9pybKG4=",
+        "owner": "marienz",
+        "repo": "nix-doom-emacs-unstraightened",
+        "rev": "f06f526c2fc9eff1f66882c337bc4f127b0ee4fc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "marienz",
+        "repo": "nix-doom-emacs-unstraightened",
+        "type": "github"
+      }
+    },
+    "doomdir": {
+      "flake": false,
+      "locked": {
+        "path": "emacs",
+        "type": "path"
+      },
+      "original": {
+        "path": "emacs",
+        "type": "path"
+      },
+      "parent": [
+        "doom-emacs"
+      ]
+    },
+    "doomemacs": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788654597,
+        "narHash": "sha256-Ywp5JhRziVk11M8qPhejJS+tF4ONNbOhevj5JRZsfOg=",
+        "owner": "doomemacs",
+        "repo": "core",
+        "rev": "01d68aaf6bd7db073365385cd82e1ad7e815295c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "doomemacs",
+        "repo": "core",
+        "type": "github"
+      }
+    },
+    "doomemacs-modules": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788284745,
+        "narHash": "sha256-W+Xwss52Eb6K+I7TRaCU3Z5zPxmo0PfWbNPNLJv1TjE=",
+        "owner": "doomemacs",
+        "repo": "modules",
+        "rev": "d57ab52a3425b6d39564fb011b0e9571da0e270f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "doomemacs",
+        "repo": "modules",
+        "type": "github"
+      }
+    },
     "emacs-overlays": {
       "inputs": {
         "nixpkgs": [
@@ -998,6 +1070,7 @@
         "catppuccin": "catppuccin",
         "chaotic": "chaotic",
         "claude-desktop": "claude-desktop",
+        "doom-emacs": "doom-emacs",
         "emacs-overlays": "emacs-overlays",
         "firefox-mods": "firefox-mods",
         "firefox-mods-2": "firefox-mods-2",

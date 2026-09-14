@@ -1,4 +1,11 @@
-{ pkgs, ... }:
+{ inputs, base, ... }:
 {
-  home.packages = [ pkgs.myPkgs.emacs ];
+  imports = [
+    inputs.doom-emacs.homeModule
+    base.emacs
+  ];
+
+  programs.doom-emacs = {
+    enable = true;
+  };
 }
