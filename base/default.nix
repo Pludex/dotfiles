@@ -59,6 +59,7 @@ rec {
   paths = rec {
     home = "/home/${username}";
     dotfiles = "/workspaces/nix-config";
+    emacs = "${dotfiles}/emacs";
     dotfilesBot = "/workspaces/nix-config-bot";
     data = "${dotfilesBot}/data";
   };
