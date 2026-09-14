@@ -1,19 +1,19 @@
 ;;; packages.el --- Emacs initialization -*- lexical-binding: t; -*-
 
+(setq use-package-always-ensure nil)
+
 ;; UI
-(use-package autothemer :ensure t)
-(use-package doom-modeline :ensure t)
-(use-package comet-trail :ensure t)
+(use-package autothemer)
 
 ;; core
 (setq evil-want-integration t
       evil-want-keybinding nil)
-(use-package evil :ensure t)
-(use-package evil-escape :ensure t )
-(use-package evil-collection :ensure t)
-(use-package evil-surround :ensure t)
-(use-package evil-commentary :ensure t)
-(use-package evil-matchit :ensure t)
+(use-package evil)
+(use-package evil-escape)
+(use-package evil-collection)
+(use-package evil-surround)
+(use-package evil-commentary)
+(use-package evil-matchit)
 
-(use-package vertico :ensure t)
-(use-package marginalia :ensure t)
+(use-package vertico)
+(use-package marginalia)
