@@ -1,8 +1,7 @@
 ;;; core.el --- Emacs initialization -*- lexical-binding: t; -*-
 
 ;; vim like
-(setq evil-want-keybinding nil)
-(setq evil-undo-system 'undo-redo)
-(evil-mode 1)
+(load (concat (file-name-directory load-file-name) "vim-like.el"))
+(require 'vim-like)
 
-(provide core')
+(provide 'core)
