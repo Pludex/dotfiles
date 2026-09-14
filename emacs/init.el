@@ -10,6 +10,7 @@
        doom
        !modeline
        ophints
+       dashboard
        (popup +defaults)
 
        :editor
