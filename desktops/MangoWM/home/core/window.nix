@@ -13,7 +13,7 @@
     "SUPER+SHIFT,K,move_client,up"
     "SUPER+SHIFT,J,move_client,down"
 
-    "SUPER+CTRL,Tab,toggleoverview"
+    "SUPER,Tab,toggleoverview"
 
     "SUPER,1,view,1"
     "SUPER,2,view,2"

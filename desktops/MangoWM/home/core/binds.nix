@@ -6,6 +6,7 @@
     bind = [
       "SUPER+SHIFT,Q,quit"
       "SUPER,Return,spawn,${lib.getExe config.programs.ghostty.package}"
+      "SUPER,r,reload_config"
     ];
   };
 
