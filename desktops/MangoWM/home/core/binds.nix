@@ -5,6 +5,7 @@
 
     bind = [
       "SUPER+SHIFT,Q,quit"
+      "SUPER,Return,spawn,${lib.getExe config.programs.ghostty.package}"
     ];
   };
 
@@ -19,7 +20,6 @@
       default = [ ];
     };
   };
-
   config = {
     wayland.windowManager.mango.settings.bind = map (
       b: lib.replaceStrings [ "SUPER" ] [ config.programs.mango.settings.superKey ] b
