@@ -14,7 +14,6 @@
     "SUPER+SHIFT,J,move_client,down"
 
     "SUPER+CTRL,Tab,toggleoverview"
-    "SUPER,E,switch_proportion_preset"
 
     "SUPER,1,view,1"
     "SUPER,2,view,2"
@@ -37,30 +36,21 @@
     "SUPER+SHIFT,9,tag,256"
   ];
 
-  wayland.windowManager.mango = {
-    settings = {
-      scroller_proportion_preset = builtins.concatStringsSep "," [
-        (toString (builtins.div 1.0 3.0)) # ~0.333
-        (toString (builtins.div 1.0 2.0)) # 0.5
-        (toString (builtins.div 2.0 3.0)) # ~0.666
-        "1.0"
-      ];
+  wayland.windowManager.mango.settings = {
+    focuscolor = "0x${config.lib.stylix.colors.base0D}ff";
+    bordercolor = "0x${config.lib.stylix.colors.base02}ff";
+    rootcolor = "0x${config.lib.stylix.colors.base00}ff";
 
-      focuscolor = "0x${config.lib.stylix.colors.base0D}ff";
-      bordercolor = "0x${config.lib.stylix.colors.base02}ff";
-      rootcolor = "0x${config.lib.stylix.colors.base00}ff";
+    borderpx = 2;
 
-      borderpx = 2;
-
-      blur = 1;
-      blur_optimized = 1;
-      blur_params = {
-        radius = 5;
-        num_passes = 2;
-      };
-      border_radius = 6;
-
-      focused_opacity = 1.0;
+    blur = 1;
+    blur_optimized = 1;
+    blur_params = {
+      radius = 5;
+      num_passes = 2;
     };
+    border_radius = 6;
+
+    focused_opacity = 1.0;
   };
 }
