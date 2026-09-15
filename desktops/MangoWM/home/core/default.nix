@@ -7,6 +7,7 @@
   imports = [
     inputs.MangoWM.hmModules.mango
     ./binds.nix
+    ./window.nix
   ];
 
 }
