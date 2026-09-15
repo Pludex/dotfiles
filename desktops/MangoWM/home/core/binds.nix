@@ -1,7 +1,7 @@
 { lib, config, ... }:
 {
   config.programs.mango.settings = {
-    superKey = "CTRL"; # in niri
+    superKey = "SUPER";
 
     bind = [
       "SUPER+SHIFT,Q,quit"

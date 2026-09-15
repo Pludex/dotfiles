@@ -117,7 +117,7 @@
             "pbcdev@dp7530" = builder.mkHome {
               name = "pbcdev@dp7530";
               profile = "desktop";
-              desktop = "niri";
+              desktop = "MangoWM";
               system = "x86_64-linux";
             };
           };
@@ -134,7 +134,7 @@
             dp7530 = builder.mkNixos {
               name = "dp7530";
               profile = "desktop";
-              desktop = "niri";
+              desktop = "MangoWM";
               host = "dp7530";
               system = "x86_64-linux";
             };
