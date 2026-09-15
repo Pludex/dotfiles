@@ -225,6 +225,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    MangoWM = {
+      url = "github:mangowm/mango";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     waycal = {
       url = "github:forrestknight/waycal";
       flake = false;

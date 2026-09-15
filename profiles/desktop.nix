@@ -8,6 +8,7 @@
       s = base.home.services;
       d = base.home.develop;
       i = base.home.ides;
+      de = (import base.desktops { desktop = "MangoWM"; }).home;
     in
     {
       imports = [
@@ -68,6 +69,7 @@
 
         "${i}/vscode.nix"
         "${i}/rider.nix"
+        de
       ];
     };
 
@@ -76,6 +78,8 @@
     let
       s = base.nixos.services;
       v = base.nixos.virtualisation;
+
+      de = (import base.desktops { desktop = "MangoWM"; }).nixos;
     in
     {
       imports = [
@@ -88,6 +92,7 @@
 
         "${v}/core/libvirt.nix"
         "${v}/win10.nix"
+        de
       ];
     };
 }
