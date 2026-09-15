@@ -1,5 +1,6 @@
 {
   imports = [
     ./core
+    ./launcher.nix
   ];
 }
