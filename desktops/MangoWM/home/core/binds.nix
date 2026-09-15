@@ -1,23 +1,29 @@
 { lib, config, ... }:
-let
-  S = config.programs.mango.superKey;
-in
 {
-  options.programs = {
-    mango = {
-      superKey = lib.mkOption {
-        type = lib.types.str;
-        description = "SUPER KEY MAP";
-      };
+  config.programs.mango.settings = {
+    superKey = "ALT"; # in niri
+
+    bind = [
+      "SUPER,Q,killclient"
+      "SUPER+SHIFT,Q,quit"
+    ];
+  };
+
+  options.programs.mango.settings = {
+    superKey = lib.mkOption {
+      type = lib.types.str;
+      default = "SUPER";
+    };
+
+    bind = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
     };
   };
 
   config = {
-    programs.mango.superKey = "ALT"; # nested in niri
-
-    wayland.windowManager.mango.settings.bind = [
-      "${S},Q,killclient"
-      "${S}+SHIFT,Q,quit"
-    ];
+    wayland.windowManager.mango.settings.bind = map (
+      b: lib.replaceStrings [ "SUPER" ] [ config.programs.mango.settings.superKey ] b
+    ) config.programs.mango.settings.bind;
   };
 }
