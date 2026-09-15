@@ -3,10 +3,10 @@
     ./clipboard
     ./control
     ./core
-    ./launcher
     ./notification
     ./status-bar
     ./wallpaper
+    ./launcher.nix
     ./screenshot.nix
   ];
 }

@@ -28,6 +28,7 @@ rec {
   flake = inputs.self;
   assets = ../assets;
   desktops = ../desktops;
+  commonDesktop = ../desktops/common;
   profiles = ../profiles;
   hosts = ../hosts;
   data = ../data;
