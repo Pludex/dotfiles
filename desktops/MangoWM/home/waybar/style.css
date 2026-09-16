@@ -1,0 +1,216 @@
+@define-color background-color #1a1a1a;
+/* @define-color background-color rgba(26, 26, 26, 0.8); */
+/* @define-color bar-background-color #292b2e; */
+@define-color bar-background-color rgba(41, 43, 46, 0.6);
+@define-color bar-foreground-color #fdf6e3;
+
+window#waybar {
+  background: @bar-background-color;
+  color: @bar-foreground-color;
+}
+
+#custom-right-arrow-dark,
+#custom-left-arrow-dark {
+  color: @background-color;
+}
+
+#custom-right-arrow-light,
+#custom-left-arrow-light {
+  color: @bar-background-color;
+  background: @background-color;
+}
+
+/* just the logo */
+#custom-spotify {
+  background: @background-color;
+  color: #04982c;
+  padding: 5px 5px;
+}
+
+/* the info displayed by playerctl */
+#custom-mpris {
+  background: @background-color;
+  color: #2aa198;
+  padding: 5px 5px;
+}
+
+/* gpu usage */
+#custom-gpu-usage {
+  background: @background-color;
+  color: #8baef0;
+  padding: 0 10px;
+}
+
+/* software updates for nix */
+#custom-sunix {
+  background: @background-color;
+  color: #8baef0;
+  padding: 0 10px;
+}
+
+#workspaces,
+#clock.1,
+#clock.2,
+#clock.3,
+#clock.4,
+#pulseaudio,
+#language,
+#network,
+#window,
+#memory,
+#cpu,
+#temperature,
+#battery,
+#disk,
+#tray {
+  background: @background-color;
+}
+
+#workspaces button {
+  padding: 0 2px;
+  color: @bar-foreground-color;
+}
+
+#workspaces button.active {
+  color: #268bd2;
+}
+
+#workspaces button.focused {
+  color: #268bd2;
+}
+
+#workspaces button:hover {
+  box-shadow: inherit;
+  text-shadow: inherit;
+}
+
+#workspaces button:hover {
+  background: @background-color;
+  border: @background-color;
+  padding: 0 3px;
+}
+
+#workspaces button.empty,
+#workspaces button.empty label,
+#workspaces button#niri-workspace-scratch,
+#workspaces button#niri-workspace-scratch label {
+  background: None;
+  border: None;
+  font-size: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+#pulseaudio {
+  color: #268bd2;
+}
+
+#memory {
+  color: #2aa198;
+}
+
+#cpu {
+  color: #6c71c4;
+}
+
+#temperature {
+  color: #f54927;
+}
+
+#battery {
+  color: #859900;
+}
+
+#disk {
+  color: #b58900;
+}
+
+#clock,
+#pulseaudio,
+#memory,
+#cpu,
+#temperature,
+#battery,
+#disk {
+  padding: 0 10px;
+}
+
+#custom-quit {
+  color: #f59809;
+  background: @background-color;
+}
+
+#custom-lock {
+  color: #6f05e5;
+  background: @background-color;
+}
+
+#custom-reboot {
+  color: #00aba3;
+  background: @background-color;
+}
+
+#custom-power {
+  color: #ff1818;
+  background: @background-color;
+}
+
+#not-power {
+  padding: 0 0px;
+  padding-left: 10px;
+}
+
+#idle_inhibitor {
+  background: @background-color;
+  padding: 0px 15px;
+}
+
+#custom-audio_idle_inhibitor {
+  color: #a66edb;
+  background: @background-color;
+  padding: 0px 15px;
+}
+
+#network {
+  background: @background-color;
+  padding: 0px 15px;
+}
+
+#network.disabled {
+  color: #aba8a8;
+}
+
+#network.disconnected {
+  color: #aba8a8;
+}
+
+#network.linked {
+  color: #2aa198;
+}
+
+#network.ethernet {
+  color: #2aa198;
+}
+
+#network.wifi {
+  color: #268bd2;
+}
+
+#language {
+  color: #b58900;
+  background: @background-color;
+  border-radius: 0px;
+  padding: 0px 5px;
+}
+
+#window {
+  background: @background-color;
+  padding: 0px 0px;
+}
+
+#custom-notification {
+  font-family: "JetBrainsMono Nerd Font";
+  color: #a66edb;
+  background: @background-color;
+}

@@ -15,6 +15,8 @@
       wps = final.callPackage ./wps { };
       sklauncher = final.callPackage ./sklauncher.nix { };
       waycal = final.callPackage ./waycal.nix { };
+
+      waybar = inputs.waybar.packages.${final.stdenv.system}.waybar;
     }
     // (import ./nixvim.nix (args // { pkgs = final; }));
 

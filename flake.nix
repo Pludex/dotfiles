@@ -235,6 +235,11 @@
       flake = false;
     };
 
+    waybar = {
+      url = "github:Alexays/Waybar";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nsticky = {
       url = "github:lonerOrz/nsticky";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -52,5 +52,6 @@
     border_radius = 6;
 
     focused_opacity = 1.0;
+    sloppyfocus = 0;
   };
 }
