@@ -61,7 +61,6 @@
         "${p}/zoxide.nix"
 
         "${s}/audio-manager"
-        "${s}/clipse.nix"
         # "${s}/espanso.nix"
 
         "${d}/dotnet.nix"

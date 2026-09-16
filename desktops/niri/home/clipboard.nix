@@ -1,3 +1,4 @@
+{ pkgs, base, ... }:
 {
   programs.niri.settings = {
     binds = {
@@ -31,4 +32,9 @@
       }
     ];
   };
+  home.packages = [
+    pkgs.wl-clipboard
+  ];
+
+  imports = [ "${base.commonDesktop}/clipse.nix" ];
 }
