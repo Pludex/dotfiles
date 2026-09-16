@@ -8,6 +8,7 @@
     inputs.MangoWM.hmModules.mango
     ./autostart.nix
     ./binds.nix
+    ./input.nix
     ./layout.nix
     ./window.nix
   ];
