@@ -10,6 +10,7 @@
     ./binds.nix
     ./input.nix
     ./layout.nix
+    ./startSession.nix
     ./window.nix
   ];
 }

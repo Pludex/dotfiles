@@ -1,6 +1,7 @@
 {
   imports = [
     ./core
+    ./modules
     ./notification
     ./waybar
     ./clipboard.nix
