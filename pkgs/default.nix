@@ -12,6 +12,7 @@
       vaultwarden-sync = final.callPackage ./vaultwarden-sync { };
       vivaldi-sync = final.callPackage ./vivaldi-sync { };
       volume-control = final.callPackage ./volume-control { };
+      wallpapers = final.callPackage ./wallpapers { };
       wps = final.callPackage ./wps { };
       sklauncher = final.callPackage ./sklauncher.nix { };
       waycal = final.callPackage ./waycal.nix { };
