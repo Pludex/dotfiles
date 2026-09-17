@@ -14,7 +14,9 @@
       volume-control = final.callPackage ./volume-control { };
       wallpapers = final.callPackage ./wallpapers { };
       wps = final.callPackage ./wps { };
+      screenshot = final.callPackage ./screenshot.nix { };
       sklauncher = final.callPackage ./sklauncher.nix { };
+      screenrecord = final.callPackage ./sreenrecord.nix { };
       waycal = final.callPackage ./waycal.nix { };
 
       waybar = inputs.waybar.packages.${final.stdenv.system}.waybar;

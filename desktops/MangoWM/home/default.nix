@@ -7,6 +7,8 @@
     ./clipboard.nix
     ./control.nix
     ./launcher.nix
+    ./screenrecord.nix
+    ./screenshot.nix
     ./wallpaper.nix
   ];
 }
