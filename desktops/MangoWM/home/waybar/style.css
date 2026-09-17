@@ -1,7 +1,6 @@
-@define-color background-color #1a1a1a;
-/* @define-color background-color rgba(26, 26, 26, 0.8); */
-/* @define-color bar-background-color #292b2e; */
-@define-color bar-background-color rgba(41, 43, 46, 0.6);
+@define-color background-color #2a2a2a;
+@define-color bar-background-color rgba(41, 43, 46, 0.4);
+@define-color background-color-content #595959;
 @define-color bar-foreground-color #fdf6e3;
 
 window#waybar {
@@ -12,12 +11,20 @@ window#waybar {
 #custom-right-arrow-dark,
 #custom-left-arrow-dark {
   color: @background-color;
+
+  background: @background-color-content;
 }
 
 #custom-right-arrow-light,
 #custom-left-arrow-light {
-  color: @bar-background-color;
+  color: @background-color-content;
   background: @background-color;
+}
+
+#custom-right-arrow-end,
+#custom-left-arrow-end {
+  color: @background-color;
+  background: @bar-background-color;
 }
 
 /* just the logo */
@@ -210,7 +217,11 @@ window#waybar {
 }
 
 #custom-notification {
-  font-family: "JetBrainsMono Nerd Font";
   color: #a66edb;
   background: @background-color;
+}
+
+#layout {
+  background: @background-color;
+  color: #268bd2;
 }

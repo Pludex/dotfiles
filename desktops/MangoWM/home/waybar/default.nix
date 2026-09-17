@@ -35,6 +35,8 @@ in
           "format" = " {bandwidthUpBits}  {bandwidthDownBits}";
         };
         modules-left = [
+          "custom/right-arrow-dark"
+          "custom/right-arrow-light"
           "mango/workspaces"
           "custom/right-arrow-dark"
           "custom/right-arrow-light"
@@ -42,11 +44,11 @@ in
           "custom/right-arrow-dark"
           "custom/right-arrow-light"
           "custom/sunix"
-          "custom/right-arrow-dark"
+          "custom/right-arrow-end"
         ];
 
         modules-center = [
-          "custom/left-arrow-dark"
+          "custom/left-arrow-end"
           "clock#2"
           "custom/left-arrow-light"
           "custom/left-arrow-dark"
@@ -54,10 +56,10 @@ in
           "custom/right-arrow-dark"
           "custom/right-arrow-light"
           "clock#4"
-          "custom/right-arrow-dark"
+          "custom/right-arrow-end"
         ];
         modules-right = [
-          "custom/left-arrow-dark"
+          "custom/left-arrow-end"
           "network"
           "custom/left-arrow-light"
           "custom/left-arrow-dark"
@@ -70,9 +72,9 @@ in
           #"custom/gpu-usage"
           #"custom/left-arrow-light"
           #"custom/left-arrow-dark"
-          "temperature"
-          "custom/left-arrow-light"
-          "custom/left-arrow-dark"
+          # "temperature"
+          # "custom/left-arrow-light"
+          # "custom/left-arrow-dark"
           "disk"
           "custom/left-arrow-light"
           "custom/left-arrow-dark"
@@ -102,17 +104,17 @@ in
           "custom/right-arrow-light"
           "custom/spotify"
           "custom/mpris"
-          "custom/right-arrow-dark"
+          "custom/right-arrow-end"
         ];
 
         modules-center = [
-          "custom/left-arrow-dark"
+          "custom/left-arrow-end"
           "mango/window"
-          "custom/right-arrow-dark"
+          "custom/right-arrow-end"
         ];
 
         modules-right = [
-          "custom/left-arrow-dark"
+          "custom/left-arrow-end"
           "network"
           "custom/left-arrow-light"
           "custom/left-arrow-dark"
