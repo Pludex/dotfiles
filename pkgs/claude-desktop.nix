@@ -26,7 +26,7 @@ in
 stdenvNoCC.mkDerivation rec {
   inherit pname version;
 
-  src = ./.;
+  src = ./claude-desktop.nix;
 
   nativeBuildInputs = [
     p7zip
