@@ -11,6 +11,7 @@
   makeWrapper,
   patchy-cnb,
   perl,
+  myPkgs,
 }:
 let
   pname = "claude-desktop";
@@ -39,7 +40,7 @@ stdenvNoCC.mkDerivation rec {
   desktopItem = makeDesktopItem {
     name = "claude";
     exec = "claude-desktop %u";
-    icon = "claude";
+    icon = "${myPkgs.assets}/icons/claude.png";
     type = "Application";
     terminal = false;
     desktopName = "Claude";
