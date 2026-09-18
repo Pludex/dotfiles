@@ -26,7 +26,6 @@ rec {
   repoGh = "https://github.com/pbcdev210/nix-config";
 
   flake = inputs.self;
-  assets = ../assets;
   desktops = ../desktops;
   commonDesktop = ../desktops/common;
   profiles = ../profiles;

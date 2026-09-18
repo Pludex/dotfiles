@@ -1,8 +1,6 @@
 {
   lib,
   pkgs,
-  base,
-  config,
   ...
 }:
 let

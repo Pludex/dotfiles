@@ -1,4 +1,4 @@
-{ pkgs, base, ... }:
+{ pkgs, myPkgs, ... }:
 pkgs.writeShellApplication {
   name = "brightness-control";
 
@@ -11,7 +11,7 @@ pkgs.writeShellApplication {
   ];
 
   text = ''
-    export iDIR="${base.assets}/icons"
+    export iDIR="${myPkgs.assets}/icons"
     bash ${./brightness-control.sh} "$@"
   '';
 }

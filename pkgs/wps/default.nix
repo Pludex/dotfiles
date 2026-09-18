@@ -1,7 +1,7 @@
 {
   pkgs,
   lib ? pkgs.lib,
-  base,
+  myPkgs,
 }:
 
 let
@@ -106,7 +106,7 @@ pkgs.stdenv.mkDerivation {
       cp "$file" "$newfile"
       sed -i "s|${package}|$out|g" "$newfile"
       ${lib.optionalString fixIcons ''
-        sed -i "s|^Icon=.*|Icon=${base.assets}/icons/wpsoffice.webp|g" "$newfile"
+        sed -i "s|^Icon=.*|Icon=${myPkgs.assets}/icons/wpsoffice.webp|g" "$newfile"
       ''}
     done
   '';

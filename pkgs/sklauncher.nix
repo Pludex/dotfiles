@@ -1,6 +1,6 @@
 {
+  myPkgs,
   pkgs,
-  base,
   stdenv,
   appimageTools,
   ...
@@ -36,7 +36,7 @@ let
     comment = "An alternative Minecraft launcher";
     exec = "${baseApp}/bin/sklauncher";
 
-    icon = "${base.assets}/icons/sklauncher.png";
+    icon = "${myPkgs.assets}/icons/sklauncher.png";
 
     categories = [ "Game" ];
     terminal = false;

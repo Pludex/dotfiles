@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, myPkgs, ... }:
 let
   deps = with pkgs; [
     awww
@@ -8,9 +8,9 @@ let
   ];
 
   wallpaperDirs = pkgs.runCommand "wallpapers" { } ''
-    mkdir -p $out/static $out/live
-    cp -r ${./static}/. $out/static/
-    cp -r ${./live}/. $out/live/
+    mkdir -p $out
+    ln -s ${myPkgs.assets}/wallpapers/static $out/static
+    ln -s ${myPkgs.assets}/wallpapers/live $out/live
   '';
 
   # Generic "pick a random file from a directory, avoiding an immediate
@@ -36,7 +36,7 @@ let
           exit 1
         fi
 
-        mapfile -t CANDIDATES < <(find "$WALLPAPER_DIR" -type f \( ${findExpr} \))
+        mapfile -t CANDIDATES < <(find -L "$WALLPAPER_DIR" -type f \( ${findExpr} \))
 
         if [ ''${#CANDIDATES[@]} -eq 0 ]; then
           echo "Error: No valid wallpaper files found." >&2
