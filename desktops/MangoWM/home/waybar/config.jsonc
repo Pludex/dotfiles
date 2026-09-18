@@ -119,7 +119,8 @@
   },
   "tray": {
     "icon-size": 20,
-    "show-passive-items": true
+    "show-passive-items": true,
+    "spacing": 10
   },
   "custom/mpris": {
     "format": "{}",
@@ -231,21 +232,21 @@
     "on-click": "pgrep -io 'waycal' | xargs kill || waycal"
   },
   "mango/layout": {
-    "format": "{symbol}",
-    "format-T": " 󰕴 Tile",
-    "format-S": " 󰹹 Scroller",
-    "format-M": " 󰊓 Monocle",
-    "format-G": " 󰕰 Grid",
-    "format-K": "  Deck",
-    "format-CT": " 󰋱 Center Tile",
-    "format-RT": "  Right Tile",
-    "format-VT": " 󰕲 Vertical Tile",
-    "format-VS": "  Vertical Scroller",
-    "format-VG": "  Vertical Grid",
-    "format-VK": "  Vertical Deck",
-    "format-D": "  Dwindle",
-    "format-F": "  Fair",
-    "format-VF": "  Vertical Fair",
+    "format": " {symbol} ",
+    "format-T": " 󰕴 Tile ",
+    "format-S": "  Scroller ",
+    "format-M": " 󰊓 Monocle ",
+    "format-G": " 󰝘 Grid ",
+    "format-K": "  Deck ",
+    "format-CT": "  Center Tile ",
+    "format-RT": "  Right Tile ",
+    "format-VT": "  Vertical Tile ",
+    "format-VS": "  Vertical Scroller ",
+    "format-VG": "  Vertical Grid ",
+    "format-VK": "  Vertical Deck ",
+    "format-DW": "  Dwindle ",
+    "format-F": "  Fair ",
+    "format-VF": "  Vertical Fair ",
     "tooltip": false,
     "expand": false
   }
