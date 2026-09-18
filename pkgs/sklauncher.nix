@@ -1,29 +1,33 @@
 {
-  sources,
   pkgs,
   base,
+  stdenv,
+  appimageTools,
   ...
 }:
 let
-  baseApp = pkgs.appimageTools.wrapType2 {
+  baseApp = appimageTools.wrapType2 rec {
     pname = "sklauncher";
-    version = "stable";
-    src = sources."sklauncher-appimage-${pkgs.stdenv.system}";
-    extraPkgs =
-      p: with p; [
-        glfw
-        openal
-        libGL
-        libglvnd
-        vulkan-loader
-        libX11
-        libXext
-        libXcursor
-        libXrandr
-        libXinerama
-        libXi
-        libXxf86vm
-      ];
+    version = "4.0.47";
+    src = builtins.fetchurl {
+      url = "https://github.com/sklauncher/binaries/releases/download/v${version}/SKlauncher-${version}-${stdenv.hostPlatform.parsed.cpu.name}.AppImage";
+      sha256 = "sha256:0xsgfsz2l7gzzrzhrkplv6g0fyfy40x8di28i7yrihf6sz71qjm1";
+    };
+
+    extraPkgs = p: [
+      p.glfw
+      p.openal
+      p.libGL
+      p.libglvnd
+      p.vulkan-loader
+      p.libX11
+      p.libXext
+      p.libXcursor
+      p.libXrandr
+      p.libXinerama
+      p.libXi
+      p.libXxf86vm
+    ];
   };
 
   desktopItem = pkgs.makeDesktopItem {
@@ -32,7 +36,7 @@ let
     comment = "An alternative Minecraft launcher";
     exec = "${baseApp}/bin/sklauncher";
 
-    icon = "${base.assets}/icons/sklauncher.webp";
+    icon = "${base.assets}/icons/sklauncher.png";
 
     categories = [ "Game" ];
     terminal = false;

@@ -1135,7 +1135,6 @@
         "obsidian-extensions": "obsidian-extensions",
         "plasma-manager": "plasma-manager",
         "schemes": "schemes",
-        "sklauncher-appimage-x86_64-linux": "sklauncher-appimage-x86_64-linux",
         "sops-nix": "sops-nix",
         "stylix": "stylix",
         "sunix": "sunix",
@@ -1206,18 +1205,6 @@
         "owner": "pbcdev210",
         "repo": "schemes",
         "type": "github"
-      }
-    },
-    "sklauncher-appimage-x86_64-linux": {
-      "flake": false,
-      "locked": {
-        "narHash": "sha256-tkOTWGFoEl6Wxc+SEoOBDZlibtde7TWffE9SguAWhkU=",
-        "type": "file",
-        "url": "https://github.com/sklauncher/binaries/releases/download/v4.0.47/SKlauncher-4.0.47-x86_64.AppImage"
-      },
-      "original": {
-        "type": "file",
-        "url": "https://github.com/sklauncher/binaries/releases/download/v4.0.47/SKlauncher-4.0.47-x86_64.AppImage"
       }
     },
     "sops-nix": {
