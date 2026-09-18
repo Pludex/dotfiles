@@ -342,7 +342,6 @@
     # miscelaneous
 
     nix-flatpak.url = "github:gmodena/nix-flatpak/v0.7.0";
-    claude-desktop.url = "github:Reginleif88/claude-cowork-nix";
     vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
 
     nix-index-database = {

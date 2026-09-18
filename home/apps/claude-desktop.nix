@@ -1,12 +1,7 @@
-{ inputs, ... }:
+{ pkgs, ... }:
 {
-  imports = with inputs; [
-    claude-desktop.homeManagerModules.default
+  home.packages = [
+    pkgs.myPkgs.claude-desktop
   ];
 
-  programs.claude-desktop = {
-    enable = true;
-    fhs = true;
-    createDesktopEntry = true;
-  };
 }
