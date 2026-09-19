@@ -5,10 +5,11 @@
 }:
 [
   (final: prev: {
-    myPkgs = rec {
+    myPkgs = {
       assets = final.callPackage ./assets { };
       audio-manager = final.callPackage ./audio-manager { };
       brightness-control = final.callPackage ./brightness-control { };
+      claude-desktop = final.callPackage ./claude-desktop { };
       msbuild-ls = final.callPackage ./msbuild-ls { };
       patchy-cnb = final.callPackage ./patchy-cnb { };
       vaultwarden-sync = final.callPackage ./vaultwarden-sync { };
@@ -16,7 +17,6 @@
       volume-control = final.callPackage ./volume-control { };
       wps = final.callPackage ./wps { };
 
-      claude-desktop = final.callPackage ./claude-desktop.nix { inherit patchy-cnb; };
       screenshot = final.callPackage ./screenshot.nix { };
       sklauncher = final.callPackage ./sklauncher.nix { };
       wallpapers = final.callPackage ./wallpapers.nix { };

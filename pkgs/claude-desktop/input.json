@@ -1,0 +1,4 @@
+{
+  "amd64": {"url": "https://downloads.claude.ai/claude-desktop/apt/stable/pool/main/c/claude-desktop/claude-desktop_2.2553.1_amd64.deb", "version": "2.2553.1", "sha256": "sha256-ZwD92E53prjJORLC9p610eQPqZvNnTf0OPgJ7ypv5vg="},
+  "arm64": {"url": "https://downloads.claude.ai/claude-desktop/apt/stable/pool/main/c/claude-desktop/claude-desktop_2.2553.1_arm64.deb", "version": "2.2553.1", "sha256": "sha256-AAOm+WBaIQ8Dw4Zw1izVnHEVPCcCqkQn5Mq+Li5fM5A="}
+}
