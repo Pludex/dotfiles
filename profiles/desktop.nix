@@ -22,6 +22,7 @@
         "${a}/steam.nix"
         "${a}/vivaldi.nix"
         "${a}/wps.nix"
+        "${a}/zalo.nix"
 
         "${p}/fastfetch"
         # "${p}/firefox"

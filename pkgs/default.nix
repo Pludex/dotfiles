@@ -16,6 +16,7 @@
       vivaldi-sync = final.callPackage ./vivaldi-sync { };
       volume-control = final.callPackage ./volume-control { };
       wps = final.callPackage ./wps { };
+      zalo-for-linux = final.callPackage ./zalo-for-linux { };
 
       screenshot = final.callPackage ./screenshot.nix { };
       sklauncher = final.callPackage ./sklauncher.nix { };

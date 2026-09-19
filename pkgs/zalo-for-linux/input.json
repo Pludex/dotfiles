@@ -1,0 +1,7 @@
+{
+  "x86_64-linux": {
+    "url": "https://github.com/doandat943/zalo-for-linux/releases/download/26.8.20/Zalo-26.8.20%2BZaDark-26.2.1-ecfb96a-Full.AppImage",
+    "sha256": "1mrk9nj82z0nlbmrchxm7ps8yx5xqj6ymy9kn3dx7md8yw53jkks",
+    "version": "26.8.20"
+  }
+}
