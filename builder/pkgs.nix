@@ -4,24 +4,29 @@
   nixpkgsConfig,
   args,
 }:
+# Overlays must never see an args carrying pkgs, otherwise
+# pkgs -> mkPkgs -> overlays -> args.pkgs -> pkgs recurses forever.
+assert !(args ? pkgs) || throw "pkgs.nix: args must be built with includePkgs' = false";
 let
   inherit (args) base;
 
   overlays =
     extraOverlays
     ++ [
-      (final: prev: args)
       (
         final: prev:
-        (
-          import base.libx {
-            pkgs = final;
-            args = args // {
+        import base.libx {
+          pkgs = final;
+          # Only this args copy has pkgs; the original stays pkgs-free.
+          args = args.mkArgs {
+            includePkgs = true;
+            extraArgs = {
               pkgs = final;
             };
-          }
-          // args
-        )
+          };
+        }
+        # Lets callPackage auto-fill `sources` in base.pkgs.
+        // args
       )
     ]
     ++ (import "${base.overlays}" args)

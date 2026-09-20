@@ -54,6 +54,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   dontUnpack = true;
   dontBuild = true;
+  dontFixup = true; # only symlinks and converted images, nothing to patch or strip
 
   passthru = {
     inherit

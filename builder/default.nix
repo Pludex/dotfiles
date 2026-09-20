@@ -5,17 +5,18 @@
   inputs,
 }:
 let
-  args' = import ./args.nix { inherit inputs; };
-
   mkBuilderWithSelf =
     { self }:
     let
-      args'' = args' // {
-        builder = self;
-      };
+      # mkPkgs is only forced when includePkgs = true, so this recursive let is safe.
+      inherit (import ./args.nix { inherit inputs mkPkgs; }) mkArgs;
 
-      args = args'' // {
-        args = args'';
+      args = mkArgs {
+        extraArgs' = {
+          builder = self;
+        }
+        // self;
+        includePkgs' = false;
       };
 
       inherit (args) base;
