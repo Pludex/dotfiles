@@ -15,6 +15,7 @@
       vaultwarden-sync = final.callPackage ./vaultwarden-sync { };
       vivaldi-sync = final.callPackage ./vivaldi-sync { };
       volume-control = final.callPackage ./volume-control { };
+      warp = final.callPackage ./warp { };
       wps = final.callPackage ./wps { };
       zalo-for-linux = final.callPackage ./zalo-for-linux { };
 

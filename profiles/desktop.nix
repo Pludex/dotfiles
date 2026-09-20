@@ -29,6 +29,7 @@
         # "${p}/floorp"
         "${p}/nushell"
         "${p}/statix"
+        "${p}/warp"
         "${p}/wezterm"
         "${p}/zsh"
 

@@ -1,0 +1,12 @@
+{
+  "x86_64": {
+    "url": "https://releases.warp.dev/stable/v0.2026.09.16.08.27.stable_02/warp-terminal-v0.2026.09.16.08.27.stable_02-1-x86_64.pkg.tar.zst",
+    "sha256": "sha256-Q67uVy1EfmCwPIzLER5KfWVL8XNKyNirN5MMfeq90NQ=",
+    "version": "0.2026.09.16.08.27.stable_02"
+  },
+  "aarch64": {
+    "url": "https://releases.warp.dev/stable/v0.2026.09.16.08.27.stable_02/warp-terminal-v0.2026.09.16.08.27.stable_02-1-aarch64.pkg.tar.zst",
+    "sha256": "sha256-mCehwcfJl0sXUKZy/D9wKbkBHPt1s/nycKCJGlBNLgg=",
+    "version": "0.2026.09.16.08.27.stable_02"
+  }
+}
