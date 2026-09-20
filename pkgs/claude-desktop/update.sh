@@ -18,11 +18,11 @@ get_latest_deb_path() {
   local arch="$1"
   local packages_url="${REPO_BASE}/dists/stable/main/binary-${arch}/Packages"
 
-  curl -fsSL "$packages_url" \
-    | grep '^Filename: pool/main/c/claude-desktop/claude-desktop_' \
-    | sort -V \
-    | tail -n 1 \
-    | cut -d' ' -f2
+  curl -fsSL "$packages_url" |
+    grep '^Filename: pool/main/c/claude-desktop/claude-desktop_' |
+    sort -V |
+    tail -n 1 |
+    cut -d' ' -f2
 }
 
 # Prefetches $1 (a URL) and prints its sha256 in SRI form (sha256-xxxx...),
@@ -40,9 +40,9 @@ get_sha256() {
   # Fallback for older Nix: nix-prefetch-url gives a base32 hash, convert to SRI.
   local base32hash
   base32hash="$(nix-prefetch-url --type sha256 "$url" 2>/dev/null | tail -n 1)"
-  if [[ -n "$base32hash" ]]; then
-    nix hash convert --hash-algo sha256 --to sri "$base32hash" 2>/dev/null \
-      || nix hash to-sri --type sha256 "$base32hash" 2>/dev/null
+  if [[ -n $base32hash ]]; then
+    nix hash convert --hash-algo sha256 --to sri "$base32hash" 2>/dev/null ||
+      nix hash to-sri --type sha256 "$base32hash" 2>/dev/null
     return 0
   fi
 
@@ -65,7 +65,7 @@ for arch in "${ARCHES[@]}"; do
 
   deb_path="$(get_latest_deb_path "$arch" || true)"
 
-  if [[ -z "$deb_path" ]]; then
+  if [[ -z $deb_path ]]; then
     echo "  -> no package found for ${arch} (repo unreachable, or arch not published), skipping" >&2
     continue
   fi
@@ -79,7 +79,7 @@ for arch in "${ARCHES[@]}"; do
   echo "  -> prefetching sha256 (this downloads the .deb)..." >&2
 
   sha256="$(get_sha256 "$url" || true)"
-  if [[ -z "$sha256" ]]; then
+  if [[ -z $sha256 ]]; then
     echo "  -> failed to compute sha256 for ${arch}, skipping" >&2
     continue
   fi
@@ -102,7 +102,7 @@ fi
     echo "${entries[$i]}${sep}"
   done
   echo "}"
-} > "$OUT_FILE"
+} >"$OUT_FILE"
 
 echo "Written to: $OUT_FILE" >&2
 cat "$OUT_FILE"
