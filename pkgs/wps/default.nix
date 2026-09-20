@@ -106,7 +106,7 @@ pkgs.stdenv.mkDerivation {
       cp "$file" "$newfile"
       sed -i "s|${package}|$out|g" "$newfile"
       ${lib.optionalString fixIcons ''
-        sed -i "s|^Icon=.*|Icon=${myPkgs.assets}/icons/wpsoffice.png|g" "$newfile"
+        sed -i "s|^Icon=.*|Icon=${myPkgs.icons.iconPaths.wpsoffice}|g" "$newfile"
       ''}
     done
   '';

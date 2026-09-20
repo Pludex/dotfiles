@@ -9,7 +9,21 @@ let
 
   overlays =
     extraOverlays
-    ++ [ (final: prev: args) ]
+    ++ [
+      (final: prev: args)
+      (
+        final: prev:
+        (
+          import base.libx {
+            pkgs = final;
+            args = args // {
+              pkgs = final;
+            };
+          }
+          // args
+        )
+      )
+    ]
     ++ (import "${base.overlays}" args)
     ++ (import "${base.pkgs}" args);
   config = nixpkgsConfig;

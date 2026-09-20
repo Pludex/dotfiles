@@ -3,8 +3,7 @@
   stdenv,
   appimageTools,
   fetchurl,
-  makeDesktopItem,
-  myPkgs,
+  libx,
 }:
 
 let
@@ -16,7 +15,7 @@ let
     inherit (info) url sha256;
   };
 
-  desktopItem = makeDesktopItem {
+  desktopItem = libx.make.desktopWithIcon {
     name = "zalo";
     desktopName = "Zalo";
     genericName = "Instant Messenger";
@@ -60,7 +59,6 @@ appimageTools.wrapType2 {
   ];
 
   extraInstallCommands = ''
-    install -Dm644 ${myPkgs.assets}/icons/zalo.png $out/share/pixmaps/zalo.png
     install -Dm644 ${desktopItem}/share/applications/zalo.desktop $out/share/applications/zalo.desktop
   '';
 

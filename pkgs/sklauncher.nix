@@ -3,6 +3,7 @@
   pkgs,
   stdenv,
   appimageTools,
+  libx,
   ...
 }:
 let
@@ -30,14 +31,12 @@ let
     ];
   };
 
-  desktopItem = pkgs.makeDesktopItem {
+  desktopItem = libx.makeDesktopItem {
     name = "sklauncher";
     desktopName = "SKlauncher";
     comment = "An alternative Minecraft launcher";
     exec = "${baseApp}/bin/sklauncher";
-
-    icon = "${myPkgs.assets}/icons/sklauncher.png";
-
+    icon = "sklauncher";
     categories = [ "Game" ];
     terminal = false;
   };

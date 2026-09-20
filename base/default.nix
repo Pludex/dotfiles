@@ -35,6 +35,7 @@ rec {
   pkgs = ../pkgs;
   overlays = ../overlays;
   emacs = ../emacs;
+  libx = ../lib;
 
   nixos = {
     root = ../nixos;

@@ -5,9 +5,7 @@
   dpkg,
   autoPatchelfHook,
   makeWrapper,
-  makeDesktopItem,
   wrapGAppsHook3,
-  myPkgs,
   # runtime deps typical of a standalone Electron/Chromium binary bundle
   alsa-lib,
   at-spi2-atk,
@@ -64,21 +62,21 @@ let
     hash = entry.sha256;
   };
 
-  desktopItem = makeDesktopItem {
-    name = "claude";
-    exec = "claude-desktop %u";
-    icon = "${myPkgs.assets}/icons/claude.png";
-    type = "Application";
-    terminal = false;
-    desktopName = "Claude";
-    genericName = "Claude Desktop";
-    startupWMClass = "claude";
-    categories = [
-      "Office"
-      "Utility"
-    ];
-    mimeTypes = [ "x-scheme-handler/claude" ];
-  };
+  # desktopItem = libx.makeDesktopItem {
+  #   name = "claude";
+  #   exec = "claude-desktop %u";
+  #   icon = "claude";
+  #   type = "Application";
+  #   terminal = false;
+  #   desktopName = "Claude";
+  #   genericName = "Claude Desktop";
+  #   startupWMClass = "claude";
+  #   categories = [
+  #     "Office"
+  #     "Utility"
+  #   ];
+  #   mimeTypes = [ "x-scheme-handler/claude" ];
+  # };
 in
 stdenv.mkDerivation {
   pname = "claude-desktop";
@@ -161,8 +159,8 @@ stdenv.mkDerivation {
     # doesn't exist in the Nix store. Replace it with ours, which points
     # at myPkgs.assets instead.
     mkdir -p "$out/share/applications"
-    install -Dm644 "${desktopItem}/share/applications/claude.desktop" \
-      "$out/share/applications/claude.desktop"
+    # install -Dm644 "{desktopItem}/share/applications/claude.desktop" \
+      # "$out/share/applications/claude.desktop"
 
     runHook postInstall
   '';

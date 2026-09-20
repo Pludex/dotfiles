@@ -19,6 +19,7 @@
       wps = final.callPackage ./wps { };
       zalo-for-linux = final.callPackage ./zalo-for-linux { };
 
+      icons = final.callPackage ./icons.nix { };
       screenshot = final.callPackage ./screenshot.nix { };
       sklauncher = final.callPackage ./sklauncher.nix { };
       wallpapers = final.callPackage ./wallpapers.nix { };
