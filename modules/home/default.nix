@@ -12,7 +12,7 @@
     ./man.nix
     ./nix-config.nix
     ./sops.nix
-    ./theme.nix
+    ./style.nix
     ./systemd.nix
   ];
 }
