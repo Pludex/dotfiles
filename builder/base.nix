@@ -172,7 +172,10 @@ let
     in
     full;
 
-  # Builds a fresh base: reading .pkgs on it imports a new nixpkgs instance
+  # Builds a fresh, fully-resolved base for one system (includes `pkgs`,
+  # `sPkgs`, `myPkgs`, `libx`, ...). This is the only way to get a
+  # concrete `pkgs` out of this module - always explicit about which
+  # `system` you're asking for.
   mkBase =
     {
       system ? defaultSystem,
@@ -182,6 +185,30 @@ let
 
   # Memoized per system by flake-parts
   forSystem = system: (getSystem system).base;
+
+  # The top-level `base` (exposed as the `base` option / `_module.args.base`
+  # for non-perSystem modules) is intentionally `pkgs`-free, same as `core`.
+  # It's easy to assume this is "the" base the way `perSystem`'s `base` is,
+  # but unlike that one it isn't recomputed per system - so if it carried a
+  # concrete `pkgs` it would silently be `pkgs` for `defaultSystem` only,
+  # even when called from a context building for another system. That bug
+  # stays invisible as long as `cfg.systems` has one entry and only surfaces
+  # once a second system is added - exactly the kind of thing that's hard to
+  # track down later. Keeping `pkgs`/`sPkgs`/`myPkgs`/`libx` out entirely
+  # forces every caller through `forSystem`/`mkBase` explicitly instead.
+  topLevelBase = core // {
+    inherit mkBase forSystem;
+    builder = cfg.builder // {
+      inherit
+        mkBase
+        mkPkgs
+        mksPkgs
+        forSystem
+        mkCoreBase
+        ;
+    };
+    base = topLevelBase;
+  };
 in
 {
   options = {
@@ -210,7 +237,9 @@ in
       default = { };
     };
 
-    # Base of the first system in `systems`
+    # pkgs-free base: `core` plus `mkBase`/`forSystem` (and a `builder`
+    # extended with them). Get a concrete, per-system `pkgs` via
+    # `base.forSystem system` or `base.mkBase { inherit system; }`.
     base = mkOption {
       type = types.raw;
       readOnly = true;
@@ -220,6 +249,8 @@ in
       { ... }:
       {
         options = {
+          # Full base for this system: everything in the top-level `base`
+          # plus `pkgs`, `sPkgs`, `myPkgs`, `libx`.
           base = mkOption {
             type = types.raw;
             readOnly = true;
@@ -250,7 +281,7 @@ in
   };
 
   config = {
-    base = forSystem defaultSystem;
+    base = topLevelBase;
     _module.args.base = cfg.base;
 
     perSystem =
