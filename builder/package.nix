@@ -7,6 +7,66 @@
 }:
 let
   inherit (lib) mkOption types;
+
+  # Submodule defining the schema for individual package declarations.
+  pkgSpecType = types.submodule {
+    options = {
+      path = mkOption {
+        type = types.path;
+        description = "Path to the package source file or directory passed to `callPackage`.";
+      };
+
+      extraArgs = mkOption {
+        type = types.attrsOf types.raw;
+        default = { };
+        description = "Additional arguments forwarded to `final.callPackage`.";
+      };
+
+      ciBuild = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Whether to include this package in `ciPackages` output for CI builds.";
+      };
+    };
+  };
+
+  # Recursive type enabling hierarchical nested attribute definitions (e.g. `a.b = { path = ...; };`).
+  nodeType = types.oneOf [
+    pkgSpecType
+    (types.attrsOf nodeType)
+  ];
+
+  # Recursively instantiates package derivations in the overlay using `final.callPackage`.
+  buildMyPkgs =
+    final: tree:
+    lib.mapAttrs (
+      name: node:
+      if node ? path then
+        final.callPackage node.path node.extraArgs
+      else if builtins.isAttrs node then
+        buildMyPkgs final node
+      else
+        throw "package.nix: invalid package specification at attribute '${name}'"
+    ) tree;
+
+  # Recursively collects packages configured with `ciBuild = true` into a flat attrset for CI.
+  collectCiPackages =
+    prefix: tree: builtTree:
+    lib.foldl' lib.mergeAttrs { } (
+      lib.mapAttrsToList (
+        name: node:
+        let
+          key = if prefix == "" then name else "${prefix}.${name}";
+          builtNode = builtTree.${name} or null;
+        in
+        if node ? path then
+          if node.ciBuild && builtNode != null then { "${key}" = builtNode; } else { }
+        else if builtins.isAttrs node && builtins.isAttrs builtNode then
+          collectCiPackages key node builtNode
+        else
+          { }
+      ) tree
+    );
 in
 {
   imports = [
@@ -35,19 +95,43 @@ in
     })
   ];
 
-  config.perSystem =
-    { base, ... }:
-    {
-      # Full (unstable) package set, browsable via `nix search`/
-      # `nix build .#legacyPackages.<system>.<name>` per the usual
-      # dual-channel flake convention.
-      legacyPackages = base.pkgs;
-
-      # The myPkgs.<profile> packages baked in by the overlay chain
-      # (see base.pkgs.myPkgs), published as the main `packages`
-      # flake output.
-      packages = base.myPkgs;
+  options = {
+    # Declarative hierarchical specification for custom flake packages.
+    myPkgs = mkOption {
+      type = types.attrsOf nodeType;
+      default = { };
+      description = ''
+        Hierarchical attribute set of package specifications. Each leaf package requires
+        `path`, with optional `extraArgs` (defaults to `{}`) and `ciBuild` (defaults to `true`).
+      '';
     };
+  };
+
+  config = {
+    # Registers custom packages overlay into base.nix overlay pipeline.
+    overlays = [
+      (final: prev: {
+        myPkgs = lib.recursiveUpdate (prev.myPkgs or { }) (buildMyPkgs final config.myPkgs);
+      })
+    ];
+
+    perSystem =
+      { base, ... }:
+      {
+        # Full (unstable) package set, browsable via `nix search`/
+        # `nix build .#legacyPackages.<system>.<name>` per the usual
+        # dual-channel flake convention.
+        legacyPackages = base.pkgs;
+
+        # The myPkgs.<profile> packages baked in by the overlay chain
+        # (see base.pkgs.myPkgs), published as the main `packages`
+        # flake output.
+        packages = base.myPkgs;
+
+        # Collects packages from `myPkgs` where `ciBuild = true` for CI evaluation.
+        ciPackages = collectCiPackages "" config.myPkgs base.myPkgs;
+      };
+  };
 
   # NOTE on why this is `mkPkgsFor` and not `config.flake.__functor`:
   #

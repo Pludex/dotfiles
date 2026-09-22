@@ -70,5 +70,6 @@
 
   imports = [
     ./base
+    ./pkgs
   ];
 }

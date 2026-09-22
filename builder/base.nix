@@ -86,8 +86,7 @@ let
       )
     ]
     ++ cfg.overlays
-    ++ (import "${cfg.paths.overlays}" core)
-    ++ (import "${cfg.paths.pkgs}" core);
+    ++ (import "${cfg.paths.overlays}" core);
 
   mksPkgs =
     {
@@ -255,12 +254,12 @@ in
     _module.args.base = cfg.base;
 
     perSystem =
-      { system, ... }:
+      { system, config, ... }:
       {
         base = build system { };
         _module.args = {
-          base = config.base;
-          pkgs = config.base.pkgs;
+          inherit (config.base) pkgs;
+          inherit (config) base;
         };
       };
   };

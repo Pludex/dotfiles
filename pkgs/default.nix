@@ -1,33 +1,70 @@
 {
-  inputs,
-  ...
-}:
-[
-  (final: prev: {
-    myPkgs = (prev.myPkgs or { }) // {
-      assets = final.callPackage ./assets { };
-      audio-manager = final.callPackage ./audio-manager { };
-      brightness-control = final.callPackage ./brightness-control { };
-      claude-desktop = final.callPackage ./claude-desktop { };
-      msbuild-ls = final.callPackage ./msbuild-ls { };
-      patchy-cnb = final.callPackage ./patchy-cnb { };
-      vaultwarden-sync = final.callPackage ./vaultwarden-sync { };
-      vivaldi-sync = final.callPackage ./vivaldi-sync { };
-      volume-control = final.callPackage ./volume-control { };
-      warp = final.callPackage ./warp { };
-      wps = final.callPackage ./wps { };
-      zalo-for-linux = final.callPackage ./zalo-for-linux { };
-
-      icons = final.callPackage ./icons.nix { };
-      screenshot = final.callPackage ./screenshot.nix { };
-      sklauncher = final.callPackage ./sklauncher.nix { };
-      wallpapers = final.callPackage ./wallpapers.nix { };
-      screenrecord = final.callPackage ./sreenrecord.nix { };
-      waycal = final.callPackage ./waycal.nix { };
-
-      waybar = inputs.waybar.packages.${final.stdenv.system}.waybar;
+  myPkgs = {
+    assets = {
+      path = ./assets;
+    };
+    audio-manager = {
+      path = ./audio-manager;
+    };
+    brightness-control = {
+      path = ./brightness-control;
+    };
+    claude-desktop = {
+      path = ./claude-desktop;
+    };
+    msbuild-ls = {
+      path = ./msbuild-ls;
+    };
+    patchy-cnb = {
+      path = ./patchy-cnb;
+    };
+    vaultwarden-sync = {
+      path = ./vaultwarden-sync;
+    };
+    vivaldi-sync = {
+      path = ./vivaldi-sync;
+    };
+    volume-control = {
+      path = ./volume-control;
+    };
+    warp = {
+      path = ./warp;
+    };
+    wps = {
+      path = ./wps;
+    };
+    zalo-for-linux = {
+      path = ./zalo-for-linux;
     };
 
-    nixos-live = inputs.self.nixosConfigurations.nixos-live.config.system.build.isoImage;
-  })
-]
+    icons = {
+      path = ./icons.nix;
+    };
+    screenshot = {
+      path = ./screenshot.nix;
+    };
+    sklauncher = {
+      path = ./sklauncher.nix;
+    };
+    wallpapers = {
+      path = ./wallpapers.nix;
+    };
+    screenrecord = {
+      path = ./sreenrecord.nix;
+    };
+    waycal = {
+      path = ./waycal.nix;
+    };
+  };
+
+  perSystem =
+    {
+      inputs',
+      config,
+      ...
+    }:
+    {
+      packagesOfInputs.waybar = inputs'.waybar.packages.default;
+      ciPackages = config.packagesOfInputs.waybar;
+    };
+}

@@ -23,7 +23,7 @@ in
 
   programs.waybar = {
     enable = true;
-    package = pkgs.myPkgs.waybar;
+    package = pkgs.waybar;
     style = ''
       @import url("${./style.css}");
     '';
