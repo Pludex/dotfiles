@@ -13,5 +13,8 @@
   environment.pathsToLink = [
     "/share/applications"
     "/share/xdg-desktop-portal"
+    "/share/gsettings-schemas"
+    "/share/icons"
+    "/share/dbus-1"
   ];
 }
