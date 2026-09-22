@@ -3,12 +3,12 @@
   nix.registry = {
     nixpkgs.to = {
       type = "path";
-      path = base.paths.dotfiles;
+      path = base.abs.dotfiles;
     };
 
     dotfiles.to = {
       type = "path";
-      path = base.paths.dotfiles;
+      path = base.abs.dotfiles;
     };
   };
 }

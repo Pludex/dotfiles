@@ -1,10 +1,14 @@
 {
-  mkPkgs,
-  mkHomeModules,
-  args,
+  lib,
+  config,
+  inputs,
+  ...
 }:
 let
-  inherit (args) inputs base;
+  inherit (lib) mkOption types;
+  cfg = config;
+
+  str = mkOption { type = types.str; };
 
   configOptions =
     { lib, ... }:
@@ -37,12 +41,14 @@ let
       name,
       profile,
       desktop,
-      extraHomeModules ? [ ],
+      extraModules ? [ ],
     }:
-    mkHomeModules {
-      inherit profile desktop extraHomeModules;
-    }
+    cfg.homeModules
+    ++ extraModules
     ++ [
+      "${cfg.paths.modules}/home"
+      (import cfg.paths.profiles { inherit profile; }).home
+      (import cfg.paths.desktops { inherit desktop; }).home
       configOptions
       {
         inherit
@@ -53,42 +59,76 @@ let
           ;
       }
     ];
-in
-{
-  mk =
-    {
-      name,
-      system,
-      profile,
-      desktop,
-      extraModule ? [ ],
-    }:
+
+  mkStandalone =
+    name: c:
+    let
+      # Base of this config's architecture, memoized per system by flake-parts
+      base = cfg.base.forSystem c.system;
+    in
     inputs.home-manager.lib.homeManagerConfiguration {
-      pkgs = mkPkgs { inherit system; };
+      pkgs = base.pkgs;
       # specialArgs are resolved before `config`, so modules can use them
-      # in `imports` (e.g. `inputs.sops-nix.homeManagerModules.sops`).
-      extraSpecialArgs = args;
+      # in `imports` (e.g. `base.inputs.sops-nix.homeManagerModules.sops`).
+      extraSpecialArgs = {
+        inherit base;
+        inherit (base) inputs;
+      };
+
       modules = mkModules {
-        inherit name profile desktop;
+        inherit name;
+        inherit (c) profile desktop extraModules;
         standalone = true;
-        extraHomeModules = extraModule;
       };
     };
 
+  # Called from the NixOS side with that config's own base
   mkNonStandalone =
-    { config, ... }:
+    { config, base, ... }:
     {
-      # pkgs (with all overlays) comes from the NixOS config, so `args` must
-      # not carry its own pkgs.
+      # pkgs (with all overlays) comes from the NixOS config, which is
+      # nixpkgs.pkgs = base.pkgs, so both sides share one instance.
       useGlobalPkgs = true;
       useUserPackages = true;
       backupFileExtension = "hm-backup";
 
-      extraSpecialArgs = args;
+      extraSpecialArgs = { inherit base; inherit (base) inputs; };
 
       users.${base.username}.imports = mkModules {
         inherit (config) name profile desktop;
         standalone = false;
       };
     };
+in
+{
+  options = {
+    # Modules added to every home-manager configuration
+    homeModules = mkOption {
+      type = types.listOf types.raw;
+      default = [ ];
+    };
+
+    home = mkOption {
+      type = types.attrsOf (
+        types.submodule {
+          options = {
+            system = str;
+            profile = str;
+            desktop = str;
+            extraModules = mkOption {
+              type = types.listOf types.raw;
+              default = [ ];
+            };
+          };
+        }
+      );
+      default = { };
+    };
+  };
+
+  config = {
+    flake.homeConfigurations = lib.mapAttrs mkStandalone cfg.home;
+    builder.mkHomeNonStandalone = mkNonStandalone;
+    builder.mkHomeStandalone = mkStandalone;
+  };
 }

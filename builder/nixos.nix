@@ -1,11 +1,14 @@
 {
-  mkPkgs,
-  mkNixosModules,
-  args,
-  mkHome,
+  lib,
+  config,
+  inputs,
+  ...
 }:
 let
-  inherit (args) inputs;
+  inherit (lib) mkOption types;
+  cfg = config;
+
+  str = mkOption { type = types.str; };
 
   configOptions =
     { lib, ... }:
@@ -25,47 +28,74 @@ let
         name = mkStrOption "Config name currently in use";
       };
     };
-in
-{
-  mk =
-    {
-      host,
-      name,
-      system,
-      profile,
-      desktop,
-      extraModules ? [ ],
-    }:
-    let
-      pkgs = mkPkgs { inherit system; };
 
+  mkSystem =
+    name: c:
+    let
+      # Base of this config's architecture, memoized per system by flake-parts
+      base = cfg.base.forSystem c.system;
+      inherit (base) paths;
+    in
+    inputs.nixpkgs.lib.nixosSystem {
+      specialArgs = {
+        inherit base;
+        inherit (base) inputs;
+      };
       modules =
-        mkNixosModules {
-          inherit host profile desktop;
-          extraNixosModules = extraModules;
-        }
+        cfg.nixosModules
+        ++ c.extraModules
         ++ [
+          "${paths.modules}/nixos"
+          (import paths.hosts { inherit (c) host; })
+          (import paths.profiles { inherit (c) profile; }).nixos
+          (import paths.desktops { inherit (c) desktop; }).nixos
           inputs.home-manager.nixosModules.home-manager
           configOptions
           {
-            inherit
-              desktop
-              profile
-              host
-              name
-              ;
+            inherit (c) desktop profile host;
+            inherit name;
           }
-          # Overlays are baked into mkPkgs, so nixpkgs.config/overlays set by
-          # other modules are ignored once nixpkgs.pkgs is set.
-          { nixpkgs.pkgs = pkgs; }
-          # Reads profile/desktop/name back from this config.
-          ({ config, ... }: { home-manager = mkHome { inherit config; }; })
+          # nixpkgs.config is ignored once nixpkgs.pkgs is set; overlays would be appended on top
+          { nixpkgs.pkgs = base.pkgs; }
+          # Reads profile/desktop/name back from this config
+          (
+            { config, ... }:
+            {
+              home-manager = base.mkHomeNonStandalone { inherit config base; };
+            }
+          )
         ];
-    in
-    inputs.nixpkgs.lib.nixosSystem {
-      inherit modules;
-      # `args` has no pkgs (includePkgs' = false), so it can't clash with
-      # nixpkgs.pkgs.
-      specialArgs = args;
     };
+in
+{
+  options = {
+    # Modules added to every NixOS configuration
+    nixosModules = mkOption {
+      type = types.listOf types.raw;
+      default = [ ];
+    };
+
+    nixos = mkOption {
+      type = types.attrsOf (
+        types.submodule {
+          options = {
+            host = str;
+            system = str;
+            profile = str;
+            desktop = str;
+            extraModules = mkOption {
+              type = types.listOf types.raw;
+              default = [ ];
+            };
+          };
+        }
+      );
+      default = { };
+    };
+  };
+
+  config = {
+    flake.nixosConfigurations = lib.mapAttrs mkSystem cfg.nixos;
+    builder.mkNixos = mkSystem;
+  };
 }

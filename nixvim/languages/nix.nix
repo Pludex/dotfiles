@@ -5,9 +5,9 @@
       formatting.command = [ "nixfmt" ];
       options = {
         nixpkgs.expr = "import <nixpkgs> { }";
-        nixos.expr = ''(builtins.getFlake "path:${base.paths.dotfiles}").nixosConfigurations.default.options'';
-        home_manager.expr = ''(builtins.getFlake "path:${base.paths.dotfiles}").homeConfigurations.default.options'';
-        nixvim.expr = ''(builtins.getFlake "path:${base.paths.dotfiles}").${pkgs.stdenv.system}.nixvimConfiguration.options'';
+        nixos.expr = ''(builtins.getFlake "path:${base.abs.dotfiles}").nixosConfigurations.default.options'';
+        home_manager.expr = ''(builtins.getFlake "path:${base.abs.dotfiles}").homeConfigurations.default.options'';
+        nixvim.expr = ''(builtins.getFlake "path:${base.abs.dotfiles}").${pkgs.stdenv.system}.nixvimConfiguration.options'';
       };
     };
   };

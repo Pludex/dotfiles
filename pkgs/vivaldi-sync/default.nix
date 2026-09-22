@@ -10,7 +10,7 @@ pkgs.writeShellApplication {
   ];
 
   text = ''
-    NIX_CONFIG_DIR="${base.paths.dotfilesBot}"
+    NIX_CONFIG_DIR="${base.abs.dotfilesBot}"
     DATA_DIR="data"
     export NIX_CONFIG_DIR
     export DATA_DIR

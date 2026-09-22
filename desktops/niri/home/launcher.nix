@@ -5,6 +5,6 @@
   };
 
   imports = [
-    "${base.commonDesktop}/fuzzel.nix"
+    "${base.paths.commonDesktop}/fuzzel.nix"
   ];
 }

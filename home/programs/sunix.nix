@@ -16,7 +16,7 @@
 
     settings = {
       dixBinary = "${pkgs.dix}/bin/dix";
-      flakeDir = base.paths.dotfiles;
+      flakeDir = base.abs.dotfiles;
       homeFlake = config.name;
       nixosFlake = osConfig.name;
       styleCss = null;

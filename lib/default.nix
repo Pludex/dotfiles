@@ -1,10 +1,9 @@
 {
-  pkgs,
-  args,
+  base,
   ...
 }:
 let
-  make = import ./make args;
+  make = import ./make base;
 in
 {
   libx = {

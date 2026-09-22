@@ -2,7 +2,7 @@
 {
   imports = [
     inputs.doom-emacs.homeModule
-    base.emacs
+    base.paths.emacs
   ];
 
   programs.doom-emacs = {

@@ -5,7 +5,7 @@
 }:
 {
   sops = {
-    defaultSopsFile = "${base.data}/main.enc.yaml";
+    defaultSopsFile = "${base.paths.data}/main.enc.yaml";
     age.keyFile = base.age.privateKeyPath;
   };
 

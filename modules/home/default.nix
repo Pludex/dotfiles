@@ -1,7 +1,7 @@
 { base, ... }:
 {
   home.username = base.username;
-  home.homeDirectory = base.paths.home;
+  home.homeDirectory = base.abs.home;
   home.stateVersion = "26.05";
 
   imports = [

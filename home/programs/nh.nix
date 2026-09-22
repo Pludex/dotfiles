@@ -3,9 +3,9 @@
   programs.nh = {
     enable = true;
 
-    flake = "${base.paths.dotfiles}";
+    flake = "${base.abs.dotfiles}";
   };
   home.sessionVariables = {
-    NH_HOME_FLAKE = "${base.paths.dotfiles}";
+    NH_HOME_FLAKE = "${base.abs.dotfiles}";
   };
 }

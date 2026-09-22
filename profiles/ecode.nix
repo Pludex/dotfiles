@@ -2,8 +2,8 @@
   nixvim =
     { base, ... }:
     let
-      r = base.nixvim.root;
-      l = base.nixvim.languages;
+      r = base.paths.nixvim.root;
+      l = base.paths.nixvim.languages;
     in
     {
       imports = [

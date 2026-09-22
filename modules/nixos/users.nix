@@ -13,7 +13,7 @@
       "networkmanager"
     ];
     shell = pkgs."${base.tools.shell}";
-    home = base.paths.home;
+    home = base.abs.home;
     hashedPasswordFile = config.sops.secrets."hashedPassword".path;
   };
 }

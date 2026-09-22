@@ -1,70 +1,77 @@
-{ inputs, ... }:
-rec {
-  name = "PBCDev210";
-  username = "pbcdev"; # TODO: rename to pbcdev210
+{ config, inputs, ... }:
+{
+  extraBase = {
+    name = "PBCDev210";
+    username = "pbcdev"; # TODO: rename to pbcdev210
 
-  email = {
-    main = "pbc210.dev@gmail.com";
-    sub = "baochaupham4096@gmail.com";
+    email = {
+      main = "pbc210.dev@gmail.com";
+      sub = "baochaupham4096@gmail.com";
+    };
+
+    age = {
+      publicKey = "age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0";
+      privateKeyPath = "${config.paths.abs.home}/.config/sops/age/keys.txt";
+    };
+
+    ssh = {
+      pub = builtins.readFile "${config.paths.abs.data}/ssh.pub";
+      privateKeyPath = "${config.paths.abs.home}/.ssh/id_ed25519";
+    };
+
+    repoGh = "https://github.com/pbcdev210/nix-config";
+
+    timeZone = "Asia/Ho_Chi_Minh";
+    locale = "en_US.UTF-8";
+
+    inherit (config.paths) abs;
   };
 
-  tools = import ./tools.nix;
+  paths = {
+    flake = inputs.self;
+    desktops = ../desktops;
+    commonDesktop = ../desktops/common;
+    profiles = ../profiles;
+    hosts = ../hosts;
+    data = ../data;
+    modules = ../modules;
+    pkgs = ../pkgs;
+    overlays = ../overlays;
+    emacs = ../emacs;
+    libx = ../lib;
 
-  glyphs = import ./glyphs.nix;
-  ignores = import ./ignores.nix;
+    nixos = {
+      root = ../nixos;
+      services = ../nixos/services;
+      virtualisation = ../nixos/virtualisation;
+    };
 
-  age = {
-    publicKey = "age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0";
-    privateKeyPath = "${paths.home}/.config/sops/age/keys.txt";
+    home = {
+      root = ../home;
+      programs = ../home/programs;
+      services = ../home/services;
+      develop = ../home/develop;
+      apps = ../home/apps;
+      ides = ../home/ides;
+    };
+
+    nixvim = {
+      root = ../nixvim;
+      languages = ../nixvim/languages;
+    };
+
+    abs = {
+      home = "/home/${config.base.username}";
+      dotfiles = "/workspaces/nix-config";
+      emacs = "${config.paths.abs.dotfiles}/emacs";
+      dotfilesBot = "/workspaces/nix-config-bot";
+      data = "${config.paths.abs.dotfilesBot}/data";
+    };
   };
 
-  ssh = {
-    pub = builtins.readFile "${paths.data}/ssh.pub";
-    privateKeyPath = "${paths.home}/.ssh/id_ed25519";
-  };
-
-  repoGh = "https://github.com/pbcdev210/nix-config";
-
-  flake = inputs.self;
-  desktops = ../desktops;
-  commonDesktop = ../desktops/common;
-  profiles = ../profiles;
-  hosts = ../hosts;
-  data = ../data;
-  modules = ../modules;
-  pkgs = ../pkgs;
-  overlays = ../overlays;
-  emacs = ../emacs;
-  libx = ../lib;
-
-  nixos = {
-    root = ../nixos;
-    services = ../nixos/services;
-    virtualisation = ../nixos/virtualisation;
-  };
-
-  home = {
-    root = ../home;
-    programs = ../home/programs;
-    services = ../home/services;
-    develop = ../home/develop;
-    apps = ../home/apps;
-    ides = ../home/ides;
-  };
-
-  nixvim = {
-    root = ../nixvim;
-    languages = ../nixvim/languages;
-  };
-
-  paths = rec {
-    home = "/home/${username}";
-    dotfiles = "/workspaces/nix-config";
-    emacs = "${dotfiles}/emacs";
-    dotfilesBot = "/workspaces/nix-config-bot";
-    data = "${dotfilesBot}/data";
-  };
-
-  timeZone = "Asia/Ho_Chi_Minh";
-  locale = "en_US.UTF-8";
+  imports = [
+    ./ignores.nix
+    ./glyphs.nix
+    ./tools.nix
+  ];
 }

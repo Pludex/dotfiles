@@ -1,12 +1,12 @@
 { pkgs, base, ... }:
 let
   zoxidePaths = [
-    base.paths.home
-    "${base.paths.home}/.config"
+    base.abs.home
+    "${base.abs.home}/.config"
 
     "/workspaces"
-    base.paths.dotfiles
-    base.paths.dotfilesBot
+    base.abs.dotfiles
+    base.abs.dotfilesBot
   ];
 in
 {

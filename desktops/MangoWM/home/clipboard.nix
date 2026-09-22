@@ -4,7 +4,7 @@
     pkgs.wl-clipboard
   ];
 
-  imports = [ "${base.commonDesktop}/clipse.nix" ];
+  imports = [ "${base.paths.commonDesktop}/clipse.nix" ];
 
   programs.mango.settings.bind = [
     "SUPER,V,spawn,kitty --class clipse -e clipse"

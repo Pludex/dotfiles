@@ -1,11 +1,10 @@
 {
   inputs,
-  args,
   ...
 }:
 [
   (final: prev: {
-    myPkgs = {
+    myPkgs = (prev.myPkgs or { }) // {
       assets = final.callPackage ./assets { };
       audio-manager = final.callPackage ./audio-manager { };
       brightness-control = final.callPackage ./brightness-control { };
@@ -27,8 +26,7 @@
       waycal = final.callPackage ./waycal.nix { };
 
       waybar = inputs.waybar.packages.${final.stdenv.system}.waybar;
-    }
-    // (import ./nixvim.nix (args // { pkgs = final; }));
+    };
 
     nixos-live = inputs.self.nixosConfigurations.nixos-live.config.system.build.isoImage;
   })

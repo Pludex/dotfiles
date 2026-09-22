@@ -2,10 +2,10 @@
   home =
     { base, ... }:
     let
-      a = base.home.apps;
+      a = base.paths.home.apps;
       # r = base.home.root;
-      p = base.home.programs;
-      s = base.home.services;
+      p = base.paths.home.programs;
+      s = base.paths.home.services;
       # d = base.home.develop;
       # i = base.home.ides;
     in
@@ -75,7 +75,7 @@
   nixos =
     { base, ... }:
     let
-      s = base.nixos.services;
+      s = base.paths.nixos.services;
     in
     {
       imports = [

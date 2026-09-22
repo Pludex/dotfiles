@@ -36,5 +36,5 @@
     pkgs.wl-clipboard
   ];
 
-  imports = [ "${base.commonDesktop}/clipse.nix" ];
+  imports = [ "${base.paths.commonDesktop}/clipse.nix" ];
 }

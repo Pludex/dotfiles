@@ -1,3 +1,3 @@
-args: {
-  inherit (import ./mkDesktopWithIcon.nix args) desktopWithIcon;
+base: {
+  inherit (import ./mkDesktopWithIcon.nix base) desktopWithIcon;
 }

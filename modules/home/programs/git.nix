@@ -29,7 +29,7 @@
       gpg.format = "ssh";
       commit.gpgSign = true;
 
-      user.signingKey = "${base.paths.home}/.ssh/id_ed25519.pub";
+      user.signingKey = "${base.abs.home}/.ssh/id_ed25519.pub";
     };
     inherit (base) ignores;
   };
