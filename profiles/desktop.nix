@@ -1,94 +1,88 @@
 {
-  home =
-    { base, ... }:
-    let
-      a = base.paths.home.apps;
-      # r = base.home.root;
-      p = base.paths.home.programs;
-      s = base.paths.home.services;
-      d = base.paths.home.develop;
-      i = base.paths.home.ides;
-    in
-    {
-      imports = [
-        # "${r}/flatpak"
+  profiles.desktop = {
+    home = {
+      apps = [
+        "bitwarden"
+        "claude-desktop"
+        "discord"
+        "obsidian"
+        "sklauncher"
+        "spotify"
+        "steam"
+        "vivaldi"
+        "wps"
+        "zalo"
+      ];
 
-        "${a}/bitwarden.nix"
-        "${a}/claude-desktop.nix"
-        "${a}/discord.nix"
-        "${a}/obsidian.nix"
-        "${a}/sklauncher.nix"
-        "${a}/spotify.nix"
-        "${a}/steam.nix"
-        "${a}/vivaldi.nix"
-        "${a}/wps.nix"
-        "${a}/zalo.nix"
+      programs = [
+        "fastfetch"
+        # "firefox"
+        # "floorp"
+        "nushell"
+        "statix"
+        "warp"
+        "wezterm"
+        "zsh"
 
-        "${p}/fastfetch"
-        # "${p}/firefox"
-        # "${p}/floorp"
-        "${p}/nushell"
-        "${p}/statix"
-        "${p}/warp"
-        "${p}/wezterm"
-        "${p}/zsh"
+        "atuin"
+        "bash"
+        "bat"
+        "btop"
+        "carapace"
+        "delta"
+        "direnv"
+        "emacs"
+        "eza"
+        "fd"
+        "fish"
+        "fzf"
+        "gh"
+        "ghostty"
+        "kitty"
+        "lazygit"
+        "mpv"
+        "nh"
+        "nix-index"
+        "nix-your-shell"
+        "nixvim"
+        "packages"
+        "ripgrep"
+        "starship"
+        # "sunix"
+        "superfile"
+        "tirith"
+        "zoxide"
+      ];
 
-        "${p}/atuin.nix"
-        "${p}/bash.nix"
-        "${p}/bat.nix"
-        "${p}/btop.nix"
-        "${p}/carapace.nix"
-        "${p}/delta.nix"
-        "${p}/direnv.nix"
-        "${p}/emacs.nix"
-        "${p}/eza.nix"
-        "${p}/fd.nix"
-        "${p}/fish.nix"
-        "${p}/fzf.nix"
-        "${p}/gh.nix"
-        "${p}/ghostty.nix"
-        "${p}/kitty.nix"
-        "${p}/lazygit.nix"
-        "${p}/mpv.nix"
-        "${p}/nh.nix"
-        "${p}/nix-index.nix"
-        "${p}/nix-your-shell.nix"
-        "${p}/nixvim.nix"
-        "${p}/packages.nix"
-        "${p}/ripgrep.nix"
-        "${p}/starship.nix"
-        # "${p}/sunix.nix"
-        "${p}/superfile.nix"
-        "${p}/tirith.nix"
-        "${p}/zoxide.nix"
+      services = [
+        "audio-manager"
+        # "espanso"
+      ];
 
-        "${s}/audio-manager"
-        # "${s}/espanso.nix"
+      develop = [
+        "dotnet"
+      ];
 
-        "${d}/dotnet.nix"
-
-        "${i}/vscode.nix"
-        "${i}/rider.nix"
+      ides = [
+        "vscode"
+        "rider"
       ];
     };
 
-  nixos =
-    { base, ... }:
-    let
-      s = base.paths.nixos.services;
-      v = base.paths.nixos.virtualisation;
-    in
-    {
-      imports = [
-        # "${s}/caddy.nix"
-        "${s}/envfs.nix"
-        # "${s}/flatpak.nix"
-        # "${s}/nginx.nix"
-        "${s}/ngrok.nix"
-        "${s}/vaultwarden.nix"
+    nixos = {
+      services = [
+        # "caddy"
+        "envfs"
+        # "flatpak"
+        # "nginx"
+        "ngrok"
+        "vaultwarden"
+      ];
 
-        "${v}/core/libvirt.nix"
-        "${v}/win10.nix"
+      virtualisation = [
+        "core/libvirt"
+        "win10"
       ];
     };
+  };
 }

@@ -10,6 +10,7 @@
           ./home.nix
           ./nixvim.nix
           ./package.nix
+          ./profiles.nix
 
           ../outputs.nix
 

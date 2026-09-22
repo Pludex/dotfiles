@@ -44,10 +44,10 @@ let
       modules =
         cfg.nixosModules
         ++ c.extraModules
+        ++ config.profilesResult.${c.profile}.nixos
         ++ [
           "${paths.modules}/nixos"
           (import paths.hosts { inherit (c) host; })
-          (import paths.profiles { inherit (c) profile; }).nixos
           (import paths.desktops { inherit (c) desktop; }).nixos
           inputs.home-manager.nixosModules.home-manager
           configOptions

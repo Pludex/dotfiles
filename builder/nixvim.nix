@@ -19,9 +19,9 @@ let
       modules =
         cfg.nixvimModules
         ++ c.extraModules
+        ++ config.profilesResult.${profile}.nixvim
         ++ [
           "${cfg.paths.modules}/nixvim"
-          (import cfg.paths.profiles { inherit profile; }).nixvim
           # Overlays are baked into base.pkgs
           { nixpkgs.pkgs = base.pkgs; }
         ];

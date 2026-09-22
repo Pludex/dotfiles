@@ -45,9 +45,9 @@ let
     }:
     cfg.homeModules
     ++ extraModules
+    ++ config.profilesResult.${profile}.home
     ++ [
       "${cfg.paths.modules}/home"
-      (import cfg.paths.profiles { inherit profile; }).home
       (import cfg.paths.desktops { inherit desktop; }).home
       configOptions
       {
@@ -92,7 +92,10 @@ let
       useUserPackages = true;
       backupFileExtension = "hm-backup";
 
-      extraSpecialArgs = { inherit base; inherit (base) inputs; };
+      extraSpecialArgs = {
+        inherit base;
+        inherit (base) inputs;
+      };
 
       users.${base.username}.imports = mkModules {
         inherit (config) name profile desktop;

@@ -71,5 +71,6 @@
   imports = [
     ./base
     ./pkgs
+    ./profiles
   ];
 }
