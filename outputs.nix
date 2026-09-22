@@ -67,4 +67,8 @@
       zfs.broken = "ignore";
     };
   };
+
+  imports = [
+    ./base
+  ];
 }

@@ -185,8 +185,6 @@ let
   forSystem = system: (getSystem system).base;
 in
 {
-  imports = [ ../base ];
-
   options = {
     nixpkgsConfig = mkOption {
       type = types.attrs;
@@ -254,16 +252,16 @@ in
 
   config = {
     base = forSystem defaultSystem;
-    # _module.args.base = cfg.base;
+    _module.args.base = cfg.base;
 
     perSystem =
       { system, ... }:
       {
         base = build system { };
-        # _module.args = {
-        #   base = config.base;
-        #   pkgs = config.base.pkgs;
-        # };
+        _module.args = {
+          base = config.base;
+          pkgs = config.base.pkgs;
+        };
       };
   };
 }

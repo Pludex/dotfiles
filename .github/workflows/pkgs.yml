@@ -36,17 +36,17 @@ jobs:
           SYSTEM=$(nix eval --raw --impure --expr 'builtins.currentSystem')
           echo "Current runner system: $SYSTEM"
 
-          PACKAGES_JSON=$(nix eval --json ".#packages.$SYSTEM" --apply 'builtins.attrNames' 2>/dev/null || echo "[]")
+          PACKAGES_JSON=$(nix eval --json ".#ciPackages.$SYSTEM" --apply 'builtins.attrNames' 2>/dev/null || echo "[]")
 
           if [ "$PACKAGES_JSON" = "[]" ] || [ -z "$PACKAGES_JSON" ]; then
-            echo "No packages found in 'packages.$SYSTEM'."
+            echo "No packages found in 'ciPackages.$SYSTEM'."
             exit 0
           fi
 
           echo "Packages to build: $PACKAGES_JSON"
 
           for pkg in $(echo "$PACKAGES_JSON" | jq -r '.[]'); do
-            echo "::group::Building .#packages.$SYSTEM.$pkg"
-            nix build ".#packages.$SYSTEM.$pkg" --print-build-logs --accept-flake-config
+            echo "::group::Building .#ciPackages.$SYSTEM.$pkg"
+            nix build ".#ciPackages.$SYSTEM.$pkg" --print-build-logs --accept-flake-config
             echo "::endgroup::"
           done
