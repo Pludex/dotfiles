@@ -1,5 +1,3 @@
-name: "Build & Push Flake Packages to Cachix"
-
 on:
   push:
     branches:
@@ -36,7 +34,34 @@ jobs:
           SYSTEM=$(nix eval --raw --impure --expr 'builtins.currentSystem')
           echo "Current runner system: $SYSTEM"
 
-          PACKAGES_JSON=$(nix eval --json ".#ciPackages.$SYSTEM" --apply 'builtins.attrNames' 2>/dev/null || echo "[]")
+          # ciPackages can nest arbitrarily deep (plain attrsets used as
+          # grouping/labels, e.g. "Build & Push ..." = { foo = pkg; bar.baz = pkg; }).
+          # Walk it and collect dot-separated paths to actual derivations only -
+          # a derivation is itself an attrset, so it must be excluded from recursion
+          # or this would try to recurse into its own attrs (meta, outputs, ...).
+          FLATTEN='
+            let
+              flatten = prefix: attrs:
+                builtins.concatLists (
+                  builtins.attrValues (
+                    builtins.mapAttrs (
+                      name: value:
+                        let
+                          path = if prefix == "" then name else "${prefix}.${name}";
+                          isDrv = builtins.isAttrs value && (value.type or null) == "derivation";
+                        in
+                        if builtins.isAttrs value && !isDrv then
+                          flatten path value
+                        else
+                          [ path ]
+                    ) attrs
+                  )
+                );
+            in
+            attrs: flatten "" attrs
+          '
+
+          PACKAGES_JSON=$(nix eval --json ".#ciPackages.$SYSTEM" --apply "$FLATTEN" 2>/dev/null || echo "[]")
 
           if [ "$PACKAGES_JSON" = "[]" ] || [ -z "$PACKAGES_JSON" ]; then
             echo "No packages found in 'ciPackages.$SYSTEM'."

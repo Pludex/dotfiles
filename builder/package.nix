@@ -81,7 +81,7 @@ in
     (flake-parts-lib.mkTransposedPerSystemModule {
       name = "ciPackages";
       option = mkOption {
-        type = types.lazyAttrsOf types.package;
+        type = types.lazyAttrsOf types.raw;
         default = { };
         description = ''
           Packages registered by any module to be built by CI for this
@@ -129,7 +129,7 @@ in
         packages = base.myPkgs;
 
         # Collects packages from `myPkgs` where `ciBuild = true` for CI evaluation.
-        ciPackages = collectCiPackages "" config.myPkgs base.myPkgs;
+        ciPackages.myPkgs = collectCiPackages "" config.myPkgs base.myPkgs;
       };
   };
 

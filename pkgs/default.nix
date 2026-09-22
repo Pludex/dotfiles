@@ -65,6 +65,6 @@
     }:
     {
       packagesOfInputs.waybar = inputs'.waybar.packages.default;
-      ciPackages = config.packagesOfInputs.waybar;
+      ciPackages.waybar = config.packagesOfInputs.waybar;
     };
 }
