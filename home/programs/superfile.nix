@@ -14,11 +14,11 @@
     pinnedFolders = [
       {
         name = "Nix Config";
-        location = "/workspaces/nix-config";
+        location = base.abs.dotfiles;
       }
       {
         name = "Projects";
-        location = "/workspaces";
+        location = base.abs.workspaces;
       }
     ];
   };

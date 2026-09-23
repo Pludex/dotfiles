@@ -1196,13 +1196,13 @@
       "locked": {
         "lastModified": 1788271137,
         "narHash": "sha256-rv9ofrCu+XzmC7XImslBYssv6DLe4Yg5MU+Fi/Fjz5o=",
-        "owner": "pbcdev210",
+        "owner": "Pludex",
         "repo": "schemes",
         "rev": "199c3a55d94ba60aaafdd0acfd5f35d9d82de67b",
         "type": "github"
       },
       "original": {
-        "owner": "pbcdev210",
+        "owner": "Pludex",
         "repo": "schemes",
         "type": "github"
       }
@@ -1490,13 +1490,13 @@
       "locked": {
         "lastModified": 1786094474,
         "narHash": "sha256-MTMHmlTU+fFiuU0uNVi2RBXMV1BlSoqb70AIQxg8rnw=",
-        "owner": "pbcdev210",
+        "owner": "Pludex",
         "repo": "treesitter-kanata",
         "rev": "76658aa31e4eecf5bc054c514f126df5bcc3d183",
         "type": "github"
       },
       "original": {
-        "owner": "pbcdev210",
+        "owner": "Pludex",
         "repo": "treesitter-kanata",
         "type": "github"
       }
