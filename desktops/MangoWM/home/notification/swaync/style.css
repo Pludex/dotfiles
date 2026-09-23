@@ -1,5 +1,4 @@
-Adapted from: https: //github.com/iyiolacak/iyiolacak-swaync-config
-
+/* Adapted from: https: //github.com/iyiolacak/iyiolacak-swaync-config */
 /* ── 1. Palette & Globals (Using @define-color) ──────────────────── */
 
 @define-color theme_fg rgba(248, 248, 252, 0.98);
@@ -66,7 +65,7 @@ Adapted from: https: //github.com/iyiolacak/iyiolacak-swaync-config
 .widget-volume,
 .widget-backlight,
 .widget-buttons-grid,
-.control-center-list>box>*:not(.widget-title) {
+.control-center-list > box > *:not(.widget-title) {
   background-color: @module_bg;
   border-radius: 18px;
   padding: 18px;
@@ -83,7 +82,7 @@ Adapted from: https: //github.com/iyiolacak/iyiolacak-swaync-config
   padding: 12px;
 }
 
-.control-center>box>*:last-child {
+.control-center > box > *:last-child {
   margin-bottom: 0;
 }
 
@@ -106,7 +105,7 @@ Adapted from: https: //github.com/iyiolacak/iyiolacak-swaync-config
   margin-left: 4px;
 }
 
-.widget-dnd>switch {
+.widget-dnd > switch {
   color: @theme_fg;
   background-color: @button_bg;
   border: none;
@@ -115,19 +114,19 @@ Adapted from: https: //github.com/iyiolacak/iyiolacak-swaync-config
   margin-left: 21px;
 }
 
-.widget-dnd>switch:hover {
+.widget-dnd > switch:hover {
   background: @button_hover_bg;
 }
 
-.widget-dnd>switch:checked {
+.widget-dnd > switch:checked {
   background: @accent_color;
 }
 
-.widget-dnd>switch:checked:hover {
+.widget-dnd > switch:checked:hover {
   background: @accent_color_hover;
 }
 
-.widget-dnd>switch slider {
+.widget-dnd > switch slider {
   background-color: @theme_fg;
   border-radius: 10px;
 }

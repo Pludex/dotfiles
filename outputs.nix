@@ -68,9 +68,23 @@
     };
   };
 
+  perSystem = { ... }: {
+    treefmt.config = {
+      projectRootFile = "flake.nix";
+      programs = {
+        nixfmt.enable = true;
+        prettier.enable = true;
+        shfmt.enable = true;
+        # ruff.enable = true;
+      };
+    };
+  };
+
   imports = [
     ./base
     ./pkgs
     ./profiles
+
+    inputs.treefmt-nix.flakeModule
   ];
 }
