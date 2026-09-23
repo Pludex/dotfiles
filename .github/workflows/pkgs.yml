@@ -1,0 +1,77 @@
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "data/**"
+  pull_request:
+
+jobs:
+  build-and-cache:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            # - os: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v16
+
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: pbcdev
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Build all packages
+        run: |
+          SYSTEM=$(nix eval --raw --impure --expr 'builtins.currentSystem')
+          echo "Current runner system: $SYSTEM"
+
+          # ciPackages can nest arbitrarily deep (plain attrsets used as
+          # grouping/labels, e.g. "Build & Push ..." = { foo = pkg; bar.baz = pkg; }).
+          # Walk it and collect dot-separated paths to actual derivations only -
+          # a derivation is itself an attrset, so it must be excluded from recursion
+          # or this would try to recurse into its own attrs (meta, outputs, ...).
+          FLATTEN='
+            let
+              flatten = prefix: attrs:
+                builtins.concatLists (
+                  builtins.attrValues (
+                    builtins.mapAttrs (
+                      name: value:
+                        let
+                          path = if prefix == "" then name else "${prefix}.${name}";
+                          isDrv = builtins.isAttrs value && (value.type or null) == "derivation";
+                        in
+                        if builtins.isAttrs value && !isDrv then
+                          flatten path value
+                        else
+                          [ path ]
+                    ) attrs
+                  )
+                );
+            in
+            attrs: flatten "" attrs
+          '
+
+          PACKAGES_JSON=$(nix eval --json ".#ciPackages.$SYSTEM" --apply "$FLATTEN" 2>/dev/null || echo "[]")
+
+          if [ "$PACKAGES_JSON" = "[]" ] || [ -z "$PACKAGES_JSON" ]; then
+            echo "No packages found in 'ciPackages.$SYSTEM'."
+            exit 0
+          fi
+
+          echo "Packages to build: $PACKAGES_JSON"
+
+          for pkg in $(echo "$PACKAGES_JSON" | jq -r '.[]'); do
+            echo "::group::Building .#ciPackages.$SYSTEM.$pkg"
+            nix build ".#ciPackages.$SYSTEM.$pkg" --print-build-logs --accept-flake-config
+            echo "::endgroup::"
+          done

@@ -1,0 +1,8 @@
+keys:
+  - &main age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0
+
+creation_rules:
+  - path_regex: data/.*\.enc.yaml$
+    key_groups:
+      - age:
+          - *main

@@ -1,0 +1,6 @@
+{
+  imports = [
+    ./core
+    ./vim.nix
+  ];
+}

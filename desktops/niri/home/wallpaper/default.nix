@@ -1,0 +1,6 @@
+{
+  imports = [
+    #./mpvpaper
+    ./awww.nix
+  ];
+}

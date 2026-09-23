@@ -1,0 +1,225 @@
+{
+  "enabled": true,
+  "shortcuts": {
+    "gecko-back": {
+      "modifiers": {
+        "alt": true,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "E",
+      "action": "gecko-back"
+    },
+    "gecko-forward": {
+      "modifiers": {
+        "alt": true,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "R",
+      "action": "gecko-forward"
+    },
+    "gecko-reload": {
+      "modifiers": {
+        "alt": true,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "W",
+      "action": "gecko-reload"
+    },
+    "gecko-close-tab": {
+      "modifiers": {
+        "alt": true,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "S",
+      "action": "gecko-close-tab"
+    },
+    "gecko-open-new-tab": {
+      "modifiers": {
+        "alt": true,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "A",
+      "action": "gecko-open-new-tab"
+    },
+    "floorp-open-settings": {
+      "modifiers": {
+        "alt": false,
+        "ctrl": true,
+        "meta": false,
+        "shift": false
+      },
+      "key": "Comma",
+      "action": "floorp-open-settings"
+    },
+    "gecko-show-next-tab": {
+      "modifiers": {
+        "alt": true,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "D",
+      "action": "gecko-show-next-tab"
+    },
+    "gecko-show-next-tab-1": {
+      "modifiers": {
+        "alt": true,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "J",
+      "action": "gecko-show-next-tab"
+    },
+    "gecko-show-previous-tab": {
+      "modifiers": {
+        "alt": true,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "F",
+      "action": "gecko-show-previous-tab"
+    },
+    "gecko-show-previous-tab-1": {
+      "modifiers": {
+        "alt": true,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "K",
+      "action": "gecko-show-previous-tab"
+    },
+    "gecko-show-all-tabs-panel": {
+      "modifiers": {
+        "alt": false,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "F12",
+      "action": "gecko-show-all-tabs-panel"
+    },
+    "gecko-open-new-window": {
+      "modifiers": {
+        "alt": false,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "F1",
+      "action": "gecko-open-new-window"
+    },
+    "floorp-toggle-command-palette": {
+      "modifiers": {
+        "alt": true,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "Space",
+      "action": "floorp-toggle-command-palette"
+    },
+    "gecko-save-page": {
+      "modifiers": {
+        "alt": false,
+        "ctrl": true,
+        "meta": false,
+        "shift": false
+      },
+      "key": "S",
+      "action": "gecko-save-page"
+    },
+    "gecko-scroll-up": {
+      "modifiers": {
+        "alt": false,
+        "ctrl": true,
+        "meta": false,
+        "shift": false
+      },
+      "key": "K",
+      "action": "gecko-scroll-up"
+    },
+    "gecko-scroll-down": {
+      "modifiers": {
+        "alt": false,
+        "ctrl": true,
+        "meta": false,
+        "shift": false
+      },
+      "key": "J",
+      "action": "gecko-scroll-down"
+    },
+    "gecko-scroll-right": {
+      "modifiers": {
+        "alt": false,
+        "ctrl": true,
+        "meta": false,
+        "shift": false
+      },
+      "key": "L",
+      "action": "gecko-scroll-right"
+    },
+    "gecko-scroll-left": {
+      "modifiers": {
+        "alt": false,
+        "ctrl": true,
+        "meta": false,
+        "shift": false
+      },
+      "key": "H",
+      "action": "gecko-scroll-left"
+    },
+    "gecko-workspace-next": {
+      "modifiers": {
+        "alt": true,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "L",
+      "action": "gecko-workspace-next"
+    },
+    "gecko-workspace-previous": {
+      "modifiers": {
+        "alt": true,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "H",
+      "action": "gecko-workspace-previous"
+    },
+    "gecko-reload-all-tabs": {
+      "modifiers": {
+        "alt": true,
+        "ctrl": false,
+        "meta": false,
+        "shift": true
+      },
+      "key": "W",
+      "action": "gecko-reload-all-tabs"
+    },
+    "gecko-open-task-manager": {
+      "modifiers": {
+        "alt": false,
+        "ctrl": false,
+        "meta": false,
+        "shift": false
+      },
+      "key": "F2",
+      "action": "gecko-open-task-manager"
+    }
+  }
+}

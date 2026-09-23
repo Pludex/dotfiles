@@ -1,0 +1,42 @@
+name: "NixOS System CI"
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "data/**"
+
+jobs:
+  build-system:
+    name: "Build NixOS Configurations"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v30
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      # Setup Cachix to pull pre-built packages from workflow 1 and push system closures
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: pbcdev
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Build NixOS System Configuration
+        run: |
+          # Build NixOS toplevel if the default configuration exists
+          if nix eval .#nixosConfigurations.default --apply 'x: true' >/dev/null 2>&1; then
+            echo "::group::Building NixOS System Configuration"
+            nix build .#nixosConfigurations.default.config.system.build.toplevel --print-build-logs --accept-flake-config
+            echo "::endgroup::"
+          else
+            echo "Skipping: nixosConfigurations.default not found"
+          fi

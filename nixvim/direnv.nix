@@ -1,0 +1,5 @@
+{
+  plugins.direnv = {
+    enable = true;
+  };
+}

@@ -1,0 +1,25 @@
+#TabsToolbar {
+  visibility: collapse !important;
+}
+
+#toolbar-menubar {
+  display: none !important;
+}
+
+.titlebar-buttonbox {
+  display: none !important;
+}
+
+#forward-button {
+  display: none !important;
+}
+
+#back-button {
+  display: none !important;
+}
+
+#ctrlTab-previews {
+  display: flex !important;
+  flex-direction: column !important;
+  background: transparent;
+}

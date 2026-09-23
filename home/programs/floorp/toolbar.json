@@ -1,0 +1,55 @@
+{
+  "placements": {
+    "widget-overflow-fixed-list": [],
+    "unified-extensions-area": [
+      "ublock0_raymondhill_net-browser-action",
+      "_eac6e624-97fa-4f28-9d24-c06c9b8aa713_-browser-action",
+      "addon_darkreader_org-browser-action",
+      "enhancerforyoutube_maximerf_addons_mozilla_org-browser-action",
+      "ytblock_edoan_com-browser-action",
+      "_446900e4-71c2-419f-a6a7-df9c091e268b_-browser-action"
+    ],
+    "nav-bar": [
+      "back-button",
+      "customizableui-special-spring1",
+      "workspaces-toolbar-button",
+      "vertical-spacer",
+      "urlbar-container",
+      "unified-extensions-button",
+      "forward-button",
+      "customizableui-special-spring2",
+      "reset-pbm-toolbar-button"
+    ],
+    "toolbar-menubar": ["menubar-items"],
+    "TabsToolbar": [],
+    "vertical-tabs": ["tabbrowser-tabs"],
+    "PersonalToolbar": ["personal-bookmarks"],
+    "nora-statusbar": ["screenshot-button", "fullscreen-button", "status-text"]
+  },
+  "seen": [
+    "reset-pbm-toolbar-button",
+    "_eac6e624-97fa-4f28-9d24-c06c9b8aa713_-browser-action",
+    "addon_darkreader_org-browser-action",
+    "enhancerforyoutube_maximerf_addons_mozilla_org-browser-action",
+    "ublock0_raymondhill_net-browser-action",
+    "ytblock_edoan_com-browser-action",
+    "_446900e4-71c2-419f-a6a7-df9c091e268b_-browser-action",
+    "developer-button",
+    "profile-manager-button",
+    "undo-closed-tab",
+    "zen-mode-button",
+    "workspaces-toolbar-button",
+    "screenshot-button"
+  ],
+  "dirtyAreaCache": [
+    "unified-extensions-area",
+    "nav-bar",
+    "vertical-tabs",
+    "nora-statusbar",
+    "TabsToolbar",
+    "PersonalToolbar",
+    "toolbar-menubar"
+  ],
+  "currentVersion": 24,
+  "newElementCount": 1
+}

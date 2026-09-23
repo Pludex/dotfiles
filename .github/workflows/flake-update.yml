@@ -1,0 +1,40 @@
+name: "Update Flake Lock"
+
+on:
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+  schedule:
+    # Runs every Sunday at 00:00 UTC
+    - cron: "0 0 * * 0"
+
+jobs:
+  update-flake-lock:
+    name: "Update Flake Lock"
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Generate an on-the-fly token from GitHub App
+      - name: Generate Bot Token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Use the generated token to clone so subsequent git actions are authenticated
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v16
+
+      # 2. Update flake.lock and create Pull Request under the Bot identity
+      - name: Update flake.lock and create PR
+        uses: DeterminateSystems/update-flake-lock@v24
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
+          pr-title: "chore(deps): update flake.lock"
+          pr-labels: |
+            dependencies
+            automated
