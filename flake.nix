@@ -1,5 +1,5 @@
 {
-  description = "Pludex nix configuration for nixos and Home Manager";
+  description = "Pludex dotfiles";
 
   nixConfig = {
     extra-substituters = [

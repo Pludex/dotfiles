@@ -19,7 +19,7 @@
       privateKeyPath = "${config.paths.abs.home}/.ssh/id_ed25519";
     };
 
-    repoGh = "https://github.com/Pludex/nix-config";
+    repoGh = "https://github.com/Pludex/dotfiles";
 
     timeZone = "Asia/Ho_Chi_Minh";
     locale = "en_US.UTF-8";
@@ -63,9 +63,10 @@
 
     abs = {
       home = "/home/${config.base.username}";
-      dotfiles = "/workspaces/nix-config";
+      workspaces = "/workspaces";
+      dotfiles = "${config.paths.abs.workspaces}/dotfiles";
       emacs = "${config.paths.abs.dotfiles}/emacs";
-      dotfilesBot = "/workspaces/nix-config-bot";
+      dotfilesBot = "/workspaces/dotfiles-bot";
       data = "${config.paths.abs.dotfilesBot}/data";
     };
   };
