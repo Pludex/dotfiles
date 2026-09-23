@@ -1,8 +1,8 @@
 { config, inputs, ... }:
 {
   extraBase = {
-    name = "PBCDev210";
-    username = "pbcdev"; # TODO: rename to pbcdev210
+    name = "Pludex";
+    username = "pbcdev"; # TODO: rename to pludex
 
     email = {
       main = "pbc210.dev@gmail.com";
@@ -19,7 +19,7 @@
       privateKeyPath = "${config.paths.abs.home}/.ssh/id_ed25519";
     };
 
-    repoGh = "https://github.com/pbcdev210/nix-config";
+    repoGh = "https://github.com/Pludex/nix-config";
 
     timeZone = "Asia/Ho_Chi_Minh";
     locale = "en_US.UTF-8";

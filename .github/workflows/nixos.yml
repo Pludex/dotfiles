@@ -27,7 +27,7 @@ jobs:
       - name: Setup Cachix
         uses: cachix/cachix-action@v15
         with:
-          name: pbcdev
+          name: Pludex
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build NixOS System Configuration

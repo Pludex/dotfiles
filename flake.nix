@@ -1,9 +1,9 @@
 {
-  description = "PBCDev nix configuration for nixos and Home Manager";
+  description = "Pludex nix configuration for nixos and Home Manager";
 
   nixConfig = {
     extra-substituters = [
-      "https://pbcdev.cachix.org"
+      "https://pludex.cachix.org"
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"
       "https://niri-epireyn.cachix.org"
@@ -13,7 +13,7 @@
     ];
 
     extra-trusted-public-keys = [
-      "pbcdev.cachix.org-1:iZbrMY/10HM5BQPXeIIHkGoDc4boLuSZYiZuPhIn9P8="
+      "pludex.cachix.org-1:iZbrMY/10HM5BQPXeIIHkGoDc4boLuSZYiZuPhIn9P8="
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "niri-epireyn.cachix.org-1:tlVyFN7CtsDT+ZcLPS+ekFWeT1X6X4OqvWqbBMyIzFA="
@@ -78,7 +78,7 @@
     catppuccin.url = "github:catppuccin/nix";
 
     schemes = {
-      url = "github:pbcdev210/schemes";
+      url = "github:Pludex/schemes";
       flake = false;
     };
 
@@ -124,7 +124,7 @@
     };
 
     treesitter-kanata = {
-      url = "github:pbcdev210/treesitter-kanata";
+      url = "github:Pludex/treesitter-kanata";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

@@ -2,7 +2,7 @@
 
 ## Repository overview
 
-`pbcdev210/nix-config` is a flake-based Nix monorepo for a personal NixOS workstation and Home Manager environment. It declaratively manages operating-system configuration, user applications and services, desktop/window-manager setups, Nixvim, Emacs, custom packages, overlays, development tools, and encrypted secrets.
+`Pludex/nix-config` is a flake-based Nix monorepo for a personal NixOS workstation and Home Manager environment. It declaratively manages operating-system configuration, user applications and services, desktop/window-manager setups, Nixvim, Emacs, custom packages, overlays, development tools, and encrypted secrets.
 
 The primary implementation language is **Nix**. The repository also contains Python, Rust, Nushell, Bash, Emacs Lisp, YAML, JSON, and CSS/configuration files where appropriate.
 
