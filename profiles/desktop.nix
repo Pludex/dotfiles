@@ -1,9 +1,13 @@
 {
   profiles.desktop = {
     home = {
+
+      ai = [
+        "claude-desktop"
+        "aider"
+      ];
       apps = [
         "bitwarden"
-        "claude-desktop"
         "discord"
         "obsidian"
         "sklauncher"

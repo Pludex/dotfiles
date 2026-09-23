@@ -53,6 +53,7 @@
       develop = ../home/develop;
       apps = ../home/apps;
       ides = ../home/ides;
+      ai = ../home/ai;
     };
 
     nixvim = {

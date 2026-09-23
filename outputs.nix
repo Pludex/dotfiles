@@ -68,7 +68,7 @@
     };
   };
 
-  perSystem = { ... }: {
+  perSystem = { base, ... }: {
     treefmt.config = {
       projectRootFile = "flake.nix";
       programs = {
@@ -78,6 +78,8 @@
         # ruff.enable = true;
       };
     };
+
+    devShells.default = import ./devshell.nix base;
   };
 
   imports = [
