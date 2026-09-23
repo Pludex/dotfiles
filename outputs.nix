@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ inputs, base, ... }:
 {
   home = {
     default = {
@@ -7,7 +7,7 @@
       system = "x86_64-linux";
     };
 
-    "pbcdev@dp7530" = {
+    "${base.username}@dp7530" = {
       profile = "desktop";
       desktop = "MangoWM";
       system = "x86_64-linux";

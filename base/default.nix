@@ -2,7 +2,7 @@
 {
   extraBase = {
     name = "Pludex";
-    username = "pbcdev"; # TODO: rename to pludex
+    username = "pludex";
 
     email = {
       main = "pbc210.dev@gmail.com";
@@ -11,7 +11,8 @@
 
     age = {
       publicKey = "age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0";
-      privateKeyPath = "${config.paths.abs.home}/.config/sops/age/keys.txt";
+      # privateKeyPath = "${config.paths.abs.home}/.config/sops/age/keys.txt";
+      privateKeyPath = "${config.paths.abs.dataPrivate}/age.dotfiles.keys.txt";
     };
 
     ssh = {
@@ -68,6 +69,7 @@
       emacs = "${config.paths.abs.dotfiles}/emacs";
       dotfilesBot = "/workspaces/dotfiles-bot";
       data = "${config.paths.abs.dotfilesBot}/data";
+      dataPrivate = "/private";
     };
   };
 
