@@ -4,7 +4,7 @@
   home.homeDirectory = base.abs.home;
   home.stateVersion = "26.05";
 
-  home.sessionVarible = base.tools.envvars;
+  home.sessionVariables = base.tools.envvars;
 
   imports = [
     ./input-method
