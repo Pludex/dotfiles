@@ -21,7 +21,7 @@ rustPlatform.buildRustPackage {
   version = toml.package.version;
   src = sources.waycal;
 
-  cargoHash = "sha256-zOOG8vF0d3+X85O6bu0Y5XKNZSjcufKMHXQmZ54jCXw=";
+  cargoLock.lockFile = "${sources.waycal}/Cargo.lock";
 
   doCheck = !stdenv.hostPlatform.isDarwin;
 
