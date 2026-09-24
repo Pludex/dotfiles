@@ -16,7 +16,7 @@
         browser = pkgs.vivaldi;
         # pager = "bat --plain --pager='less -FR'";
         pager = pkgs.bat;
-        term = pkgs.ghossty;
+        term = pkgs.ghostty;
 
         shellAliases = {
           cd = "z";
