@@ -68,20 +68,33 @@ let
         throw "package.nix: invalid package specification at attribute '${name}'"
     ) tree;
 
-  # Recursively collects packages configured with `ciBuild = true` into a flat attrset for CI.
+  # Recursively collects packages configured with `ciBuild = true`, preserving the same nested
+  # shape as `myPkgs` (e.g. `ciPackages.vimPlugins.treesitter-kanata`, not a flattened
+  # `ciPackages."vimPlugins.treesitter-kanata"` dotted-string key). Empty subtrees (no leaf under
+  # them has `ciBuild = true`) are dropped entirely so they don't show up as empty attrsets.
+  #
+  # NOTE: because this returns a *nested* attrset rather than a flat one, CI discovery can no
+  # longer just do `nix eval .#ciPackages.<system> --apply builtins.attrNames` and build each
+  # name directly - that only sees the top-level keys, and building one of those may yield a
+  # sub-attrset rather than a derivation. CI needs to walk the tree recursively (checking
+  # `node.type or null == "derivation"` at each leaf) to discover full paths, then build each
+  # with `nix build .#ciPackages.<system>.<a>.<b>...` (or eval-and-`nix-build` on the derivation
+  # directly rather than shelling out per path).
   collectCiPackages =
-    prefix: tree: builtTree:
+    tree: builtTree:
     lib.foldl' lib.mergeAttrs { } (
       lib.mapAttrsToList (
         name: node:
         let
-          key = if prefix == "" then name else "${prefix}.${name}";
           builtNode = builtTree.${name} or null;
         in
         if node ? path then
-          if node.ciBuild && builtNode != null then { "${key}" = builtNode; } else { }
+          if node.ciBuild && builtNode != null then { "${name}" = builtNode; } else { }
         else if builtins.isAttrs node && builtins.isAttrs builtNode then
-          collectCiPackages key node builtNode
+          let
+            sub = collectCiPackages node builtNode;
+          in
+          if sub == { } then { } else { "${name}" = sub; }
         else
           { }
       ) tree
@@ -92,8 +105,9 @@ in
     # Declares perSystem.<system>.ciPackages AND mirrors it as a real
     # top-level flake output ciPackages.<system>.<name>, so CI can do
     # `nix eval .#ciPackages.<system> --apply builtins.attrNames` to
-    # discover what to build, then `nix build .#ciPackages.<system>.<name>`
-    # and push each result to Cachix. Other modules add to this by
+    # discover top-level entries, then walk into nested ones and build
+    # each leaf derivation found (see the note above `collectCiPackages`),
+    # pushing each result to Cachix. Other modules add to this by
     # setting `perSystem.ciPackages = { foo = ...; };` in their own
     # file - the module system merges separate files' definitions of
     # the same attrset as long as keys don't clash.
@@ -107,7 +121,8 @@ in
           system and pushed to Cachix. Distinct from `packages` below -
           an explicit, opt-in registry, so a derivation can be built by
           CI without needing to be published as a `packages.<name>`
-          flake output.
+          flake output. Nested the same way as `myPkgs` (not flattened
+          into dotted-string keys).
         '';
       };
       file = ./package.nix;
@@ -148,7 +163,9 @@ in
         packages = base.myPkgs;
 
         # Collects packages from `myPkgs` where `ciBuild = true` for CI evaluation.
-        ciPackages.myPkgs = collectCiPackages "" config.myPkgs base.myPkgs;
+        # Nested the same way as `myPkgs` - e.g. build a single leaf directly with
+        # `nix build .#ciPackages.<system>.vimPlugins.treesitter-kanata`.
+        ciPackages.myPkgs = collectCiPackages config.myPkgs base.myPkgs;
       };
   };
 
