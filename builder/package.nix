@@ -31,10 +31,29 @@ let
   };
 
   # Recursive type enabling hierarchical nested attribute definitions (e.g. `a.b = { path = ...; };`).
-  nodeType = types.oneOf [
-    pkgSpecType
-    (types.attrsOf nodeType)
-  ];
+  #
+  # NOTE: this is a hand-rolled type rather than `types.oneOf [pkgSpecType (types.attrsOf nodeType)]`.
+  # `types.submodule`'s `check` is permissive (basically just `isAttrs`), so with `oneOf`/`either`,
+  # which picks the first type for which *all* definitions pass `check`, `pkgSpecType` always wins -
+  # every node, including ones meant as nested namespaces, gets coerced into a leaf package spec and
+  # any nested attribute under it fails with "option does not exist". Instead we disambiguate leaf vs.
+  # namespace explicitly by checking for the `path` key, mirroring what `buildMyPkgs` /
+  # `collectCiPackages` below already do.
+  nodeType = lib.mkOptionType {
+    name = "packageTreeNode";
+    description = "package specification or nested attribute set thereof";
+    descriptionClass = "noun";
+    check =
+      x:
+      builtins.isAttrs x
+      && (if x ? path then pkgSpecType.check x else lib.all nodeType.check (builtins.attrValues x));
+    merge =
+      loc: defs:
+      let
+        isLeaf = lib.any (d: d.value ? path) defs;
+      in
+      if isLeaf then pkgSpecType.merge loc defs else (types.attrsOf nodeType).merge loc defs;
+  };
 
   # Recursively instantiates package derivations in the overlay using `final.callPackage`.
   buildMyPkgs =

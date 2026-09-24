@@ -1,7 +1,7 @@
 { pkgs, ... }:
 {
   extraPlugins = [
-    pkgs.myPkgs.treesitter-kanata-vimPlugin
+    pkgs.myPkgs.vimPlugins.treesitter-kanata
   ];
 
   filetype.extension.kbd = "kanata";
