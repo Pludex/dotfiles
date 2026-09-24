@@ -123,11 +123,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    treesitter-kanata = {
-      url = "github:Pludex/treesitter-kanata";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     wezterm-types = {
       url = "github:/DrKJeff16/wezterm-types";
       flake = false;

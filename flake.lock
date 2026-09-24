@@ -1139,7 +1139,6 @@
         "stylix": "stylix",
         "sunix": "sunix",
         "treefmt-nix": "treefmt-nix_3",
-        "treesitter-kanata": "treesitter-kanata",
         "vscode-extensions": "vscode-extensions",
         "waybar": "waybar",
         "waycal": "waycal",
@@ -1478,26 +1477,6 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "type": "github"
-      }
-    },
-    "treesitter-kanata": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1786094474,
-        "narHash": "sha256-MTMHmlTU+fFiuU0uNVi2RBXMV1BlSoqb70AIQxg8rnw=",
-        "owner": "Pludex",
-        "repo": "treesitter-kanata",
-        "rev": "76658aa31e4eecf5bc054c514f126df5bcc3d183",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Pludex",
-        "repo": "treesitter-kanata",
         "type": "github"
       }
     },

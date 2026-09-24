@@ -50,7 +50,6 @@
     vscode-extensions.overlays.default
     nix-firefox-addons.overlays.default
     nur.overlays.default
-    treesitter-kanata.overlays.default
     obsidian-extensions.overlays.default
     emacs-overlays.overlays.default
   ];

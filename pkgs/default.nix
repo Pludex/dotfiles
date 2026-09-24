@@ -18,6 +18,9 @@
     patchy-cnb = {
       path = ./patchy-cnb;
     };
+    treesitter-kanata-vimPlugin = {
+      path = ./treesitter-kanata;
+    };
     vaultwarden-sync = {
       path = ./vaultwarden-sync;
     };

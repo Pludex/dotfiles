@@ -1,0 +1,140 @@
+======
+Empty list
+======
+
+()
+
+( )
+
+(
+
+)
+
+-----
+
+(kanata
+  (list)
+  (list)
+  (list))
+
+=====
+List of one item
+=====
+
+(defsrc)
+
+(
+  defsrc
+)
+
+-----
+
+(kanata
+  (list
+    (unquoted_item))
+  (list
+    (unquoted_item)))
+
+=====
+List of multiple items
+=====
+
+(defsrc
+  lctl lmet lalt spc ralt rctl
+)
+
+-----
+
+(kanata
+  (list
+    (unquoted_item)
+    (unquoted_item)
+    (unquoted_item)
+    (unquoted_item)
+    (unquoted_item)
+    (unquoted_item)
+    (unquoted_item)))
+
+=====
+Lists with quoted items
+=====
+
+(xyz "a b c d")
+
+-----
+
+(kanata
+  (list
+    (unquoted_item)
+    (quoted_item)))
+
+=====
+Nested lists
+=====
+
+(defcfg
+  linux-dev ("/dev/input/by-path/platform-i8042-serio-0-event-kbd")
+)
+
+(deflayermap (my-alt))
+
+-----
+
+(kanata
+  (list
+    (unquoted_item)
+    (unquoted_item)
+    (list
+      (quoted_item)))
+  (list
+    (unquoted_item)
+    (list
+      (unquoted_item))))
+
+=====
+Line comments
+=====
+
+;; comment 1
+
+()
+
+(
+  ;; comment 2
+  item
+)
+
+-----
+
+(kanata
+  (line_comment)
+  (list)
+  (list
+    (line_comment)
+    (unquoted_item)))
+
+=====
+Block comments
+=====
+
+#||#
+
+#|block_comment|#
+
+#| block comment
+line 2
+line 3 |#
+
+(a)
+
+#| another block comment |#
+
+-----
+
+(kanata
+  (block_comment)
+  (block_comment)
+  (block_comment)
+  (list
+    (unquoted_item))
+  (block_comment))
