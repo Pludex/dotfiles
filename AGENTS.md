@@ -2,7 +2,7 @@
 
 ## Repository overview
 
-`Pludex/dotfiles` is a flake-based Nix monorepo for a personal NixOS workstation and Home Manager environment. It declaratively manages operating-system configuration, user applications and services, desktop/window-manager setups, Nixvim, Emacs, custom packages, overlays, development tools, and encrypted secrets.
+`Pludex/dotfiles` is a flake-based Nix monorepo for a personal NixOS workstation and Home Manager environment. It declaratively manages operating-system configuration, user applications and services, desktop environments, and project-local tooling via a single flake interface.
 
 The primary implementation language is **Nix**. The repository also contains Python, Rust, Nushell, Bash, Emacs Lisp, YAML, JSON, and CSS/configuration files where appropriate.
 
@@ -10,13 +10,72 @@ The primary implementation language is **Nix**. The repository also contains Pyt
 
 Read these files in this order before making a non-trivial change:
 
-1. `flake.nix` — flake inputs and the top-level output entry point.
-2. `builder/default.nix` — assembles the Flake Parts modules used by this repository.
-3. `outputs.nix` — declares named Home Manager, NixOS, and Nixvim outputs, supported systems, overlays, and formatting.
-4. `base/default.nix` — shared repository paths, user metadata, secrets paths, and common settings.
-5. The target host/profile/module — choose the narrowest relevant configuration instead of changing a global layer.
+1. `flake.nix` — flake inputs, cachix configuration, and the top-level output entry point.
+2. `builder/default.nix` — the root of the flake-parts assembly; it imports every builder module and wires the flake together.
+3. `builder/base.nix` — the core composition engine: `mkPkgs`, `mksPkgs`, `mkBase`, `forSystem`, overlays, `extraBase`, and the per-system `base` object.
+4. `builder/home.nix` — Home Manager and standalone configuration generation, including module composition and `extraSpecialArgs` propagation.
+5. `builder/nixos.nix` — NixOS system generation, host/desktop/profile resolution, and embedded Home Manager integration.
+6. `builder/profiles.nix` — the profile resolver that flattens `profiles.<category>.<subkey>` into concrete module lists via `profilesImportHandlers`.
+7. `builder/package.nix` — the `myPkgs` package schema, overlay-based package generation, and `ciPackages` registry.
+8. `builder/nixvim.nix` — nixvim configuration generation, overlay-based `myPkgs.<profile>` packaging, and `nixvimConfigurations` output shape.
+9. `outputs.nix` — named Home Manager, NixOS, and Nixvim outputs, supported systems, overlays, and formatting.
+10. The target host/profile/module — choose the narrowest relevant configuration instead of changing a global layer.
 
 The current supported system is `x86_64-linux`. Named outputs and their composition are defined in `outputs.nix`; do not infer a new host, profile, or desktop name without checking that file first.
+
+## Flake-parts builder architecture
+
+This repository is organized around a flake-parts builder, not a single giant `outputs.nix` file. The key architectural pattern is:
+
+- `flake.nix` declares the flake inputs and then calls `((import ./builder { inherit inputs; }).mkDotfiles {})`.
+- `builder/default.nix` is the flake-parts entry point. It imports the builder modules and then attaches them to an `inputs.flake-parts.lib.mkFlake` configuration.
+- The modules in `builder/*.nix` each contribute a small, explicit slice of the flake: base system setup, Home Manager generation, NixOS generation, profile resolution, packages, and nixvim outputs.
+- `outputs.nix` is not the entire architecture; it supplies the high-level named outputs and global settings while the builder modules handle the actual composition logic.
+
+The most important builder modules are:
+
+- `builder/base.nix`
+  - Defines the repo's shared flake-level infrastructure.
+  - Creates `mkPkgs`, `mksPkgs`, `mkBase`, and `forSystem` helpers.
+  - Builds a per-system `base` object with `pkgs`, `sPkgs`, `myPkgs`, `libx`, and `builder` helpers.
+  - Maintains the overlay pipeline and `extraBase`/`extraBaseWithPkgs` hooks.
+  - This is the abstraction that keeps overlay ordering, package channels, and system-specific assembly consistent.
+
+- `builder/home.nix`
+  - Produces `flake.homeConfigurations` for standalone home-manager builds.
+  - Shares one module list for both standalone and non-standalone modes.
+  - Injects `profile`, `desktop`, `name`, and `standalone` into modules via `extraSpecialArgs` and module arguments.
+  - Allows NixOS configurations to attach Home Manager with `base.mkHomeNonStandalone`.
+
+- `builder/nixos.nix`
+  - Produces `flake.nixosConfigurations` from the `nixos` attrset.
+  - Resolves host, profile, desktop, and system together.
+  - Imports the host module, desktop module, shared nixos module path, and Home Manager NixOS module.
+  - Wires the NixOS config into the repo's Home Manager config via `home-manager = base.mkHomeNonStandalone { inherit config base; };`.
+
+- `builder/profiles.nix`
+  - Defines the `profiles` option and `profilesImportHandlers` mechanism.
+  - Allows declarative entries like `profiles.desktop.home = { foo = [ "bar" ]; };` to resolve to actual module paths.
+  - Flattens each category/subkey into a list of imported modules, exposed as `profilesResult`.
+  - This is the mechanism that makes `profile`-based composition work without hard-coding every combination.
+
+- `builder/package.nix`
+  - Defines the hierarchical `myPkgs` package schema.
+  - Builds package derivations via recursive `callPackage` evaluation.
+  - Exposes `packages`, `legacyPackages`, and `ciPackages` as flake outputs.
+  - Keeps CI package selection explicit and easy to inspect via `ciBuild`.
+
+- `builder/nixvim.nix`
+  - Generates `nixvimConfigurations.<system>.<profile>` using `inputs.nixvim.lib.evalNixvim`.
+  - Adds profile-specific modules through `cfg.nixvimModules` and `profilesResult.<profile>.nixvim`.
+  - Bakes profile wrappers into `pkgs.myPkgs.<profile>` so each profile gets a convenience `nvim` / `profileide` package.
+
+- `outputs.nix`
+  - Declares the repo's named outputs: `home`, `nixos`, and `nixvim`.
+  - Selects supported systems and keeps overlays and nixpkgs policy centralized.
+  - Imports the repo's `base`, `pkgs`, and `profiles` directories so the builder modules can compose all of them.
+
+In other words, the flake-parts builder is the architecture: base infrastructure first, then specialized generators for OS/user/editor/profile/package outputs, with `profiles` and `myPkgs` as the central composition mechanisms.
 
 ## Directory map
 
@@ -122,10 +181,11 @@ If evaluation requires unavailable hardware, private secrets, or a local-only pa
 ### Scope and investigation
 
 - Inspect the relevant imports and option definitions before editing. Nix modules are connected through imports and option declarations; a local-looking change may have global effects.
-- Prefer the narrowest layer that solves the problem: host-specific settings belong in `hosts/`, reusable system behavior in `modules/nixos/`, user behavior in `home/` or `modules/home/`, and desktop behavior in `desktops/`.
+- Prefer the narrowest layer that solves the problem: host-specific settings belong in `hosts/`, reusable system behavior in `modules/nixos/`, user behavior in `home/` or `modules/home/`, and desktop- or profile-level behavior in `desktops/` or `profiles/`.
 - Reuse existing options, helpers, overlays, and package definitions. Do not create a duplicate abstraction without checking for an existing one first.
 - Preserve the existing naming and directory conventions. Keep related configuration together rather than adding unrelated top-level files.
 - Do not make drive-by refactors, dependency upgrades, formatting churn, or lockfile updates unrelated to the requested task.
+- When working in the flake-parts builder, treat `builder/default.nix` and its imported modules as the source of architectural truth. Follow the pattern established there rather than introducing alternate composition styles.
 
 ### Nix style and correctness
 
@@ -135,6 +195,7 @@ If evaluation requires unavailable hardware, private secrets, or a local-only pa
 - Treat `flake.lock` as generated state: update it only for an intentional input change and include the reason in the change summary.
 - Keep `allowUnfree`, insecure-package exceptions, overlays, and cache settings centralized in their existing locations; do not scatter policy overrides through leaf modules.
 - Avoid absolute paths and machine-specific assumptions unless the existing architecture explicitly provides them through `base.paths` or host configuration.
+- For builder changes, preserve the design of `base`, `profiles`, `myPkgs`, and `home/nixos/nixvim` configuration generation; the repository relies on those module contracts.
 
 ### Secrets and safety
 
