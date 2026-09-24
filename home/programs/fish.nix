@@ -3,7 +3,7 @@
   programs.fish = {
     enable = true;
 
-    shellAliases = base.tools.alias;
+    inherit (base.tools) shellAliases;
 
     plugins = [
       {

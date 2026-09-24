@@ -1,5 +1,4 @@
 {
-  pkgs,
   base,
   config,
   ...
@@ -7,12 +6,12 @@
 {
   users.users.${base.username} = {
     isNormalUser = true;
-    description = "user main";
+    description = base.name;
     extraGroups = [
       "wheel"
       "networkmanager"
     ];
-    shell = pkgs."${base.tools.shell}";
+    shell = base.tools.shell;
     home = base.abs.home;
     hashedPasswordFile = config.sops.secrets."hashedPassword".path;
   };

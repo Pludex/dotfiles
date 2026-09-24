@@ -2,8 +2,7 @@
 {
   programs.bash = {
     enable = true;
-
-    shellAliases = base.tools.alias;
+    inherit (base.tools) shellAliases;
   };
 
   programs.zoxide.enableBashIntegration = true;
