@@ -31,7 +31,7 @@
       }
     ];
 
-    shellAliases = base.tools.alias;
+    inherit (base.tools) shellAliases;
 
     dotDir = "${config.xdg.configHome}/zsh";
 

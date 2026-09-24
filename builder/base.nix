@@ -130,15 +130,23 @@ let
     let
       pkgs = mkPkgs { inherit system; };
 
-      # Unlike the top-level `extraBase` option (merged into `core`
-      # before pkgs exists), this one is a function of the
-      # already-built `pkgs` for this system, declared per-system so
-      # it can depend on it (e.g. pull in a package, read pkgs.system,
-      # inspect an overlay result). It's read from `(getSystem
-      # system).extraBase` - a sibling perSystem option, not `base`
-      # itself, so no circularity: the function is just stored data
-      # until called here with the local `pkgs`.
-      extraFromPerSystem = (getSystem system).extraBase pkgs;
+      # `extraBaseWithPkgs` is a TOP-LEVEL option (function of pkgs),
+      # not a perSystem one. This matters: a perSystem consumer module
+      # that only *sets* this option never needs to destructure `pkgs`
+      # or `base` as a module-argument to do so - it just hands over a
+      # plain lambda as data. That's what breaks the circularity that
+      # a perSystem-scoped `extraBase` would invite: any perSystem
+      # module written as `{ pkgs, ... }: { perSystem.extraBase = ...; }`
+      # forced Nix to resolve `_module.args.pkgs` (= `config.base.pkgs`)
+      # just to evaluate the module - but `config.base.pkgs` itself
+      # depends on `extraBase` being fully evaluated first => infinite
+      # recursion. Reading `cfg.extraBaseWithPkgs` here instead is a
+      # plain top-level config lookup; it doesn't touch `_module.args`
+      # at all, so no such cycle is possible from *this* mechanism.
+      # (A consumer module can still shoot itself in the foot by
+      # destructuring `pkgs`/`base` at its own signature for unrelated
+      # reasons - that's on the consumer, not this module.)
+      extraFromPerSystem = cfg.extraBaseWithPkgs pkgs;
 
       own = {
         inherit
@@ -167,7 +175,7 @@ let
       full =
         assert disjoint "mkBase extraBase" extra (core // own);
         assert disjoint "extraBase" cfg.extraBase own;
-        assert disjoint "perSystem extraBase" extraFromPerSystem (core // own);
+        assert disjoint "extraBaseWithPkgs" extraFromPerSystem (core // own);
         core // extraFromPerSystem // extra // own;
     in
     full;
@@ -237,6 +245,23 @@ in
       default = { };
     };
 
+    # Same purpose as `extraBase`, but for extras that need the
+    # already-built `pkgs` (with all overlays applied) to compute
+    # their value - e.g. `pkgs: { tools.alias.less = "${pkgs.less}/bin/less"; }`.
+    # TOP-LEVEL (not per-system) on purpose: a single function is
+    # reused for every system, called with that system's own `pkgs`
+    # inside `build`. Consumer modules that set this option never need
+    # `pkgs`/`base` as a module-argument to do so, which avoids the
+    # circularity that a perSystem-scoped version of this option would
+    # invite (see the comment on `extraFromPerSystem` above). Merged
+    # into `base` after `pkgs`, alongside `own`, so it can see `pkgs`
+    # but must not redefine any of base's built-in keys (pkgs, myPkgs,
+    # builder, mkBase, ...).
+    extraBaseWithPkgs = mkOption {
+      type = types.functionTo (types.lazyAttrsOf types.raw);
+      default = _pkgs: { };
+    };
+
     # pkgs-free base: `core` plus `mkBase`/`forSystem` (and a `builder`
     # extended with them). Get a concrete, per-system `pkgs` via
     # `base.forSystem system` or `base.mkBase { inherit system; }`.
@@ -262,18 +287,6 @@ in
           packagesOfInputs = mkOption {
             type = types.attrsOf types.package;
             default = { };
-          };
-
-          # Like the top-level `extraBase` option, but a function of
-          # pkgs instead of a plain attrset - use this when the extra
-          # base attrs need the already-built pkgs for this system
-          # (e.g. `pkgs: { myTool = pkgs.callPackage ./my-tool.nix { }; }`).
-          # Merged into `base` after pkgs, alongside `own`, so it can
-          # see it but must not redefine any of base's built-in keys
-          # (pkgs, myPkgs, builder, mkBase, ...).
-          extraBase = mkOption {
-            type = types.functionTo (types.lazyAttrsOf types.raw);
-            default = _pkgs: { };
           };
         };
       }
