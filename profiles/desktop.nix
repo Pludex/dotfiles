@@ -1,3 +1,4 @@
+{ base, ... }:
 {
   profiles.desktop = {
     home = {
@@ -72,6 +73,10 @@
         "vscode"
         "rider"
       ];
+
+      extraModules = [
+        (import base.paths.desktops { desktop = "river"; }).home
+      ];
     };
 
     nixos = {
@@ -87,6 +92,10 @@
       virtualisation = [
         "core/libvirt"
         "win10"
+      ];
+
+      extraModules = [
+        (import base.paths.desktops { desktop = "river"; }).nixos
       ];
     };
   };

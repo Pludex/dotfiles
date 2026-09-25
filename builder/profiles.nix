@@ -3,10 +3,11 @@ let
   inherit (lib) mkOption types;
   cfg = config;
 
-  # Resolve one entry's handler output into a concrete module path.
-  # The handler returns a bare path/string (no extension); `import`
-  # already loads `default.nix` for a directory on its own, so a
-  # resolved directory can be returned as-is.
+  # Handler can be either:
+  #   - function: name: <bare path/string>  (as before)
+  #   - path: treated as a base dir, equivalent to name: dir + "/${name}"
+  normalizeHandler = h: if builtins.isFunction h then h else (name: h + "/${name}");
+
   resolveEntry =
     category: subkey: handler: name:
     let
@@ -30,62 +31,78 @@ let
         Tried ${toString asFile} and ${toString bare}/ - neither exists.
       '';
 
-  # A profile can reference a subkey with no matching handler (e.g. a
-  # typo, or a category/subkey added to `profiles` before its handler
-  # is written elsewhere); surface that here instead of an opaque
-  # missing-attribute error deep inside mapAttrs.
   handlerFor =
     category: subkey:
-    cfg.profilesImportHandlers.${category}.${subkey} or (throw ''
-      profiles: profiles.*.${category}.${subkey} is used but
-      profilesImportHandlers.${category}.${subkey} isn't defined.
-    '');
+    normalizeHandler (
+      cfg.profilesImportHandlers.${category}.${subkey} or (throw ''
+        profiles: profiles.*.${category}.${subkey} is used but
+        profilesImportHandlers.${category}.${subkey} isn't defined.
+      '')
+    );
 
   resolveSubkey =
     category: subkey: names:
     map (resolveEntry category subkey (handlerFor category subkey)) names;
 
+  # extraModules are already concrete modules -> pass through, skip the handler.
   resolveCategory =
-    category: subkeys: lib.concatLists (lib.mapAttrsToList (resolveSubkey category) subkeys);
+    category: categoryCfg:
+    let
+      extraModules = categoryCfg.extraModules;
+      subkeys = removeAttrs categoryCfg [ "extraModules" ];
+    in
+    extraModules ++ lib.concatLists (lib.mapAttrsToList (resolveSubkey category) subkeys);
 
-  # No fixed list of categories anywhere: whatever categories a
-  # profile actually uses (home, nixos, nixvim, darwin, ...) is what
-  # gets resolved and shows up in profilesResult.
   resolveProfile = _profileName: lib.mapAttrs resolveCategory;
+
+  categorySubmodule = types.submodule {
+    freeformType = types.attrsOf (types.listOf types.str);
+    options.extraModules = mkOption {
+      type = types.listOf types.raw;
+      default = [ ];
+      description = ''
+        Modules appended directly to this category's result, bypassing
+        profilesImportHandlers. For one-off modules not worth a handler,
+        e.g. profiles.foo.home.extraModules = [ ./local.nix ];
+      '';
+    };
+  };
 in
 {
   options = {
-    # profiles.<profileName>.<category>.<subkey> = [ entry names ]
     profiles = mkOption {
-      type = types.attrsOf (types.attrsOf (types.attrsOf (types.listOf types.str)));
+      type = types.attrsOf (types.attrsOf categorySubmodule);
       default = { };
       description = ''
         Named bundles of entries, grouped by target category (home,
         nixos, nixvim, darwin, ...) and subkey (programs, services,
         apps, plugins, ...). Each entry is a name resolved via the
         matching profilesImportHandlers.<category>.<subkey>.
+
+        Each category also accepts `extraModules`: a list of concrete
+        modules appended as-is, bypassing the handler.
       '';
     };
 
-    # profilesImportHandlers.<category>.<subkey> = name: <bare path/string>
     profilesImportHandlers = mkOption {
       type = types.lazyAttrsOf (types.lazyAttrsOf types.raw);
       default = { };
       description = ''
-        For each category.subkey pair used in `profiles`, a function
-        mapping an entry name to a bare path (no .nix extension) -
-        profiles.nix resolves that to `<bare>.nix` or `<bare>/`.
+        For each category.subkey pair used in `profiles`, a value that is
+        either:
+          - a function `name: <bare path/string>`, or
+          - a path, shorthand for `name: path + "name"`
+        The result is resolved to `<bare>.nix` or `<bare>/`.
       '';
     };
 
-    # profilesResult.<profileName>.<category> = [ resolved module paths ]
     profilesResult = mkOption {
       type = types.attrsOf (types.attrsOf (types.listOf types.raw));
       readOnly = true;
       description = ''
-        `profiles`, resolved: subkeys flattened into one module list
-        per category, ready to hand to that category's `imports`
-        (home-manager, nixos, nixvim, darwin, ...).
+        `profiles`, resolved: subkeys and extraModules flattened into
+        one module list per category, ready to hand to that category's
+        `imports` (home-manager, nixos, nixvim, darwin, ...).
       '';
     };
   };
