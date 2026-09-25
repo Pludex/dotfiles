@@ -55,6 +55,7 @@
         # "sunix"
         "superfile"
         "tirith"
+        "yazi"
         "zoxide"
       ];
 
