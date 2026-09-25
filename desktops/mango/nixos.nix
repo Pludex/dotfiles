@@ -1,5 +1,6 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 {
+  programs.mango.enable = true;
   services.greetd = {
     enable = true;
 
@@ -15,5 +16,10 @@
           + " --cmd mango";
       };
     };
+  };
+
+  services.xserver = {
+    enable = true;
+    videoDrivers = config.host-config.gpuDrivers;
   };
 }
