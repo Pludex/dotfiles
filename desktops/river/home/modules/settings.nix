@@ -10,6 +10,19 @@ with lib;
 let
   cfg = config.programs.river.settings;
 
+  # river built-in modes that don't need declare-mode
+  builtinModes = [
+    "normal"
+    "locked"
+  ];
+
+  # ---- declare-mode ----
+
+  declareModeScript = pkgs.writeShellApplication {
+    name = "river-declare-modes";
+    text = concatMapStringsSep "\n" (mode: "riverctl declare-mode ${mode}") cfg.declareModes;
+  };
+
   # ---- keymaps ----
 
   # Replace "Mod" token with keyMod, keep other modifiers as-is
@@ -20,17 +33,15 @@ let
     else
       concatStringsSep "+" (map (m: if m == "Mod" then cfg.keyMod else m) (splitString "+" modifiers));
 
-  mkDeclareModeLine = mode: "riverctl declare-mode ${mode}";
-
   mkMapLine =
-    km:
+    mode: km:
     let
       parts =
         optional km.release "-release"
         ++ optional km.repeat "-repeat"
         ++ optional (km.layout != 0) "-layout ${toString km.layout}"
         ++ [
-          km.mode
+          mode
           (resolveModifiers km.modifiers)
           km.keysym
           km.command
@@ -40,7 +51,9 @@ let
 
   keyMapsScript = pkgs.writeShellApplication {
     name = "river-keymaps";
-    text = concatStringsSep "\n" (map mkDeclareModeLine cfg.declareModes ++ map mkMapLine cfg.keymaps);
+    text = concatStringsSep "\n" (
+      concatLists (mapAttrsToList (mode: kms: map (mkMapLine mode) kms) cfg.keymaps)
+    );
   };
 
   # ---- rules ----
@@ -73,6 +86,11 @@ let
     in
     needsFloat -> elem "float" actions;
 
+  # every keymap mode must be built-in or declared via declareModes
+  undeclaredModes = filter (mode: !(elem mode builtinModes) && !(elem mode cfg.declareModes)) (
+    attrNames cfg.keymaps
+  );
+
 in
 {
   options.programs.river.settings = {
@@ -80,7 +98,7 @@ in
       type = types.str;
       default = "Mod4";
       example = "Mod1";
-      description = "Value substituted for the \"Mod\" token in keymaps.*.modifiers.";
+      description = "Value substituted for the \"Mod\" token in keymaps.<mode>.*.modifiers.";
     };
 
     declareModes = mkOption {
@@ -94,45 +112,43 @@ in
     };
 
     keymaps = mkOption {
-      default = [ ];
-      description = "List of riverctl map keybindings.";
-      type = types.listOf (
-        types.submodule {
-          options = {
-            mode = mkOption {
-              type = types.str;
-              default = "normal";
+      default = { };
+      description = "riverctl map keybindings, keyed by mode name.";
+      type = types.attrsOf (
+        types.listOf (
+          types.submodule {
+            options = {
+              command = mkOption {
+                type = types.str;
+                description = "Command run by riverctl map. Quote it yourself when it has flags, e.g. spawn \"foot -e btop\".";
+              };
+              layout = mkOption {
+                type = types.int;
+                default = 0;
+                description = "-layout <index>. 0 means the flag is omitted.";
+              };
+              release = mkOption {
+                type = types.bool;
+                default = false;
+                description = "Trigger on key release (-release).";
+              };
+              repeat = mkOption {
+                type = types.bool;
+                default = false;
+                description = "Repeat while key is held (-repeat).";
+              };
+              modifiers = mkOption {
+                type = types.str;
+                default = "";
+                description = "Modifiers joined by \"+\", e.g. \"Mod+Shift\". Use \"Mod\" to reference keyMod.";
+              };
+              keysym = mkOption {
+                type = types.str;
+                description = "XKB keysym name, e.g. \"Return\", \"J\".";
+              };
             };
-            command = mkOption {
-              type = types.str;
-              description = "Command run by riverctl map. Quote it yourself when it has flags, e.g. spawn \"foot -e btop\".";
-            };
-            layout = mkOption {
-              type = types.int;
-              default = 0;
-              description = "-layout <index>. 0 means the flag is omitted.";
-            };
-            release = mkOption {
-              type = types.bool;
-              default = false;
-              description = "Trigger on key release (-release).";
-            };
-            repeat = mkOption {
-              type = types.bool;
-              default = false;
-              description = "Repeat while key is held (-repeat).";
-            };
-            modifiers = mkOption {
-              type = types.str;
-              default = "";
-              description = "Modifiers joined by \"+\", e.g. \"Mod+Shift\". Use \"Mod\" to reference keyMod.";
-            };
-            keysym = mkOption {
-              type = types.str;
-              description = "XKB keysym name, e.g. \"Return\", \"J\".";
-            };
-          };
-        }
+          }
+        )
       );
     };
 
@@ -189,11 +205,22 @@ in
     };
   };
 
+  options.programs.river.extraPackages = mkOption {
+    type = types.listOf types.package;
+    default = [ ];
+    description = "Packages put first on PATH before river scripts run (e.g. tools used by keymap commands).";
+  };
+
   options.programs.river._Results = {
+    declareModes = mkOption {
+      type = types.package;
+      readOnly = true;
+      description = "Generated riverctl declare-mode script package.";
+    };
     keyMaps = mkOption {
       type = types.package;
       readOnly = true;
-      description = "Generated riverctl declare-mode/map script package.";
+      description = "Generated riverctl map script package.";
     };
     rules = mkOption {
       type = types.package;
@@ -203,12 +230,29 @@ in
   };
 
   config = {
-    programs.river._Results.keyMaps = keyMapsScript;
-    programs.river._Results.rules = rulesScript;
+    programs.river._Results = {
+      declareModes = declareModeScript;
+      keyMaps = keyMapsScript;
+      rules = rulesScript;
+    };
 
-    assertions = map (group: {
-      assertion = needsFloatCheck group;
-      message = "river rule for app-id=\"${group.app-id}\" title=\"${group.title}\": position/dimensions requires a matching \"float\" action in the same group.";
-    }) cfg.rules;
+    assertions =
+      map (group: {
+        assertion = needsFloatCheck group;
+        message = "river rule for app-id=\"${group.app-id}\" title=\"${group.title}\": position/dimensions requires a matching \"float\" action in the same group.";
+      }) cfg.rules
+      ++ [
+        {
+          assertion = undeclaredModes == [ ];
+          message = "river keymaps use undeclared mode(s): ${concatStringsSep ", " undeclaredModes}. Add them to programs.river.settings.declareModes.";
+        }
+      ];
+
+    wayland.windowManager.river.extraConfig = ''
+      export PATH="${makeBinPath config.programs.river.extraPackages}:$PATH"
+      ${lib.getExe config.programs.river._Results.declareModes}
+      ${lib.getExe config.programs.river._Results.keyMaps}
+      ${lib.getExe config.programs.river._Results.rules}
+    '';
   };
 }
