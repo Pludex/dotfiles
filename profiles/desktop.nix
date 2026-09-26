@@ -13,7 +13,7 @@
         "obsidian"
         "sklauncher"
         "spotify"
-        "steam"
+        # "steam"
         "vivaldi"
         "wps"
         "zalo"
@@ -75,7 +75,7 @@
       ];
 
       extraModules = [
-        (import base.paths.desktops { desktop = "river"; }).home
+        (import base.paths.desktops { desktop = "hyprland"; }).home
       ];
     };
 
@@ -95,7 +95,11 @@
       ];
 
       extraModules = [
-        (import base.paths.desktops { desktop = "river"; }).nixos
+        (import base.paths.desktops { desktop = "hyprland"; }).nixos
+      ];
+
+      apps = [
+        "steam"
       ];
     };
   };
