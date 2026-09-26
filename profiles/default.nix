@@ -30,6 +30,7 @@ in
     nixos = {
       services = n: np.services + "/${n}";
       virtualisation = n: np.virtualisation + "/${n}";
+      apps = n: np.apps + "/${n}";
     };
 
     nixvim = {
