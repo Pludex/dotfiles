@@ -35,6 +35,13 @@
       host = "live";
       system = "x86_64-linux";
     };
+
+    ci = {
+      profile = "ci";
+      desktop = "tty";
+      host = "ci-runner";
+      system = "x86_64-linux";
+    };
   };
 
   nixvim = {

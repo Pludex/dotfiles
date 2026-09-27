@@ -32,11 +32,10 @@ jobs:
 
       - name: Build NixOS System Configuration
         run: |
-          # Build NixOS toplevel if the default configuration exists
-          if nix eval .#nixosConfigurations.default --apply 'x: true' >/dev/null 2>&1; then
+          if nix eval .#nixosConfigurations.ci --apply 'x: true' >/dev/null 2>&1; then
             echo "::group::Building NixOS System Configuration"
-            nix build .#nixosConfigurations.default.config.system.build.toplevel --print-build-logs --accept-flake-config
+            nix build .#nixosConfigurations.ci.config.system.build.toplevel --print-build-logs --accept-flake-config
             echo "::endgroup::"
           else
-            echo "Skipping: nixosConfigurations.default not found"
+            echo "Skipping: nixosConfigurations.ci not found"
           fi

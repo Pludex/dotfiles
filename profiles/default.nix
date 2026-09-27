@@ -10,6 +10,7 @@ in
     ./desktop.nix
     ./ecode.nix
     ./live.nix
+    ./ci.nix
   ];
 
   # Every handler here has the same shape: subkey name -> the matching
