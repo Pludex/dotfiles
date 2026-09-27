@@ -45,6 +45,7 @@
       root = ../nixos;
       services = ../nixos/services;
       virtualisation = ../nixos/virtualisation;
+      apps = ../nixos/apps;
     };
 
     home = {
