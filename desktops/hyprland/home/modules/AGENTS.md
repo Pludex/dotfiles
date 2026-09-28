@@ -46,6 +46,7 @@ Inside `config.wayland.windowManager.hyprland.extraConfig = lib.mkAfter (...)`:
 
 1. `programs.hyprland.monitors.*` → `hl.monitor({...})`
 2. `programs.hyprland.extraConfig` → one batched `hl.config({ ["a.b"] = v, ... })` call
+2b. `programs.hyprland.settings.<category>` (general, decoration, ...) → one `hl.config({ <category> = {...} })` line per non-empty category
 3. `programs.hyprland.settings.layouts.*` → `hl.config({ dwindle/master/scrolling/monocle = {...} })`
 4. `programs.hyprland.settings.animations` → `hl.curve(...)` lines, then `hl.animation({...})` lines
 5. `programs.hyprland.settings.rules.layer` → `hl.layer_rule({...})`
@@ -77,6 +78,7 @@ programs.hyprland.settings.rules.win         : listOf winRuleType,   default []
 programs.hyprland.settings.rules.workspaces  : listOf workspaceRuleType, default []
 programs.hyprland.settings.animations        : nullOr { curves :: attrsOf curveType; entries :: listOf animEntryType; }, default null
 programs.hyprland.settings.startWith         : nullOr { actions :: listOf actionType; apps :: listOf appType; }, default null
+programs.hyprland.settings.<category>       : attrsOf anything, default {} -- one per hl.config category (see §10.1)
 programs.hyprland.monitors                   : attrsOf monitorType
 programs.hyprland.extraConfig                : attrsOf extraConfigValueType, default {}
 ```
@@ -435,6 +437,49 @@ attrset of leaves, and `{ __raw = "..."; }` for anything deeper (nested
 tables, gradients with an `angle`, etc) — same pattern as the win-rule
 effects in §7.2.
 
+
+### 10.1 Nested category options (`settings.general`, `settings.decoration`, ...)
+
+Added so users can write hierarchical config instead of dotted-path strings:
+
+```nix
+programs.hyprland.settings = {
+  general.border_size = 2;
+  decoration.rounding = 10;
+  decoration.shadow = { enabled = true; range = 12; offset = [ 0 4 ]; };
+  general.col.active_border = { colors = [ "rgba(33ccffee)" "rgba(00ff99ee)" ]; angle = 45; };
+  decoration.blur.__raw = "{ enabled = true, size = 6 }";
+};
+```
+→ `hl.config({ general = { border_size = 2, col = {...} } })`,
+`hl.config({ decoration = {...} })`.
+
+- Categories come from the `configCategories` attrset in `settings.nix`
+  (option name → hl.config category name). Like `extraConfig`, **fields are
+  not enumerated**: each category is `attrsOf types.anything`, so any nested
+  attrs/lists/scalars pass through. `renderNested` turns nested attrsets into
+  nested Lua tables, lists into positional arrays, and any attrset whose only
+  key is `__raw` into verbatim Lua **at any depth**.
+- **Name clashes handled by renaming:** `settings.binds` and
+  `settings.animations` already mean something else (keybinds; curves/entries),
+  so the `binds` and `animations` hl.config categories are exposed as
+  `settings.bindOptions` and `settings.animationOptions`. `settings.layout`
+  (the `layout` hl.config category) is easy to confuse with `settings.layouts`
+  (per-layout dwindle/master/... config) — they are different things.
+- Null values are dropped, so `foo = null;` means "don't emit".
+- `extraConfig` (dotted-path keys) still exists as the escape hatch; both can
+  be used together. If the same option is set in both, Lua evaluation order
+  decides (extraConfig line first, then category lines) — avoid duplicating.
+- The user's request wrote the example as `programs.hyprland.general.border_size`
+  but also said "move into programs.hyprland.settings"; this file uses
+  `programs.hyprland.settings.general...`. Moving the categories up to
+  `programs.hyprland.<category>` is a one-line change (the
+  `// configCategoryOptions` merge) if they really wanted that path.
+- **Unverified (from memory of the wiki):** the category list, and the
+  gradient table shape `{ colors = {...}, angle = N }` for
+  `general.col.*_border`. Check against config-options.md if Hyprland rejects
+  a key.
+
 ---
 
 ## 11. Shared helpers — reuse them, don't duplicate
@@ -513,6 +558,8 @@ whenever you resolve one or add a new one.
 8. **Freeform env-var fields in `startWith.apps`** (§9.4) — inferred
    convenience from the user's own sketch, explicitly described by the
    user as optional/best-effort.
+10. **Category list and gradient table shape in §10.1** — written from memory of
+    the config-options page, not re-checked against it when added.
 9. **`extraConfig` requiring full dotted-path keys** (§10) — a
    deliberate, documented deviation from the user's shorthand example.
 

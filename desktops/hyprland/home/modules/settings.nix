@@ -775,6 +775,61 @@ let
       ];
 
   # ---------------------------------------------------------------------
+  # hl.config categories exposed as nested options: settings.general.border_size = 2;
+  # ---------------------------------------------------------------------
+  # option name -> hl.config category name. `binds` and `animations` are already used by
+  # settings.binds / settings.animations, so their hl.config categories get *Options names.
+  configCategories = {
+    general = "general";
+    decoration = "decoration";
+    input = "input";
+    gestures = "gestures";
+    group = "group";
+    misc = "misc";
+    layout = "layout";
+    xwayland = "xwayland";
+    opengl = "opengl";
+    render = "render";
+    cursor = "cursor";
+    ecosystem = "ecosystem";
+    quirks = "quirks";
+    debug = "debug";
+    experimental = "experimental";
+    bindOptions = "binds";
+    animationOptions = "animations";
+  };
+
+  configCategoryOptions = lib.mapAttrs (
+    opt: cat:
+    mkOption {
+      type = types.attrsOf types.anything;
+      default = { };
+      description = "hl.config category `${cat}`; nested attrs become nested Lua tables, { __raw = \"...\"; } is inserted verbatim";
+    }
+  ) configCategories;
+
+  # Recursive renderer: nested attrsets -> nested Lua tables, single-key { __raw } -> verbatim.
+  renderNested =
+    v:
+    if builtins.isAttrs v then
+      if (lib.attrNames v) == [ "__raw" ] then
+        v.__raw
+      else
+        "{ ${
+          lib.concatStringsSep ", " (
+            lib.mapAttrsToList (k: vv: "${k} = ${renderNested vv}") (lib.filterAttrs (_: vv: vv != null) v)
+          )
+        } }"
+    else
+      toLuaVal v;
+
+  configCategoryLines = lib.concatLists (
+    lib.mapAttrsToList (
+      opt: cat: lib.optional (cfg.${opt} != { }) "hl.config({ ${cat} = ${renderNested cfg.${opt}} })"
+    ) configCategories
+  );
+
+  # ---------------------------------------------------------------------
   # programs.hyprland.extraConfig -> a single hl.config({ ["a.b"] = v, ... }) call
   # ---------------------------------------------------------------------
   extraConfigLeafType = types.oneOf [
@@ -885,7 +940,7 @@ in
       default = null;
       description = "hl.on(\"hyprland.start\", function() actions...; apps... end); actions always render before apps";
     };
-  };
+  } // configCategoryOptions;
 
   options.programs.hyprland.monitors = mkOption {
     type = types.attrsOf monitorType;
@@ -911,6 +966,7 @@ in
       lib.concatStringsSep "\n" (
         (lib.mapAttrsToList mkMonitorLine monitorsCfg)
         ++ extraConfigLines
+        ++ configCategoryLines
         ++ layoutLines
         ++ animationLines
         ++ (map mkLayerRuleLine cfg.rules.layer)
