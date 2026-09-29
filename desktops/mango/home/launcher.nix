@@ -6,10 +6,10 @@
 }:
 {
   imports = [
-    "${base.paths.commonDesktop}/fuzzel.nix"
+    "${base.paths.commonDesktop}/walker.nix"
   ];
 
   programs.mango.settings.bind = [
-    "SUPER,A,spawn,${lib.getExe config.programs.fuzzel.package}"
+    "SUPER,A,spawn,${lib.getExe config.programs.walker.package}"
   ];
 }
