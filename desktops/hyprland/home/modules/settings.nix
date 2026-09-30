@@ -942,6 +942,12 @@ in
     };
   } // configCategoryOptions;
 
+  options.programs.hyprland.plugins = mkOption {
+    type = types.listOf types.package;
+    default = [ ];
+    description = "Hyprland plugins to load; forwarded to wayland.windowManager.hyprland.plugins";
+  };
+
   options.programs.hyprland.monitors = mkOption {
     type = types.attrsOf monitorType;
     default = { };
@@ -962,6 +968,8 @@ in
   };
 
   config = {
+    wayland.windowManager.hyprland.plugins = config.programs.hyprland.plugins;
+
     wayland.windowManager.hyprland.extraConfig = lib.mkAfter (
       lib.concatStringsSep "\n" (
         (lib.mapAttrsToList mkMonitorLine monitorsCfg)
