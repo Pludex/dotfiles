@@ -50,7 +50,7 @@
   outputs = inputs: ((import ./builder { inherit inputs; }).mkDotfiles { });
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/61b7c44c4073f0b827768aff0049561b5110ea5a";
     flake-parts.url = "github:hercules-ci/flake-parts";
 
     treefmt-nix = {
@@ -109,6 +109,7 @@
       # url = "github:sodiboo/niri-flake";
       url = "github:epireyn/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs-stable.follows = "nixpkgs-stable";
     };
 
     MangoWM = {
@@ -117,7 +118,7 @@
     };
 
     hyprland = {
-      url = "github:hyprwm/hyprland/v0.55.0";
+      url = "github:hyprwm/hyprland/v0.56.1";
       inputs.nixpkgs.follows = "nixpkgs-stable";
     };
 
@@ -148,7 +149,7 @@
     };
 
     hyprland-plugins = {
-      url = "github:hyprwm/hyprland-plugins/v0.55.0";
+      url = "github:hyprwm/hyprland-plugins/v0.56.0";
       inputs.nixpkgs.follows = "nixpkgs-stable";
       inputs.hyprland.follows = "hyprland";
     };
