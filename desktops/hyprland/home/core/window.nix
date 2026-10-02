@@ -270,5 +270,29 @@ in
       keynav_wrap_v = 1;
       keynav_reading_order = 0;
     };
+
+    decoration = {
+      active_opacity = 0.7;
+      inactive_opacity = 0.6;
+      fullscreen_opacity = 1.0;
+
+      blur = {
+        enabled = true;
+        brightness = 0.4;
+        size = 2;
+        passes = 3;
+        new_optimizations = true;
+        ignore_opacity = true;
+        xray = false;
+        popups = true;
+      };
+    };
+
+    rules.win = [
+      {
+        match.class = "^(Vivaldi-stable|vivaldi-stable|zen|firefox)$";
+        opacity = "1.0 1.0";
+      }
+    ];
   };
 }
