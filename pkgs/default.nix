@@ -25,5 +25,8 @@
   perSystem = { inputs', config, ... }: {
     packagesOfInputs.waybar = inputs'.waybar.packages.default;
     ciPackages.waybar = config.packagesOfInputs.waybar;
+
+    packagesOfInputs.walker = inputs'.walker.packages.default;
+    ciPackages.walker = config.packagesOfInputs.walker;
   };
 }

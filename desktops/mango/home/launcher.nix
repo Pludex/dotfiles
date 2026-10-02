@@ -9,7 +9,9 @@
     "${base.paths.commonDesktop}/walker.nix"
   ];
 
-  programs.mango.settings.bind = [
-    "SUPER,A,spawn,${lib.getExe config.programs.walker.package}"
-  ];
+  wayland.windowManager.mango.settings = {
+    bind = [
+      "SUPER,A,spawn,${lib.getExe config.programs.walker.package}"
+    ];
+  };
 }
