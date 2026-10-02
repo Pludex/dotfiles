@@ -2,6 +2,7 @@
   imports = [
     ./core
     ./modules
+    ./clipboard.nix
     ./control.nix
     ./launcher.nix
     ./notification.nix
