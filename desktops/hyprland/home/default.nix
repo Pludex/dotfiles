@@ -8,5 +8,6 @@
     ./notification.nix
     ./startSession.nix
     ./wallpaper.nix
+    ./waybar.nix
   ];
 }

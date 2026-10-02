@@ -1,6 +1,6 @@
-@define-color background-color #1f1f1f;
-@define-color bar-background-color rgba(41, 43, 46, 0.4);
-@define-color background-color-content #333333;
+@define-color background-color #2b2b2b;
+@define-color bar-background-color rgba(70, 75, 80, 0.5);
+@define-color background-color-content #4a4a4a;
 @define-color bar-foreground-color #fdf6e3;
 
 window#waybar {
@@ -24,7 +24,8 @@ window#waybar {
 #custom-right-arrow-end,
 #custom-left-arrow-end {
   color: @background-color;
-  background: @bar-background-color;
+  /* background: @bar-background-color; */
+background-color: transparent;
 }
 
 /* just the logo */
@@ -69,6 +70,7 @@ window#waybar {
 #temperature,
 #battery,
 #disk,
+#submap,
 #tray {
   background: @background-color;
 }

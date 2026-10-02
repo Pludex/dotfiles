@@ -249,5 +249,13 @@
     "format-VF": "  Vertical Fair ",
     "tooltip": false,
     "expand": false
+  },
+  "hyprland/submap": {
+    "format": " {icon} {submap} ",
+    "max-length": 8,
+    "tooltip": false,
+    "icons": {
+      "resize": ""
+    }
   }
 }
