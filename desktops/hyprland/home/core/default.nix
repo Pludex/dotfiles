@@ -9,6 +9,7 @@
 
   imports = [
     ./animation.nix
+    ./input.nix
     ./window.nix
     ./layout.nix
   ];
