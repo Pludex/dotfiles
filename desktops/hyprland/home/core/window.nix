@@ -278,7 +278,7 @@ in
 
       blur = {
         enabled = true;
-        brightness = 0.4;
+        brightness = 0.5;
         size = 2;
         passes = 3;
         new_optimizations = true;
