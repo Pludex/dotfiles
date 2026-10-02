@@ -8,7 +8,9 @@
   };
 
   imports = [
+    ./animation.nix
     ./window.nix
+    ./layout.nix
   ];
 
   programs.hyprland.monitors = {
