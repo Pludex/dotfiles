@@ -797,6 +797,7 @@ let
     experimental = "experimental";
     bindOptions = "binds";
     animationOptions = "animations";
+    plugins = "plugin";
   };
 
   configCategoryOptions = lib.mapAttrs (

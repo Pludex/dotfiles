@@ -717,6 +717,30 @@
         "type": "github"
       }
     },
+    "hyprexpo": {
+      "inputs": {
+        "hyprland": [
+          "hyprland"
+        ],
+        "nixpkgs": [
+          "nixpkgs-stable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786105983,
+        "narHash": "sha256-lI52XGlHMAXhn8ztpRkzefFy5ZnTIsQgAlTEVYTXseA=",
+        "owner": "sandwichfarm",
+        "repo": "hyprexpo",
+        "rev": "40352e2663deded7c6536b2fda1ed18a97234a80",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sandwichfarm",
+        "ref": "v0.56.1+3",
+        "repo": "hyprexpo",
+        "type": "github"
+      }
+    },
     "hyprgraphics": {
       "inputs": {
         "hyprutils": [
@@ -1554,6 +1578,7 @@
         "flake-parts": "flake-parts_2",
         "ghostty-cursor": "ghostty-cursor",
         "home-manager": "home-manager",
+        "hyprexpo": "hyprexpo",
         "hyprland": "hyprland",
         "hyprland-plugins": "hyprland-plugins",
         "jetbrains-plugins": "jetbrains-plugins",

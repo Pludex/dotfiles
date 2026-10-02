@@ -154,6 +154,12 @@
       inputs.hyprland.follows = "hyprland";
     };
 
+    hyprexpo = {
+      url = "github:sandwichfarm/hyprexpo/v0.56.1+3";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
+      inputs.hyprland.follows = "hyprland";
+    };
+
     # nixvim
 
     nixvim = {

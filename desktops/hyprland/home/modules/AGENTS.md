@@ -479,6 +479,11 @@ programs.hyprland.settings = {
   gradient table shape `{ colors = {...}, angle = N }` for
   `general.col.*_border`. Check against config-options.md if Hyprland rejects
   a key.
+- `settings.plugins` is a later addition to `configCategories` (maps to the
+  `plugin` category, for per-plugin settings like `plugin.hyprexpo.columns`),
+  added once `programs.hyprland.plugins` (the package-list option, a separate
+  thing — see §2) already existed. The two don't clash: one is a list of
+  packages to load, the other is config for whatever's loaded.
 
 ---
 
@@ -560,6 +565,11 @@ whenever you resolve one or add a new one.
    user as optional/best-effort.
 10. **Category list and gradient table shape in §10.1** — written from memory of
     the config-options page, not re-checked against it when added.
+11. **`settings.plugins` -> `hl.config({ plugin = {...} })`** — category name
+    assumed to be singular `plugin` (matching the old `plugin:hyprexpo:...`
+    hyprlang namespace), not re-verified against hyprland-lua docs. If
+    Hyprland errors on an unknown category when a plugin is loaded, change
+    the `plugins = "plugin";` entry in `configCategories` to `"plugins"`.
 9. **`extraConfig` requiring full dotted-path keys** (§10) — a
    deliberate, documented deviation from the user's shorthand example.
 
