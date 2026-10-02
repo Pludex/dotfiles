@@ -75,7 +75,6 @@
       ];
 
       extraModules = [
-        (import base.paths.desktops { desktop = "hyprland"; }).home
       ];
     };
 
@@ -95,7 +94,6 @@
       ];
 
       extraModules = [
-        (import base.paths.desktops { desktop = "hyprland"; }).nixos
       ];
 
       apps = [

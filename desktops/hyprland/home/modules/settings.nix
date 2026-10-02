@@ -677,6 +677,18 @@ let
     };
   };
 
+  # hl.exec_cmd is a standalone, immediately-executed function (see the Autostart wiki
+  # page: hl.exec_cmd("kitty")) -- distinct from the hl.dsp.exec_cmd *dispatcher* used in
+  # binds (hl.bind(keys, hl.dsp.exec_cmd(...))). When a dsp entry's only key is exec_cmd,
+  # call hl.exec_cmd(...) directly instead of the technically-valid but non-idiomatic
+  # hl.dispatch(hl.dsp.exec_cmd(...)).
+  mkDispatchOrExecLine =
+    label: item:
+    if (lib.attrNames item) == [ "exec_cmd" ] then
+      "hl.${lib.removePrefix "hl.dsp." (mkDspCallExpr label item)}"
+    else
+      "hl.dispatch(${mkDspCallExpr label item})";
+
   mkActionLine =
     i: a:
     let
@@ -688,20 +700,30 @@ let
     else if a.__raw != null then
       a.__raw
     else
-      "hl.dispatch(${mkDspCallExpr label a.dsp})";
+      mkDispatchOrExecLine label a.dsp;
+
+  # hl.exec_cmd's optional 2nd-arg options table (documented: hl.exec_cmd("amongus", { workspace = "1" })).
+  # Kept free-form since the wiki only shows `workspace` but doesn't claim that's the only key.
+  execOptValueType = types.oneOf [
+    types.bool
+    types.str
+    numberType
+    (types.submodule { options.__raw = mkOption { type = types.str; }; })
+  ];
 
   appType = types.submodule {
     # Extra keys besides the ones declared below are treated as env vars to set (via hl.env)
-    # before launching this app -- e.g. `GTK_THEME = "Adwaita:dark";`. This is an inferred
-    # convenience, not something documented for autostart specifically -- see AGENTS.md.
+    # before launching this app -- e.g. `GTK_THEME = "Adwaita:dark";`. hl.env() itself is
+    # documented (wiki FAQ: hl.env("XDG_CURRENT_DESKTOP", "Hyprland")); using it here for
+    # arbitrary per-app env vars is this file's own convenience, not a documented pattern.
     freeformType = types.attrsOf types.str;
     options = {
-      desktopFile = mkOption { type = types.nullOr types.str; default = null; description = "Mutually exclusive with cmd"; };
+      desktopFile = mkOption { type = types.nullOr types.str; default = null; description = "Mutually exclusive with cmd. Launched via gtk-launch -- not a documented hl.* API, see AGENTS.md"; };
       cmd = mkOption { type = types.nullOr types.str; default = null; description = "Mutually exclusive with desktopFile"; };
-      workspaces = mkOption {
-        type = types.nullOr types.int;
-        default = null;
-        description = "Target workspace number; prefixes the launch command with \"[workspace N silent]\". 0/unset = no prefix";
+      opts = mkOption {
+        type = types.attrsOf execOptValueType;
+        default = { };
+        description = ''Passed as hl.exec_cmd(cmd, {...}), e.g. { workspace = "2"; }'';
       };
       dsp = mkOption {
         type = types.oneOf [
@@ -709,7 +731,7 @@ let
           (types.listOf dspItemType)
         ];
         default = [ ];
-        description = "Dispatcher(s) applied right after launch, same shape as binds.<key>.dsp -- see AGENTS.md for the assumption behind this";
+        description = "Dispatcher(s) applied right after launch via hl.dispatch, same shape as binds.<key>.dsp -- see AGENTS.md for the assumption behind this";
       };
     };
   };
@@ -721,7 +743,7 @@ let
       reserved = [
         "desktopFile"
         "cmd"
-        "workspaces"
+        "opts"
         "dsp"
       ];
       extraEnv = lib.filterAttrs (k: _: !(builtins.elem k reserved)) a;
@@ -739,14 +761,13 @@ let
           "gtk-launch " + lib.removeSuffix ".desktop" (baseNameOf a.desktopFile)
         else
           throw "${label}: set one of cmd or desktopFile";
-      finalCmd =
-        if a.workspaces != null && a.workspaces != 0 then
-          "[workspace ${toString a.workspaces} silent] " + baseCmd
+      execLine =
+        if a.opts == { } then
+          "hl.exec_cmd(${luaStr baseCmd})"
         else
-          baseCmd;
-      execLine = "hl.exec_cmd(${luaStr finalCmd})";
+          "hl.exec_cmd(${luaStr baseCmd}, ${renderNested a.opts})";
       dspList = toDspList a.dsp;
-      dspLines = map (item: "hl.dispatch(${mkDspCallExpr label item})") dspList;
+      dspLines = map (mkDispatchOrExecLine label) dspList;
     in
     envLines ++ [ execLine ] ++ dspLines;
 

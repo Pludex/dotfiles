@@ -1,10 +1,10 @@
-{ inputs, pkgs, ... }:
+{ pkgs, ... }:
 {
   wayland.windowManager.hyprland = {
     enable = true;
     package = pkgs.hyprland;
     xwayland.enable = true;
-    systemd.enable = false;
+    systemd.enable = true;
   };
 
   stylix.targets.hyprland.enable = true;

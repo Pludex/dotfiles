@@ -369,14 +369,24 @@ Per-item design notes (all in `mkAppLines`):
    a common freedesktop convention, but **not** a documented `hl.*`
    function. If the real hyprland-lua ecosystem has a native way to
    launch `.desktop` files, switch to that instead.
-2. **`workspaces`**: when non-null and non-zero, prefixes the launch
-   command with `"[workspace N silent] "` — this is the old
-   `exec-once = [workspace N silent] app` dispatcher-rules prefix syntax
-   referenced in the workspace-rules wiki page's `on_created_empty`
-   examples; assumed to still work with `hl.exec_cmd`. Unverified for
-   this exact call.
-3. **`dsp`**: rendered as `hl.dispatch(hl.dsp.<name>(...))` calls placed
-   immediately after the `hl.exec_cmd(...)` line. The assumption is that
+2. **`opts`**: passed as `hl.exec_cmd`'s documented, optional second
+   argument -- `hl.exec_cmd(cmd, { workspace = "1" })` is shown verbatim
+   on the current Autostart wiki page. `opts` is kept free-form
+   (`execOptValueType`, with `{ __raw = "..."; }` support) since the wiki
+   only demonstrates `workspace` and doesn't claim it's the only key.
+   **This replaces an earlier, wrong design** that prefixed the command
+   string with the old hyprlang `"[workspace N silent] "` syntax -- that
+   was never confirmed against hyprland-lua and has been removed. If you
+   see `workspaces` (an int field) anywhere in old notes/diffs, it's
+   superseded by `opts.workspace` (a string, matching the real API).
+3. **`dsp`**: rendered via the shared `mkDispatchOrExecLine` helper. If the
+   entry's only key is `exec_cmd`, it calls the standalone, documented
+   `hl.exec_cmd(...)` directly (matching the Autostart wiki page) instead
+   of going through `hl.dispatch(hl.dsp.exec_cmd(...))` -- the latter is
+   technically callable but non-idiomatic and was the original (fixed)
+   bug here. Any other dsp key still renders as
+   `hl.dispatch(hl.dsp.<name>(...))`, placed immediately after the
+   `hl.exec_cmd(...)` line. The assumption is that
    this ends up applying to the window that was just spawned — but
    nothing in `startWith` actually scopes the dispatch to *this specific*
    app; it will simply run in sequence during startup. If this doesn't
@@ -384,13 +394,18 @@ Per-item design notes (all in `mkAppLines`):
    exists), rework into a proper `hl.on("window.*", ...)` listener keyed
    by the app's expected class instead.
 4. **Freeform extra fields** (anything besides `desktopFile`/`cmd`/
-   `workspaces`/`dsp`) are treated as env vars and rendered as
+   `opts`/`dsp`) are treated as env vars and rendered as
    `hl.env("<exact field name>", "<value>")` calls before the exec line.
-   Inferred from the user's own example (`fictx5 = "bamboo";`, described
-   as "default is not setting anything; if you can't do it, dropping this
-   field is fine too") — treat as optional best-effort sugar, not a hard
-   requirement. Field name casing is passed through exactly as written by
-   the user.
+   `hl.env()` itself is a **confirmed, documented function**
+   (`wiki.hypr.land` FAQ page: `hl.env("XDG_CURRENT_DESKTOP",
+   "Hyprland")`) -- what's still this file's own invention is *using it
+   automatically for arbitrary freeform fields on an app entry*, inferred
+   from the user's own example (`fictx5 = "bamboo";`, described as
+   "default is not setting anything; if you can't do it, dropping this
+   field is fine too"). Treat the auto-env-var convenience as optional
+   best-effort sugar, not a hard requirement; `hl.env` the function itself
+   no longer needs the "unverified" caveat. Field name casing is passed
+   through exactly as written by the user.
 
 ---
 
@@ -546,6 +561,10 @@ whenever you resolve one or add a new one.
 
 1. **Macro bind lambda semantics** (§3.3) — whether `hl.dsp.x(...)` needs
    a trailing `()` when combined in a lambda.
+2. ~~`startWith` actions/apps always wrapping dsp in
+   `hl.dispatch(hl.dsp.exec_cmd(...))`~~ — **RESOLVED**. `exec_cmd` is now
+   special-cased to call the standalone `hl.exec_cmd(...)` directly via
+   `mkDispatchOrExecLine` (§9.3). Kept here as a changelog note per §16.
 2. **`hl.layout.register` signature** (§6) — exact call shape for custom
    layouts.
 3. **`layouts.monocle` having no config fields at all** (§5) — confirmed
@@ -554,15 +573,17 @@ whenever you resolve one or add a new one.
    are internally inconsistent; this file uses `dampening`.
 5. **`startWith.apps[].desktopFile` launching via `gtk-launch`** (§9.1) —
    not a documented `hl.*` API, a generic freedesktop convention.
-6. **`startWith.apps[].workspaces` prefixing with `"[workspace N
-   silent] "`** (§9.2) — old dispatcher-rules prefix syntax, assumed
-   (not confirmed) to still work with `hl.exec_cmd` under hyprland-lua.
+6. ~~`startWith.apps[].workspaces` prefixing with `"[workspace N
+   silent] "`~~ — **RESOLVED/removed**. Replaced with the documented
+   `hl.exec_cmd(cmd, { workspace = ... })` second-arg form (§9.2). Keeping
+   this line as a changelog note per §16's "don't delete history" rule.
 7. **`startWith.apps[].dsp` actually targeting the just-spawned window**
    (§9.3) — likely the weakest assumption in the whole file; may need a
    rework using an `hl.on("window.*", ...)` listener instead.
-8. **Freeform env-var fields in `startWith.apps`** (§9.4) — inferred
-   convenience from the user's own sketch, explicitly described by the
-   user as optional/best-effort.
+8. **Freeform env-var fields in `startWith.apps`** (§9.4) — the
+   underlying `hl.env()` call is confirmed/documented; *auto-applying it
+   to arbitrary freeform fields* is still this file's own inferred
+   convenience, explicitly described by the user as optional/best-effort.
 10. **Category list and gradient table shape in §10.1** — written from memory of
     the config-options page, not re-checked against it when added.
 11. **`settings.plugins` -> `hl.config({ plugin = {...} })`** — category name
@@ -601,9 +622,17 @@ whenever you resolve one or add a new one.
 - Animations: `wiki.hypr.land/Configuring/Advanced-and-Cool/Animations/`
   and `wiki.hypr.land/configuring/core/animations/` (current pages;
   inconsistent on the spring `dampening`/`damping` field name, see §8/§13).
-- Autostart: `wiki.hypr.land/Configuring/Basics/Autostart/` —
-  `hl.on("hyprland.start", function() hl.exec_cmd(...) end)`. Everything
-  in `startWith` beyond this bare pattern is this file's own design (§9).
+- Autostart: `wiki.hypr.land/Configuring/Basics/Autostart/` (re-checked) —
+  confirms `hl.on("hyprland.start", function() ... end)`,
+  `hl.exec_cmd(cmd)`, and the documented 2nd-arg options table
+  `hl.exec_cmd("amongus", { workspace = "1" })`; also mentions
+  `hl.on("hyprland.shutdown", ...)` for exit actions -- not implemented in
+  this file (`startWith` only covers `hyprland.start`); a natural future
+  addition (`stopWith`?) if ever requested. `hl.env()` is confirmed separately via
+  `wiki.hypr.land`'s FAQ page (`hl.env("XDG_CURRENT_DESKTOP",
+  "Hyprland")`). Everything in `startWith` beyond these bare documented
+  calls (the `actions`/`apps` split, `desktopFile`, per-app `dsp`, the
+  auto-env-var convenience) is this file's own design (§9).
 - Submodule mechanics used throughout (`freeformType`, `types.oneOf`,
   `types.either`, `mkOption`/`types` generally): standard nixpkgs
   `lib/types.nix` / NixOS module system behavior, not Hyprland-specific

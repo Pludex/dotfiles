@@ -9,7 +9,7 @@
 
     "${base.username}@dp7530" = {
       profile = "desktop";
-      desktop = "mango";
+      desktop = "hyprland";
       system = "x86_64-linux";
     };
   };
@@ -24,7 +24,7 @@
 
     dp7530 = {
       profile = "desktop";
-      desktop = "mango";
+      desktop = "hyprland";
       host = "dp7530";
       system = "x86_64-linux";
     };
