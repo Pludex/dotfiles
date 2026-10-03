@@ -99,7 +99,7 @@
     catppuccin.url = "github:catppuccin/nix";
 
     schemes = {
-      url = "github:Pludex/schemes";
+      url = "github:tinted-theming/schemes/a70da1dab18008023cfd55a94053f3b6cab4f86e";
       flake = false;
     };
 

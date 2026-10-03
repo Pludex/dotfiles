@@ -8,7 +8,7 @@
   stylix = {
     enable = true;
 
-    base16Scheme = "${inputs.schemes}/base16/nightfox-carbonfox.yaml";
+    base16Scheme = "${pkgs.myPkgs.schemes}/base16/carbonfox.yaml";
 
     polarity = "dark";
 

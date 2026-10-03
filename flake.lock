@@ -1657,16 +1657,17 @@
     "schemes": {
       "flake": false,
       "locked": {
-        "lastModified": 1788271137,
-        "narHash": "sha256-rv9ofrCu+XzmC7XImslBYssv6DLe4Yg5MU+Fi/Fjz5o=",
-        "owner": "Pludex",
+        "lastModified": 1790998275,
+        "narHash": "sha256-vjDM7GtittcsULah9K/r+YXwfkMkQjLO6cGvDrJHgMM=",
+        "owner": "tinted-theming",
         "repo": "schemes",
-        "rev": "199c3a55d94ba60aaafdd0acfd5f35d9d82de67b",
+        "rev": "a70da1dab18008023cfd55a94053f3b6cab4f86e",
         "type": "github"
       },
       "original": {
-        "owner": "Pludex",
+        "owner": "tinted-theming",
         "repo": "schemes",
+        "rev": "a70da1dab18008023cfd55a94053f3b6cab4f86e",
         "type": "github"
       }
     },

@@ -1,4 +1,3 @@
-{ inputs, base, ... }:
 {
   programs.kitty = {
     enable = true;
@@ -42,11 +41,6 @@
       "alt+9" = "goto_tab 9";
       "alt+0" = "goto_tab 10";
     };
-
-    extraConfig = ''
-      # include ${inputs.schemes}/tools/tokyonight/kitty.night.conf
-      # include ${inputs.schemes}/tools/nightfox/kitty.carbonfox.conf
-    '';
   };
 
   stylix.targets.kitty.enable = true;
