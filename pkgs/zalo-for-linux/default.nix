@@ -56,6 +56,15 @@ appimageTools.wrapType2 {
     pkgs.alsa-lib
     pkgs.cups
     pkgs.libglvnd
+    pkgs.gst_all_1.gstreamer
+    pkgs.gst_all_1.gst-plugins-base
+    pkgs.gst_all_1.gst-plugins-good
+  ];
+
+  multiArch = true;
+  multiPkgs = pkgs: [
+    pkgs.gst_all_1.gstreamer
+    pkgs.gst_all_1.gst-plugins-base
   ];
 
   extraInstallCommands = ''
