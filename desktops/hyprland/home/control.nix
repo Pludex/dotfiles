@@ -16,25 +16,33 @@ let
   rgba =
     base: alpha: "rgba(${c."${base}-rgb-r"}, ${c."${base}-rgb-g"}, ${c."${base}-rgb-b"}, ${alpha})";
 
+  locked = cmd: {
+    dsp.exec_cmd = cmd;
+    flags.locked = true;
+  };
+
   repeat = cmd: {
     dsp.exec_cmd = cmd;
-    flags.repeating = true;
+    flags = {
+      repeating = true;
+      locked = true;
+    };
   };
 in
 {
   programs.hyprland.settings.binds = {
     "XF86AudioRaiseVolume" = repeat "${volume-control}/bin/volume-control --inc";
     "XF86AudioLowerVolume" = repeat "${volume-control}/bin/volume-control --dec";
-    "XF86AudioMute".dsp.exec_cmd = "${volume-control}/bin/volume-control --toggle";
-    "XF86AudioMicMute".dsp.exec_cmd = "${volume-control}/bin/volume-control --toggle-mic";
+    "XF86AudioMute" = locked "${volume-control}/bin/volume-control --toggle";
+    "XF86AudioMicMute" = locked "${volume-control}/bin/volume-control --toggle-mic";
 
     "Mod+XF86AudioRaiseVolume" = repeat "${brightness-control}/bin/brightness-control --inc";
     "Mod+XF86AudioLowerVolume" = repeat "${brightness-control}/bin/brightness-control --dec";
 
-    "XF86AudioPlay".dsp.exec_cmd = "${player-control} --player=spotify play-pause";
-    "XF86AudioStop".dsp.exec_cmd = "${player-control} --player=spotify stop";
-    "XF86AudioPrev".dsp.exec_cmd = "${player-control} --player=spotify previous";
-    "XF86AudioNext".dsp.exec_cmd = "${player-control} --player=spotify next";
+    "XF86AudioPlay" = locked "${player-control} --player=spotify play-pause";
+    "XF86AudioStop" = locked "${player-control} --player=spotify stop";
+    "XF86AudioPrev" = locked "${player-control} --player=spotify previous";
+    "XF86AudioNext" = locked "${player-control} --player=spotify next";
 
     "XF86MonBrightnessUp" = repeat "${brightness-control}/bin/brightness-control --inc";
     "XF86MonBrightnessDown" = repeat "${brightness-control}/bin/brightness-control --dec";
