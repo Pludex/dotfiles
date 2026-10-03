@@ -94,11 +94,33 @@ defaults; that would silently start emitting no-op calls.
 
 ### 3.1 Key string transformation (`mkKeyExpr`)
 
-Split on `+`, strip whitespace per token, uppercase every token, and
-substitute any token that case-insensitively equals `"mod"` with
-`cfg.mainMod` (also uppercased). This is a **literal, static Nix-side
-substitution**, not a Lua `mod .. " + Q"` concatenation — that alternative
-was explicitly considered and rejected.
+Split on `+`, strip whitespace per token, then normalise each token:
+
+- a token that case-insensitively equals `"mod"` becomes `cfg.mainMod`
+  (uppercased);
+- a token Hyprland matches case-sensitively is kept **exactly as written**
+  (`isLiteralKeyToken`): `mouse:N`, `code:N`, `switch:...`, `mouse_up`,
+  `mouse_down`;
+- every other token is uppercased.
+
+The tokens are rejoined with a bare `+` (no spaces), e.g.
+`"mod+mouse:272"` → `"SUPER+mouse:272"`. This is a **literal, static
+Nix-side substitution**, not a Lua `mod .. " + Q"` concatenation — that
+alternative was explicitly considered and rejected.
+
+*Changed: `mkKeyExpr` used to uppercase every token. That turned
+`"mod+mouse:273"` into `MOUSE:273`, and Hyprland rejected it with "no such
+key". Because literal tokens now keep the user's casing, write them in the
+lowercase form the wiki uses (`mouse:272`, not `Mouse:272`). See §15 for the
+generalized rule.*
+
+Mouse binds therefore look like this (source: the Binds page, see §14):
+
+```nix
+binds."mod+mouse:272" = { dsp."window.drag" = true;   flags.mouse = true; };
+binds."mod+mouse:273" = { dsp."window.resize" = true; flags.mouse = true; };
+```
+→ `hl.bind("SUPER+mouse:272", hl.dsp.window.drag(), { mouse = true })`.
 
 ### 3.2 `dsp` — the dispatcher field
 
@@ -135,6 +157,23 @@ rather than executing immediately (see §13).
 
 Plain Lua table via `mkFilteredTable { } [ ] b.flags`. Matches
 `hl.bind(keys, dispatcher, { flag1 = true, flag2 = true })`.
+
+Flags seen on the wiki's Binds/Flags page (see §14): `repeating` (repeat
+while held), `locked` (also works on the lock screen), `release`,
+`long_press`, `mouse`, `description`. A repeating bind looks like:
+
+```nix
+binds."XF86AudioRaiseVolume" = {
+  dsp.exec_cmd = "volume-control --inc";
+  flags.repeating = true;
+};
+```
+→ `hl.bind("XF86AUDIORAISEVOLUME", hl.dsp.exec_cmd("volume-control --inc"), { repeating = true })`.
+
+Repeat timing is not a bind option: it comes from `input.repeat_delay`
+(default 600 ms) and `input.repeat_rate` (default 25/s) in the config-options
+page. `flags` values are `bool` or `str`, so flags that take a number are not
+expressible yet.
 
 ### 3.5 `submaps`
 
@@ -217,6 +256,10 @@ customLayouts."<name>".__raw = ''
 **Unverified**: the exact `hl.layout.register(name, tableOrExpr)`
 signature was inferred from the user's own example; no dedicated
 "custom layout" wiki page was found. Verify before trusting deeply.
+(A later search turned up the Custom Layouts wiki page, which describes the
+shape as `hl.layout.register(name, { recalculate, layout_msg? })` and says
+the layout is then selected as `lua:name` — not re-checked against this
+file's rendering.)
 
 ---
 
@@ -267,6 +310,26 @@ explicit `nullOr` options and rewriting `mkWinRuleLine`'s effect
 collection accordingly. Flag this tradeoff to the user rather than
 silently expanding it.
 
+**Notes from real usage (sourced from the window-rules page unless marked):**
+
+- `size` accepts a table `{ 800, 600 }` — the wiki shows exactly that — so
+  `size = [ 600 650 ]` renders to a valid `size = { 600, 650 }`. A string
+  `"600 650"` is **not** shown on the wiki (only a `"WxH"`-style string was
+  seen), so don't suggest it. This was wrongly suspected as the cause of a
+  "window opens maximized" bug; the real cause was the client requesting
+  maximize, fixed with `suppress_event = "maximize fullscreen"`.
+- `opacity` is documented as a **string** (`"0.8"`, or
+  `"0.8 override 0.8 override 1.0 override"`). `opacity = 1.0` renders as a
+  Lua number; whether Hyprland accepts that was not verified — if the
+  opacity doesn't apply, pass a string.
+- A rule only applies if `match` hits. A rule that "does nothing" is
+  almost always a class/title mismatch: check `hyprctl clients` for
+  `class`/`initialClass`/`initialTitle` before touching the effects.
+  *(Learned from a case where a terminal ignored `--class=...`, so the
+  window kept the terminal's default class and the rule never matched.)*
+- Static effects are evaluated once, when the window opens, using the
+  initial class/title.
+
 ### 7.3 `rules.workspaces` → `hl.workspace_rule({...})`
 
 Fully typed: `workspace` (required selector string) + 15 optional rule
@@ -310,6 +373,10 @@ animations = {
   `enabled = true` with neither set (docs: "if it's false, you can omit
   further args" implies enabled=true needs a curve).
 - Curves are emitted before animation entries (definitions before use).
+- Later entries for the same `leaf` shadow earlier ones (Hyprland's usual
+  last-one-wins behavior). When a user config declared `workspaces` twice,
+  the second one was the one in effect, so de-duplicate entries rather than
+  relying on order.
 
 **Naming inconsistency in the docs, noted but not resolved:** most pages
 (and a real working example config found during research) spell the
@@ -317,7 +384,10 @@ spring damping field `dampening`; at least one current wiki page variant
 spells it `damping`. This file uses `dampening` because that's what
 appears in an actual user's working `hyprland.lua`. If Hyprland rejects
 `dampening` at runtime, rename the field to `damping` in `curveType` and
-`mkCurveLine`.
+`mkCurveLine`. One more data point: the config-options page's
+`decoration.wobble` table spells its spring field `damping`. That is a
+different option from `hl.curve`, so it settles nothing, but it leans
+toward `damping` being the spelling Hyprland itself uses.
 
 ---
 
@@ -407,6 +477,12 @@ Per-item design notes (all in `mkAppLines`):
    no longer needs the "unverified" caveat. Field name casing is passed
    through exactly as written by the user.
 
+**Not a substitute for binds:** `startWith.actions` with a raw
+`hl.bind(...)` inside `hl.on("hyprland.start", ...)` was floated as a
+stopgap for mouse binds while `mkKeyExpr` was broken (§3.1). Whether
+`hl.bind` takes effect inside that callback was never verified — the
+Autostart page only documents `hl.exec_cmd` there. Use `binds` instead.
+
 ---
 
 ## 10. `programs.hyprland.extraConfig`
@@ -493,12 +569,22 @@ programs.hyprland.settings = {
 - **Unverified (from memory of the wiki):** the category list, and the
   gradient table shape `{ colors = {...}, angle = N }` for
   `general.col.*_border`. Check against config-options.md if Hyprland rejects
-  a key.
+  a key. *(The category list was later re-read against the config-options
+  page and matches; the gradient shape was not re-checked.)*
 - `settings.plugins` is a later addition to `configCategories` (maps to the
   `plugin` category, for per-plugin settings like `plugin.hyprexpo.columns`),
   added once `programs.hyprland.plugins` (the package-list option, a separate
   thing — see §2) already existed. The two don't clash: one is a list of
   packages to load, the other is config for whatever's loaded.
+- **Options that exist in the config-options page and are easy to miss**
+  (all reachable through the category options above, no code change needed):
+  `decoration.motion_blur` (`enabled`, `samples`), `decoration.wobble`
+  (`enabled`, `mesh`, `stiffness`, `damping`, `mass`, `intensity`, ...),
+  `misc.animate_mouse_windowdragging`, `misc.animate_manual_resizes`,
+  `input.follow_mouse` (0–3; 3 = cursor focus fully separate from keyboard
+  focus), and the `cursor.warp_*` options. The page documents the `main`
+  branch, so an option may not exist in the user's installed Hyprland
+  release yet — an "unknown option" error means exactly that.
 
 ---
 
@@ -527,6 +613,9 @@ programs.hyprland.settings = {
   `name`/`match`) rather than nested under their own key.
 - **`luaStr`** — thin `builtins.toJSON` wrapper for a bare Lua string
   literal (bind keys, submap/curve/custom-layout names).
+- **`isLiteralKeyToken`** — true for bind-key tokens that must keep their
+  written casing (`mouse:N`, `code:N`, `switch:...`, `mouse_up`,
+  `mouse_down`); used only by `mkKeyExpr` (§3.1).
 
 When adding a new feature, prefer extending these helpers over writing
 parallel ad-hoc string-building logic.
@@ -570,7 +659,8 @@ whenever you resolve one or add a new one.
 3. **`layouts.monocle` having no config fields at all** (§5) — confirmed
    as of the last check; Hyprland's Lua config surface is still evolving.
 4. **Spring curve field name: `dampening` vs `damping`** (§8) — the docs
-   are internally inconsistent; this file uses `dampening`.
+   are internally inconsistent; this file uses `dampening`. The
+   `decoration.wobble` options use `damping`, which hints at the real name.
 5. **`startWith.apps[].desktopFile` launching via `gtk-launch`** (§9.1) —
    not a documented `hl.*` API, a generic freedesktop convention.
 6. ~~`startWith.apps[].workspaces` prefixing with `"[workspace N
@@ -584,15 +674,33 @@ whenever you resolve one or add a new one.
    underlying `hl.env()` call is confirmed/documented; *auto-applying it
    to arbitrary freeform fields* is still this file's own inferred
    convenience, explicitly described by the user as optional/best-effort.
-10. **Category list and gradient table shape in §10.1** — written from memory of
-    the config-options page, not re-checked against it when added.
+9. **`extraConfig` requiring full dotted-path keys** (§10) — a
+   deliberate, documented deviation from the user's shorthand example.
+10. **Category list and gradient table shape in §10.1** — the category list
+    was re-read against the config-options page and matches; the gradient
+    table shape `{ colors = {...}, angle = N }` is still from memory.
 11. **`settings.plugins` -> `hl.config({ plugin = {...} })`** — category name
     assumed to be singular `plugin` (matching the old `plugin:hyprexpo:...`
     hyprlang namespace), not re-verified against hyprland-lua docs. If
     Hyprland errors on an unknown category when a plugin is loaded, change
     the `plugins = "plugin";` entry in `configCategories` to `"plugins"`.
-9. **`extraConfig` requiring full dotted-path keys** (§10) — a
-   deliberate, documented deviation from the user's shorthand example.
+    (The config-options page's category list does not include a plugin
+    category at all, so plugin settings may need another path — e.g.
+    `extraConfig` or `__raw` — depending on the plugin.)
+12. **Case-insensitive keysym lookup** (§3.1) — ordinary keys such as
+    `XF86AudioRaiseVolume` are emitted uppercased (`XF86AUDIORAISEVOLUME`)
+    and appeared to work, but it was never checked that Hyprland resolves
+    keysym names case-insensitively. If a normal key is rejected as "no
+    such key", suspect this first.
+13. **`isLiteralKeyToken` coverage** (§3.1) — only `mouse:`, `code:`,
+    `switch:`, `mouse_up`, `mouse_down` are kept as written.
+    `mouse_left`/`mouse_right` were left out on purpose because the wiki
+    doesn't list them. If another special key gets mangled, add it there.
+14. **Spaces around `+` in bind keys** (§3.1) — the wiki writes
+    `"SUPER + mouse:272"` with spaces; this file emits `"SUPER+mouse:272"`
+    without. Assumed equivalent, not verified. If binds with a modifier
+    stop working, change the `lib.concatStringsSep "+"` in `mkKeyExpr` to
+    `" + "`.
 
 ---
 
@@ -601,6 +709,12 @@ whenever you resolve one or add a new one.
 - Binds & flags: `wiki.hypr.land/Configuring/Binds/Flags/` (or the
   equivalent `Configuring/Binds/` path) — `hl.bind(keys, dispatcher,
   { flags })` syntax and the full flags table.
+  Re-read later at `https://wiki.hypr.land/configuring/core/binds/flags/`
+  (rendered page) and `https://wiki.hypr.land/Configuring/Basics/Binds/` —
+  confirms the flag names in §3.4 and the mouse-bind format
+  `hl.bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true })`.
+  Note the wiki examples write `SUPER + mouse:272` with spaces around `+`;
+  this file emits no spaces (§13 item 14).
 - Submaps:
   `https://raw.githubusercontent.com/hyprwm/hyprland-wiki/refs/heads/main/content/configuring/core/submaps.md`
 - Monitors: `wiki.hypr.land/Configuring/Basics/Monitors/`
@@ -608,17 +722,22 @@ whenever you resolve one or add a new one.
   `wiki.hypr.land/Configuring/Layouts/{Dwindle,Master,Scrolling,Monocle}-Layout/`
   (current, non-versioned pages — versioned `/0.NN.0/` snapshots show
   older/renamed fields, see §5).
+- Custom layouts: `wiki.hypr.land/Configuring/Layouts/Custom-Layouts/` —
+  mentions `hl.layout.register(name, { recalculate, layout_msg? })` (§6).
 - Layer rules:
   `https://raw.githubusercontent.com/hyprwm/hyprland-wiki/refs/heads/main/content/configuring/core/rules/layer-rules.md`
 - Window rules:
   `https://raw.githubusercontent.com/hyprwm/hyprland-wiki/refs/heads/main/content/configuring/core/rules/window-rules.md`
+  (re-read while debugging a clipse rule; see the usage notes in §7.2).
 - Workspace rules:
   `https://raw.githubusercontent.com/hyprwm/hyprland-wiki/refs/heads/main/content/configuring/core/rules/workspace-rules.md`
 - Config options (the `programs.hyprland.extraConfig` source of truth):
   `https://raw.githubusercontent.com/hyprwm/hyprland-wiki/refs/heads/main/content/configuring/core/config-options.md`
   — includes the `hl.config({ category = {...} })` and
   `hl.config({ ["category.option"] = value })` syntax this file's
-  `extraConfig` option is built around.
+  `extraConfig` option is built around. Re-read in full later: also the
+  source for `decoration.motion_blur`/`wobble`, `input.follow_mouse`,
+  `cursor.*`, and the repeat-rate options referenced in §3.4/§10.1.
 - Animations: `wiki.hypr.land/Configuring/Advanced-and-Cool/Animations/`
   and `wiki.hypr.land/configuring/core/animations/` (current pages;
   inconsistent on the spring `dampening`/`damping` field name, see §8/§13).
@@ -633,6 +752,13 @@ whenever you resolve one or add a new one.
   "Hyprland")`). Everything in `startWith` beyond these bare documented
   calls (the `actions`/`apps` split, `desktopFile`, per-app `dsp`, the
   auto-env-var convenience) is this file's own design (§9).
+- Plugins: `wiki.hypr.land/Plugins/Using-Plugins/` — Hyprland has no
+  default plugins; hyprpm installs them, and on NixOS plugins come from the
+  Home Manager `plugins` option instead. `hyprland-plugins` dropped several
+  plugins as unmaintained in 2026 (commit "hyprpm: drop plugins, remove
+  hyprload", 2026-05-12; `hyprtrails` and `hyprscrolling` had open
+  build-failure issue #629), so don't assume a plugin from older docs still
+  builds against the current Hyprland.
 - Submodule mechanics used throughout (`freeformType`, `types.oneOf`,
   `types.either`, `mkOption`/`types` generally): standard nixpkgs
   `lib/types.nix` / NixOS module system behavior, not Hyprland-specific
@@ -670,6 +796,16 @@ non-versioned** `wiki.hypr.land/...` URL over a `/0.NN.0/...` snapshot.
   `extraConfigLines` in an earlier revision; the fix is already applied,
   but watch for the same pattern (`[ "literal" + something ]`) anywhere
   new code builds a list of Lua lines.
+- **⚠️ Case-folding key tokens (hit once, do not reintroduce):**
+  `mkKeyExpr` used to run `lib.toUpper` on every token. Keysym names
+  resolve case-insensitively, so that looked harmless, but `mouse:272`,
+  `code:28`, `switch:...` and `mouse_down` do not: `"mod+mouse:273"`
+  produced `MOUSE:273` and Hyprland reported the key as unknown. The fix
+  is `isLiteralKeyToken`, which leaves those tokens untouched. Any new
+  special key prefix (anything of the form `prefix:value`, or a named
+  wheel event) must be added there rather than letting the default
+  uppercase path touch it. Hit while binding `Mod + mouse button` to
+  `window.drag`/`window.resize`.
 - **Builtins**: use the un-prefixed global form when Nix exposes one
   (`baseNameOf`, `dirOf`, `toString`, `map`, `removeAttrs`, `import`, ...)
   — `builtins.<name>` is only needed for functions that are *not*

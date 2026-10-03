@@ -7,7 +7,10 @@ let
 
   inherit (lib) mkOption types;
 
-  numberType = types.oneOf [ types.int types.float ];
+  numberType = types.oneOf [
+    types.int
+    types.float
+  ];
 
   # ---------------------------------------------------------------------
   # shared lua-value rendering (bool / number / string / nested attrset / list)
@@ -27,11 +30,7 @@ let
 
   # single-key { __raw = "..."; } escape hatch, used in several freeform/heterogeneous spots
   renderRawOrVal =
-    v:
-    if builtins.isAttrs v && (lib.attrNames v) == [ "__raw" ] then
-      v.__raw
-    else
-      toLuaVal v;
+    v: if builtins.isAttrs v && (lib.attrNames v) == [ "__raw" ] then v.__raw else toLuaVal v;
 
   luaStr = s: builtins.toJSON s;
 
@@ -101,6 +100,20 @@ let
     };
   };
 
+  # Tokens Hyprland matches case-sensitively keep the casing the user wrote.
+  isLiteralKeyToken =
+    t:
+    let
+      l = lib.toLower t;
+    in
+    lib.hasPrefix "mouse:" l
+    || lib.hasPrefix "code:" l
+    || lib.hasPrefix "switch:" l
+    || builtins.elem l [
+      "mouse_up"
+      "mouse_down"
+    ];
+
   # "Mod+Shift+e" / "SUPER + return" -> "SUPER+SHIFT+RETURN", using cfg.mainMod for the Mod token.
   mkKeyExpr =
     key:
@@ -111,7 +124,12 @@ let
         let
           stripped = lib.replaceStrings [ " " ] [ "" ] t;
         in
-        if lib.toLower stripped == "mod" then lib.toUpper cfg.mainMod else lib.toUpper stripped
+        if lib.toLower stripped == "mod" then
+          lib.toUpper cfg.mainMod
+        else if isLiteralKeyToken stripped then
+          stripped
+        else
+          lib.toUpper stripped
       ) tokens;
     in
     luaStr (lib.concatStringsSep "+" mapped);
@@ -134,10 +152,7 @@ let
         val = item.${dspName};
       in
       if dspName == "__raw" then
-        if !(builtins.isString val) then
-          throw "${name}: __raw must be a string"
-        else
-          val
+        if !(builtins.isString val) then throw "${name}: __raw must be a string" else val
       else
         let
           args =
@@ -233,10 +248,22 @@ let
     types.int
     (types.submodule {
       options = {
-        top = mkOption { type = types.int; default = 0; };
-        right = mkOption { type = types.int; default = 0; };
-        bottom = mkOption { type = types.int; default = 0; };
-        left = mkOption { type = types.int; default = 0; };
+        top = mkOption {
+          type = types.int;
+          default = 0;
+        };
+        right = mkOption {
+          type = types.int;
+          default = 0;
+        };
+        bottom = mkOption {
+          type = types.int;
+          default = 0;
+        };
+        left = mkOption {
+          type = types.int;
+          default = 0;
+        };
       };
     })
   ];
@@ -250,27 +277,124 @@ let
           default = name;
           description = "Output name, or a desc:... description prefix";
         };
-        disabled = mkOption { type = types.bool; default = monitorDefaults.disabled; description = "Removes the monitor from the layout"; };
-        mode = mkOption { type = types.str; default = monitorDefaults.mode; description = ''Resolution and refresh rate, e.g. "1920x1080@144"; also "preferred"/"highres"/"highrr"/"maxwidth"''; };
-        scale = mkOption { type = types.either numberType types.str; default = monitorDefaults.scale; description = ''Scale factor (e.g. 1.5), or "auto" to use the monitor's PPI''; };
-        transform = mkOption { type = types.ints.between 0 7; default = monitorDefaults.transform; description = "Rotation/flip transform (0-7)"; };
-        position = mkOption { type = types.str; default = monitorDefaults.position; description = ''Position in the virtual layout, e.g. "1920x0", or "auto"''; };
-        mirror = mkOption { type = types.str; default = monitorDefaults.mirror; description = "Output name to mirror; empty to disable"; };
-        bitdepth = mkOption { type = types.enum [ 8 10 ]; default = monitorDefaults.bitdepth; };
-        cm = mkOption { type = types.enum [ "auto" "srgb" "wide" "edid" "hdr" "hdredid" ]; default = monitorDefaults.cm; description = "Color management preset"; };
-        sdr_eotf = mkOption { type = types.enum [ "default" "gamma22" "srgb" ]; default = monitorDefaults.sdr_eotf; description = "SDR transfer function"; };
-        sdrbrightness = mkOption { type = numberType; default = monitorDefaults.sdrbrightness; description = "SDR brightness in HDR mode"; };
-        sdrsaturation = mkOption { type = numberType; default = monitorDefaults.sdrsaturation; description = "SDR saturation in HDR mode"; };
-        vrr = mkOption { type = types.int; default = monitorDefaults.vrr; description = "VRR mode"; };
-        icc = mkOption { type = types.str; default = monitorDefaults.icc; description = "Absolute path to an ICC profile; empty to disable"; };
-        reserved_area = mkOption { type = reservedAreaType; default = monitorDefaults.reserved_area; description = "Reserved area: int for all sides, or { top, right, bottom, left }"; };
-        supports_wide_color = mkOption { type = types.ints.between (-1) 1; default = monitorDefaults.supports_wide_color; description = "Force wide color gamut (-1 = off, 0 = auto, 1 = on)"; };
-        supports_hdr = mkOption { type = types.ints.between (-1) 1; default = monitorDefaults.supports_hdr; description = "Force HDR support (-1 = off, 0 = auto, 1 = on)"; };
-        sdr_min_luminance = mkOption { type = numberType; default = monitorDefaults.sdr_min_luminance; description = "SDR minimum luminance for SDR->HDR mapping"; };
-        sdr_max_luminance = mkOption { type = types.int; default = monitorDefaults.sdr_max_luminance; description = "SDR maximum luminance"; };
-        min_luminance = mkOption { type = numberType; default = monitorDefaults.min_luminance; description = "Monitor minimum luminance"; };
-        max_luminance = mkOption { type = types.int; default = monitorDefaults.max_luminance; description = "Monitor maximum possible luminance"; };
-        max_avg_luminance = mkOption { type = types.int; default = monitorDefaults.max_avg_luminance; description = "Monitor maximum average luminance"; };
+        disabled = mkOption {
+          type = types.bool;
+          default = monitorDefaults.disabled;
+          description = "Removes the monitor from the layout";
+        };
+        mode = mkOption {
+          type = types.str;
+          default = monitorDefaults.mode;
+          description = ''Resolution and refresh rate, e.g. "1920x1080@144"; also "preferred"/"highres"/"highrr"/"maxwidth"'';
+        };
+        scale = mkOption {
+          type = types.either numberType types.str;
+          default = monitorDefaults.scale;
+          description = ''Scale factor (e.g. 1.5), or "auto" to use the monitor's PPI'';
+        };
+        transform = mkOption {
+          type = types.ints.between 0 7;
+          default = monitorDefaults.transform;
+          description = "Rotation/flip transform (0-7)";
+        };
+        position = mkOption {
+          type = types.str;
+          default = monitorDefaults.position;
+          description = ''Position in the virtual layout, e.g. "1920x0", or "auto"'';
+        };
+        mirror = mkOption {
+          type = types.str;
+          default = monitorDefaults.mirror;
+          description = "Output name to mirror; empty to disable";
+        };
+        bitdepth = mkOption {
+          type = types.enum [
+            8
+            10
+          ];
+          default = monitorDefaults.bitdepth;
+        };
+        cm = mkOption {
+          type = types.enum [
+            "auto"
+            "srgb"
+            "wide"
+            "edid"
+            "hdr"
+            "hdredid"
+          ];
+          default = monitorDefaults.cm;
+          description = "Color management preset";
+        };
+        sdr_eotf = mkOption {
+          type = types.enum [
+            "default"
+            "gamma22"
+            "srgb"
+          ];
+          default = monitorDefaults.sdr_eotf;
+          description = "SDR transfer function";
+        };
+        sdrbrightness = mkOption {
+          type = numberType;
+          default = monitorDefaults.sdrbrightness;
+          description = "SDR brightness in HDR mode";
+        };
+        sdrsaturation = mkOption {
+          type = numberType;
+          default = monitorDefaults.sdrsaturation;
+          description = "SDR saturation in HDR mode";
+        };
+        vrr = mkOption {
+          type = types.int;
+          default = monitorDefaults.vrr;
+          description = "VRR mode";
+        };
+        icc = mkOption {
+          type = types.str;
+          default = monitorDefaults.icc;
+          description = "Absolute path to an ICC profile; empty to disable";
+        };
+        reserved_area = mkOption {
+          type = reservedAreaType;
+          default = monitorDefaults.reserved_area;
+          description = "Reserved area: int for all sides, or { top, right, bottom, left }";
+        };
+        supports_wide_color = mkOption {
+          type = types.ints.between (-1) 1;
+          default = monitorDefaults.supports_wide_color;
+          description = "Force wide color gamut (-1 = off, 0 = auto, 1 = on)";
+        };
+        supports_hdr = mkOption {
+          type = types.ints.between (-1) 1;
+          default = monitorDefaults.supports_hdr;
+          description = "Force HDR support (-1 = off, 0 = auto, 1 = on)";
+        };
+        sdr_min_luminance = mkOption {
+          type = numberType;
+          default = monitorDefaults.sdr_min_luminance;
+          description = "SDR minimum luminance for SDR->HDR mapping";
+        };
+        sdr_max_luminance = mkOption {
+          type = types.int;
+          default = monitorDefaults.sdr_max_luminance;
+          description = "SDR maximum luminance";
+        };
+        min_luminance = mkOption {
+          type = numberType;
+          default = monitorDefaults.min_luminance;
+          description = "Monitor minimum luminance";
+        };
+        max_luminance = mkOption {
+          type = types.int;
+          default = monitorDefaults.max_luminance;
+          description = "Monitor maximum possible luminance";
+        };
+        max_avg_luminance = mkOption {
+          type = types.int;
+          default = monitorDefaults.max_avg_luminance;
+          description = "Monitor maximum average luminance";
+        };
       };
     }
   );
@@ -298,17 +422,61 @@ let
 
   dwindleType = types.submodule {
     options = {
-      force_split = mkOption { type = types.ints.between 0 2; default = dwindleDefaults.force_split; description = "0 = split follows mouse, 1 = always left/top, 2 = always right/bottom"; };
-      preserve_split = mkOption { type = types.bool; default = dwindleDefaults.preserve_split; description = "Keep the split side/top regardless of container changes"; };
-      smart_split = mkOption { type = types.bool; default = dwindleDefaults.smart_split; description = "Determine split direction by cursor position (4 triangles); also enables preserve_split"; };
-      smart_resizing = mkOption { type = types.bool; default = dwindleDefaults.smart_resizing; description = "Resize direction follows mouse position instead of tiling position"; };
-      permanent_direction_override = mkOption { type = types.bool; default = dwindleDefaults.permanent_direction_override; description = "Make the preselect direction persist until changed"; };
-      special_scale_factor = mkOption { type = numberType; default = dwindleDefaults.special_scale_factor; description = "Scale factor of windows on the special workspace [0-1]"; };
-      split_width_multiplier = mkOption { type = numberType; default = dwindleDefaults.split_width_multiplier; description = "Auto-split width multiplier [0.1-3.0]"; };
-      use_active_for_splits = mkOption { type = types.bool; default = dwindleDefaults.use_active_for_splits; description = "Prefer the active window over mouse position for splits"; };
-      default_split_ratio = mkOption { type = numberType; default = dwindleDefaults.default_split_ratio; description = "Default split ratio on window open [0.1-1.9], 1 = even 50/50"; };
-      split_bias = mkOption { type = types.ints.between 0 1; default = dwindleDefaults.split_bias; description = "0 = directional window gets the split ratio, 1 = current window"; };
-      precise_mouse_move = mkOption { type = types.bool; default = dwindleDefaults.precise_mouse_move; description = "bindm movewindow drops the window more precisely based on mouse position"; };
+      force_split = mkOption {
+        type = types.ints.between 0 2;
+        default = dwindleDefaults.force_split;
+        description = "0 = split follows mouse, 1 = always left/top, 2 = always right/bottom";
+      };
+      preserve_split = mkOption {
+        type = types.bool;
+        default = dwindleDefaults.preserve_split;
+        description = "Keep the split side/top regardless of container changes";
+      };
+      smart_split = mkOption {
+        type = types.bool;
+        default = dwindleDefaults.smart_split;
+        description = "Determine split direction by cursor position (4 triangles); also enables preserve_split";
+      };
+      smart_resizing = mkOption {
+        type = types.bool;
+        default = dwindleDefaults.smart_resizing;
+        description = "Resize direction follows mouse position instead of tiling position";
+      };
+      permanent_direction_override = mkOption {
+        type = types.bool;
+        default = dwindleDefaults.permanent_direction_override;
+        description = "Make the preselect direction persist until changed";
+      };
+      special_scale_factor = mkOption {
+        type = numberType;
+        default = dwindleDefaults.special_scale_factor;
+        description = "Scale factor of windows on the special workspace [0-1]";
+      };
+      split_width_multiplier = mkOption {
+        type = numberType;
+        default = dwindleDefaults.split_width_multiplier;
+        description = "Auto-split width multiplier [0.1-3.0]";
+      };
+      use_active_for_splits = mkOption {
+        type = types.bool;
+        default = dwindleDefaults.use_active_for_splits;
+        description = "Prefer the active window over mouse position for splits";
+      };
+      default_split_ratio = mkOption {
+        type = numberType;
+        default = dwindleDefaults.default_split_ratio;
+        description = "Default split ratio on window open [0.1-1.9], 1 = even 50/50";
+      };
+      split_bias = mkOption {
+        type = types.ints.between 0 1;
+        default = dwindleDefaults.split_bias;
+        description = "0 = directional window gets the split ratio, 1 = current window";
+      };
+      precise_mouse_move = mkOption {
+        type = types.bool;
+        default = dwindleDefaults.precise_mouse_move;
+        description = "bindm movewindow drops the window more precisely based on mouse position";
+      };
     };
   };
 
@@ -330,19 +498,90 @@ let
 
   masterType = types.submodule {
     options = {
-      allow_small_split = mkOption { type = types.bool; default = masterDefaults.allow_small_split; description = "Enable adding additional master windows in a horizontal split style"; };
-      special_scale_factor = mkOption { type = numberType; default = masterDefaults.special_scale_factor; description = "Scale of special workspace windows [0-1]"; };
-      mfact = mkOption { type = numberType; default = masterDefaults.mfact; description = "Master window size as a fraction of the screen [0-1]"; };
-      new_status = mkOption { type = types.enum [ "master" "slave" "inherit" ]; default = masterDefaults.new_status; description = "Where a new window is placed"; };
-      new_on_top = mkOption { type = types.bool; default = masterDefaults.new_on_top; description = "Whether a new window goes on top of the stack"; };
-      new_on_active = mkOption { type = types.enum [ "before" "after" "none" ]; default = masterDefaults.new_on_active; description = "Place new window relative to the focused window"; };
-      orientation = mkOption { type = types.enum [ "left" "right" "top" "bottom" "center" ]; default = masterDefaults.orientation; description = "Default placement of the master area"; };
-      slave_count_for_center_master = mkOption { type = types.ints.between 0 10; default = masterDefaults.slave_count_for_center_master; description = "Min slave windows before centering master with orientation=center (0 = always center)"; };
-      center_master_fallback = mkOption { type = types.enum [ "left" "right" "top" "bottom" ]; default = masterDefaults.center_master_fallback; description = "Fallback orientation when centering conditions aren't met"; };
-      smart_resizing = mkOption { type = types.bool; default = masterDefaults.smart_resizing; description = "Resize direction follows mouse position instead of tiling position"; };
-      drop_at_cursor = mkOption { type = types.bool; default = masterDefaults.drop_at_cursor; description = "Drag-and-drop puts windows at the cursor position"; };
-      always_keep_position = mkOption { type = types.bool; default = masterDefaults.always_keep_position; description = "Keep the master window's configured position even with no slave windows"; };
-      focus_master_on_close = mkOption { type = types.bool; default = masterDefaults.focus_master_on_close; description = "Closing a window focuses the master window"; };
+      allow_small_split = mkOption {
+        type = types.bool;
+        default = masterDefaults.allow_small_split;
+        description = "Enable adding additional master windows in a horizontal split style";
+      };
+      special_scale_factor = mkOption {
+        type = numberType;
+        default = masterDefaults.special_scale_factor;
+        description = "Scale of special workspace windows [0-1]";
+      };
+      mfact = mkOption {
+        type = numberType;
+        default = masterDefaults.mfact;
+        description = "Master window size as a fraction of the screen [0-1]";
+      };
+      new_status = mkOption {
+        type = types.enum [
+          "master"
+          "slave"
+          "inherit"
+        ];
+        default = masterDefaults.new_status;
+        description = "Where a new window is placed";
+      };
+      new_on_top = mkOption {
+        type = types.bool;
+        default = masterDefaults.new_on_top;
+        description = "Whether a new window goes on top of the stack";
+      };
+      new_on_active = mkOption {
+        type = types.enum [
+          "before"
+          "after"
+          "none"
+        ];
+        default = masterDefaults.new_on_active;
+        description = "Place new window relative to the focused window";
+      };
+      orientation = mkOption {
+        type = types.enum [
+          "left"
+          "right"
+          "top"
+          "bottom"
+          "center"
+        ];
+        default = masterDefaults.orientation;
+        description = "Default placement of the master area";
+      };
+      slave_count_for_center_master = mkOption {
+        type = types.ints.between 0 10;
+        default = masterDefaults.slave_count_for_center_master;
+        description = "Min slave windows before centering master with orientation=center (0 = always center)";
+      };
+      center_master_fallback = mkOption {
+        type = types.enum [
+          "left"
+          "right"
+          "top"
+          "bottom"
+        ];
+        default = masterDefaults.center_master_fallback;
+        description = "Fallback orientation when centering conditions aren't met";
+      };
+      smart_resizing = mkOption {
+        type = types.bool;
+        default = masterDefaults.smart_resizing;
+        description = "Resize direction follows mouse position instead of tiling position";
+      };
+      drop_at_cursor = mkOption {
+        type = types.bool;
+        default = masterDefaults.drop_at_cursor;
+        description = "Drag-and-drop puts windows at the cursor position";
+      };
+      always_keep_position = mkOption {
+        type = types.bool;
+        default = masterDefaults.always_keep_position;
+        description = "Keep the master window's configured position even with no slave windows";
+      };
+      focus_master_on_close = mkOption {
+        type = types.bool;
+        default = masterDefaults.focus_master_on_close;
+        description = "Closing a window focuses the master window";
+      };
     };
   };
 
@@ -360,28 +599,81 @@ let
 
   scrollingType = types.submodule {
     options = {
-      fullscreen_on_one_column = mkOption { type = types.bool; default = scrollingDefaults.fullscreen_on_one_column; description = "A single column always spans the entire screen"; };
-      column_width = mkOption { type = numberType; default = scrollingDefaults.column_width; description = "Default column width [0.1-1.0]"; };
-      focus_fit_method = mkOption { type = types.ints.between 0 1; default = scrollingDefaults.focus_fit_method; description = "0 = center, 1 = fit"; };
-      follow_focus = mkOption { type = types.bool; default = scrollingDefaults.follow_focus; description = "Layout moves to bring the focused window into view automatically"; };
-      follow_min_visible = mkOption { type = numberType; default = scrollingDefaults.follow_min_visible; description = "Minimum visible fraction required for soft focus-follow [0.0-1.0]"; };
-      explicit_column_widths = mkOption { type = types.str; default = scrollingDefaults.explicit_column_widths; description = "Comma-separated preconfigured widths for colresize +conf/-conf"; };
-      wrap_focus = mkOption { type = types.bool; default = scrollingDefaults.wrap_focus; description = "hl.dsp.layout(\"focus l/r\") wraps around at the ends"; };
-      wrap_swapcol = mkOption { type = types.bool; default = scrollingDefaults.wrap_swapcol; description = "hl.dsp.layout(\"swapcol l/r\") wraps around at the ends"; };
-      direction = mkOption { type = types.enum [ "left" "right" "up" "down" ]; default = scrollingDefaults.direction; description = "Direction new windows appear and the layout scrolls"; };
+      fullscreen_on_one_column = mkOption {
+        type = types.bool;
+        default = scrollingDefaults.fullscreen_on_one_column;
+        description = "A single column always spans the entire screen";
+      };
+      column_width = mkOption {
+        type = numberType;
+        default = scrollingDefaults.column_width;
+        description = "Default column width [0.1-1.0]";
+      };
+      focus_fit_method = mkOption {
+        type = types.ints.between 0 1;
+        default = scrollingDefaults.focus_fit_method;
+        description = "0 = center, 1 = fit";
+      };
+      follow_focus = mkOption {
+        type = types.bool;
+        default = scrollingDefaults.follow_focus;
+        description = "Layout moves to bring the focused window into view automatically";
+      };
+      follow_min_visible = mkOption {
+        type = numberType;
+        default = scrollingDefaults.follow_min_visible;
+        description = "Minimum visible fraction required for soft focus-follow [0.0-1.0]";
+      };
+      explicit_column_widths = mkOption {
+        type = types.str;
+        default = scrollingDefaults.explicit_column_widths;
+        description = "Comma-separated preconfigured widths for colresize +conf/-conf";
+      };
+      wrap_focus = mkOption {
+        type = types.bool;
+        default = scrollingDefaults.wrap_focus;
+        description = "hl.dsp.layout(\"focus l/r\") wraps around at the ends";
+      };
+      wrap_swapcol = mkOption {
+        type = types.bool;
+        default = scrollingDefaults.wrap_swapcol;
+        description = "hl.dsp.layout(\"swapcol l/r\") wraps around at the ends";
+      };
+      direction = mkOption {
+        type = types.enum [
+          "left"
+          "right"
+          "up"
+          "down"
+        ];
+        default = scrollingDefaults.direction;
+        description = "Direction new windows appear and the layout scrolls";
+      };
     };
   };
 
   # monocle currently has no documented config fields (dispatcher-only layout);
   # kept as a free-form table so new fields don't require updating this module.
-  monocleValueType = types.oneOf [ types.bool types.str numberType ];
+  monocleValueType = types.oneOf [
+    types.bool
+    types.str
+    numberType
+  ];
 
-  mkLayoutLine = catName: defaults: keep: v: "hl.config({ ${catName} = ${mkFilteredTable defaults keep v} })";
+  mkLayoutLine =
+    catName: defaults: keep: v:
+    "hl.config({ ${catName} = ${mkFilteredTable defaults keep v} })";
 
   layoutLines =
-    lib.optional (cfg.layouts.dwindle != null) (mkLayoutLine "dwindle" dwindleDefaults [ ] cfg.layouts.dwindle)
-    ++ lib.optional (cfg.layouts.master != null) (mkLayoutLine "master" masterDefaults [ ] cfg.layouts.master)
-    ++ lib.optional (cfg.layouts.scrolling != null) (mkLayoutLine "scrolling" scrollingDefaults [ ] cfg.layouts.scrolling)
+    lib.optional (cfg.layouts.dwindle != null) (
+      mkLayoutLine "dwindle" dwindleDefaults [ ] cfg.layouts.dwindle
+    )
+    ++ lib.optional (cfg.layouts.master != null) (
+      mkLayoutLine "master" masterDefaults [ ] cfg.layouts.master
+    )
+    ++ lib.optional (cfg.layouts.scrolling != null) (
+      mkLayoutLine "scrolling" scrollingDefaults [ ] cfg.layouts.scrolling
+    )
     ++ lib.optional (cfg.layouts.monocle != null) (mkLayoutLine "monocle" { } [ ] cfg.layouts.monocle);
 
   # ---------------------------------------------------------------------
@@ -411,18 +703,60 @@ let
 
   layerRuleType = types.submodule {
     options = {
-      name = mkOption { type = types.nullOr types.str; default = null; description = "Optional name; required to later set_enabled()/is_enabled()"; };
-      match = mkOption { type = layerMatchType; default = { }; };
-      above_lock = mkOption { type = types.nullOr types.int; default = null; description = "Non-zero renders above the lock screen; 2 = interactive on lock screen"; };
-      animation = mkOption { type = types.nullOr types.str; default = null; description = "Animation style for this layer"; };
-      blur = mkOption { type = types.nullOr types.bool; default = null; };
-      blur_popups = mkOption { type = types.nullOr types.bool; default = null; };
-      dim_around = mkOption { type = types.nullOr types.bool; default = null; };
-      ignore_alpha = mkOption { type = types.nullOr numberType; default = null; description = "Blur ignores pixels with opacity <= this [0.0-1.0]"; };
-      no_anim = mkOption { type = types.nullOr types.bool; default = null; };
-      no_screen_share = mkOption { type = types.nullOr types.bool; default = null; };
-      order = mkOption { type = types.nullOr types.int; default = null; description = "Space-reservation priority relative to other layers; can be negative"; };
-      xray = mkOption { type = types.nullOr types.bool; default = null; description = "Blur xray mode for the layer"; };
+      name = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Optional name; required to later set_enabled()/is_enabled()";
+      };
+      match = mkOption {
+        type = layerMatchType;
+        default = { };
+      };
+      above_lock = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        description = "Non-zero renders above the lock screen; 2 = interactive on lock screen";
+      };
+      animation = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Animation style for this layer";
+      };
+      blur = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      blur_popups = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      dim_around = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      ignore_alpha = mkOption {
+        type = types.nullOr numberType;
+        default = null;
+        description = "Blur ignores pixels with opacity <= this [0.0-1.0]";
+      };
+      no_anim = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      no_screen_share = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      order = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        description = "Space-reservation priority relative to other layers; can be negative";
+      };
+      xray = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+        description = "Blur xray mode for the layer";
+      };
     };
   };
 
@@ -451,23 +785,82 @@ let
 
   winMatchType = types.submodule {
     options = {
-      class = mkOption { type = types.nullOr types.str; default = null; };
-      content = mkOption { type = types.nullOr (types.enum [ "none" "photo" "video" "game" ]); default = null; };
-      focus = mkOption { type = types.nullOr types.bool; default = null; };
-      fullscreen = mkOption { type = types.nullOr types.bool; default = null; };
-      fullscreen_state_client = mkOption { type = types.nullOr (types.ints.between 0 3); default = null; };
-      fullscreen_state_internal = mkOption { type = types.nullOr (types.ints.between 0 3); default = null; };
-      float = mkOption { type = types.nullOr types.bool; default = null; };
-      group = mkOption { type = types.nullOr types.bool; default = null; };
-      initial_class = mkOption { type = types.nullOr types.str; default = null; };
-      initial_title = mkOption { type = types.nullOr types.str; default = null; };
-      modal = mkOption { type = types.nullOr types.bool; default = null; };
-      pin = mkOption { type = types.nullOr types.bool; default = null; };
-      tag = mkOption { type = types.nullOr types.str; default = null; };
-      title = mkOption { type = types.nullOr types.str; default = null; };
-      workspace = mkOption { type = types.nullOr types.str; default = null; description = "Workspace selector"; };
-      xdg_tag = mkOption { type = types.nullOr types.str; default = null; };
-      xwayland = mkOption { type = types.nullOr types.bool; default = null; };
+      class = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
+      content = mkOption {
+        type = types.nullOr (
+          types.enum [
+            "none"
+            "photo"
+            "video"
+            "game"
+          ]
+        );
+        default = null;
+      };
+      focus = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      fullscreen = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      fullscreen_state_client = mkOption {
+        type = types.nullOr (types.ints.between 0 3);
+        default = null;
+      };
+      fullscreen_state_internal = mkOption {
+        type = types.nullOr (types.ints.between 0 3);
+        default = null;
+      };
+      float = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      group = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      initial_class = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
+      initial_title = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
+      modal = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      pin = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      tag = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
+      title = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
+      workspace = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Workspace selector";
+      };
+      xdg_tag = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
+      xwayland = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
     };
   };
 
@@ -491,8 +884,14 @@ let
   winRuleType = types.submodule {
     freeformType = types.attrsOf winEffectValueType;
     options = {
-      name = mkOption { type = types.nullOr types.str; default = null; };
-      match = mkOption { type = winMatchType; default = { }; };
+      name = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
+      match = mkOption {
+        type = winMatchType;
+        default = { };
+      };
     };
   };
 
@@ -531,53 +930,116 @@ let
     in
     "hl.window_rule({ ${lib.concatStringsSep ", " fields} })";
 
-  cssGapsType = types.oneOf [ types.int types.str ];
+  cssGapsType = types.oneOf [
+    types.int
+    types.str
+  ];
 
   workspaceRuleType = types.submodule {
     options = {
-      workspace = mkOption { type = types.str; description = "Workspace selector, e.g. \"3\", \"name:coding\", \"special:scratchpad\""; };
-      animation = mkOption { type = types.nullOr types.str; default = null; };
-      border_size = mkOption { type = types.nullOr types.int; default = null; };
-      decorate = mkOption { type = types.nullOr types.bool; default = null; };
-      default_name = mkOption { type = types.nullOr types.str; default = null; };
-      float_gaps = mkOption { type = types.nullOr cssGapsType; default = null; };
-      gaps_in = mkOption { type = types.nullOr cssGapsType; default = null; };
-      gaps_out = mkOption { type = types.nullOr cssGapsType; default = null; };
-      layout = mkOption { type = types.nullOr (types.enum [ "dwindle" "master" "scrolling" "monocle" ]); default = null; };
-      layout_opts = mkOption { type = types.nullOr (types.attrsOf winEffectLeafType); default = null; description = "Layout-specific per-workspace options; keys/values depend on the layout"; };
-      monitor = mkOption { type = types.nullOr types.str; default = null; };
-      default = mkOption { type = types.nullOr types.bool; default = null; };
-      no_border = mkOption { type = types.nullOr types.bool; default = null; };
-      no_rounding = mkOption { type = types.nullOr types.bool; default = null; };
-      no_shadow = mkOption { type = types.nullOr types.bool; default = null; };
-      on_created_empty = mkOption { type = types.nullOr types.str; default = null; };
-      persistent = mkOption { type = types.nullOr types.bool; default = null; };
+      workspace = mkOption {
+        type = types.str;
+        description = "Workspace selector, e.g. \"3\", \"name:coding\", \"special:scratchpad\"";
+      };
+      animation = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
+      border_size = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+      };
+      decorate = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      default_name = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
+      float_gaps = mkOption {
+        type = types.nullOr cssGapsType;
+        default = null;
+      };
+      gaps_in = mkOption {
+        type = types.nullOr cssGapsType;
+        default = null;
+      };
+      gaps_out = mkOption {
+        type = types.nullOr cssGapsType;
+        default = null;
+      };
+      layout = mkOption {
+        type = types.nullOr (
+          types.enum [
+            "dwindle"
+            "master"
+            "scrolling"
+            "monocle"
+          ]
+        );
+        default = null;
+      };
+      layout_opts = mkOption {
+        type = types.nullOr (types.attrsOf winEffectLeafType);
+        default = null;
+        description = "Layout-specific per-workspace options; keys/values depend on the layout";
+      };
+      monitor = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
+      default = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      no_border = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      no_rounding = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      no_shadow = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      on_created_empty = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
+      persistent = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
     };
   };
 
   mkWorkspaceRuleLine =
     r:
     let
-      fields =
-        [ "workspace = ${toLuaVal r.workspace}" ]
-        ++ mkSetFields {
-          animation = r.animation;
-          border_size = r.border_size;
-          decorate = r.decorate;
-          default_name = r.default_name;
-          float_gaps = r.float_gaps;
-          gaps_in = r.gaps_in;
-          gaps_out = r.gaps_out;
-          layout = r.layout;
-          layout_opts = r.layout_opts;
-          monitor = r.monitor;
-          default = r.default;
-          no_border = r.no_border;
-          no_rounding = r.no_rounding;
-          no_shadow = r.no_shadow;
-          on_created_empty = r.on_created_empty;
-          persistent = r.persistent;
-        } toLuaVal;
+      fields = [
+        "workspace = ${toLuaVal r.workspace}"
+      ]
+      ++ mkSetFields {
+        animation = r.animation;
+        border_size = r.border_size;
+        decorate = r.decorate;
+        default_name = r.default_name;
+        float_gaps = r.float_gaps;
+        gaps_in = r.gaps_in;
+        gaps_out = r.gaps_out;
+        layout = r.layout;
+        layout_opts = r.layout_opts;
+        monitor = r.monitor;
+        default = r.default;
+        no_border = r.no_border;
+        no_rounding = r.no_rounding;
+        no_shadow = r.no_shadow;
+        on_created_empty = r.on_created_empty;
+        persistent = r.persistent;
+      } toLuaVal;
     in
     "hl.workspace_rule({ ${lib.concatStringsSep ", " fields} })";
 
@@ -586,14 +1048,27 @@ let
   # ---------------------------------------------------------------------
   curveType = types.submodule {
     options = {
-      type = mkOption { type = types.enum [ "bezier" "spring" ]; };
+      type = mkOption {
+        type = types.enum [
+          "bezier"
+          "spring"
+        ];
+      };
       points = mkOption {
         type = types.nullOr (types.listOf (types.listOf numberType));
         default = null;
         description = "bezier only: [[x0 y0] [x1 y1]] (two control points)";
       };
-      mass = mkOption { type = types.nullOr numberType; default = null; description = "spring only"; };
-      stiffness = mkOption { type = types.nullOr numberType; default = null; description = "spring only"; };
+      mass = mkOption {
+        type = types.nullOr numberType;
+        default = null;
+        description = "spring only";
+      };
+      stiffness = mkOption {
+        type = types.nullOr numberType;
+        default = null;
+        description = "spring only";
+      };
       dampening = mkOption {
         type = types.nullOr numberType;
         default = null;
@@ -621,12 +1096,33 @@ let
 
   animEntryType = types.submodule {
     options = {
-      leaf = mkOption { type = types.str; description = "Animation tree leaf, e.g. \"windows\", \"fade\", \"workspaces\", \"layers\""; };
-      enabled = mkOption { type = types.bool; default = true; };
-      speed = mkOption { type = types.nullOr numberType; default = null; description = "In deciseconds (1ds = 100ms)"; };
-      bezier = mkOption { type = types.nullOr types.str; default = null; description = "name of a bezier curve declared in animations.curves"; };
-      spring = mkOption { type = types.nullOr types.str; default = null; description = "name of a spring curve declared in animations.curves"; };
-      style = mkOption { type = types.nullOr types.str; default = null; };
+      leaf = mkOption {
+        type = types.str;
+        description = "Animation tree leaf, e.g. \"windows\", \"fade\", \"workspaces\", \"layers\"";
+      };
+      enabled = mkOption {
+        type = types.bool;
+        default = true;
+      };
+      speed = mkOption {
+        type = types.nullOr numberType;
+        default = null;
+        description = "In deciseconds (1ds = 100ms)";
+      };
+      bezier = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "name of a bezier curve declared in animations.curves";
+      };
+      spring = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "name of a spring curve declared in animations.curves";
+      };
+      style = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
     };
   };
 
@@ -638,25 +1134,31 @@ let
       throw "animation \"${a.leaf}\": enabled = true requires either bezier or spring"
     else
       let
-        fields =
-          [
-            "leaf = ${luaStr a.leaf}"
-            "enabled = ${toLuaVal a.enabled}"
-          ]
-          ++ mkSetFields {
-            speed = a.speed;
-            bezier = a.bezier;
-            spring = a.spring;
-            style = a.style;
-          } toLuaVal;
+        fields = [
+          "leaf = ${luaStr a.leaf}"
+          "enabled = ${toLuaVal a.enabled}"
+        ]
+        ++ mkSetFields {
+          speed = a.speed;
+          bezier = a.bezier;
+          spring = a.spring;
+          style = a.style;
+        } toLuaVal;
       in
       "hl.animation({ ${lib.concatStringsSep ", " fields} })";
 
   animationsCfgType = types.nullOr (
     types.submodule {
       options = {
-        curves = mkOption { type = types.attrsOf curveType; default = { }; };
-        entries = mkOption { type = types.listOf animEntryType; default = [ ]; description = "list of hl.animation({...}) entries"; };
+        curves = mkOption {
+          type = types.attrsOf curveType;
+          default = { };
+        };
+        entries = mkOption {
+          type = types.listOf animEntryType;
+          default = [ ];
+          description = "list of hl.animation({...}) entries";
+        };
       };
     }
   );
@@ -672,8 +1174,16 @@ let
   # ---------------------------------------------------------------------
   actionType = types.submodule {
     options = {
-      __raw = mkOption { type = types.nullOr types.str; default = null; description = "Raw Lua statement, inserted verbatim"; };
-      dsp = mkOption { type = types.nullOr dspItemType; default = null; description = "Rendered as hl.dispatch(hl.dsp.<name>(...))"; };
+      __raw = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Raw Lua statement, inserted verbatim";
+      };
+      dsp = mkOption {
+        type = types.nullOr dspItemType;
+        default = null;
+        description = "Rendered as hl.dispatch(hl.dsp.<name>(...))";
+      };
     };
   };
 
@@ -692,7 +1202,10 @@ let
   mkActionLine =
     i: a:
     let
-      keys = lib.filter (k: a.${k} != null) [ "__raw" "dsp" ];
+      keys = lib.filter (k: a.${k} != null) [
+        "__raw"
+        "dsp"
+      ];
       label = "startWith.actions[${toString i}]";
     in
     if lib.length keys != 1 then
@@ -718,8 +1231,16 @@ let
     # arbitrary per-app env vars is this file's own convenience, not a documented pattern.
     freeformType = types.attrsOf types.str;
     options = {
-      desktopFile = mkOption { type = types.nullOr types.str; default = null; description = "Mutually exclusive with cmd. Launched via gtk-launch -- not a documented hl.* API, see AGENTS.md"; };
-      cmd = mkOption { type = types.nullOr types.str; default = null; description = "Mutually exclusive with desktopFile"; };
+      desktopFile = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Mutually exclusive with cmd. Launched via gtk-launch -- not a documented hl.* API, see AGENTS.md";
+      };
+      cmd = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Mutually exclusive with desktopFile";
+      };
       opts = mkOption {
         type = types.attrsOf execOptValueType;
         default = { };
@@ -774,8 +1295,15 @@ let
   startWithCfgType = types.nullOr (
     types.submodule {
       options = {
-        actions = mkOption { type = types.listOf actionType; default = [ ]; description = "Always rendered before apps"; };
-        apps = mkOption { type = types.listOf appType; default = [ ]; };
+        actions = mkOption {
+          type = types.listOf actionType;
+          default = [ ];
+          description = "Always rendered before apps";
+        };
+        apps = mkOption {
+          type = types.listOf appType;
+          default = [ ];
+        };
       };
     }
   );
@@ -871,9 +1399,11 @@ let
       [ ]
     else
       [
-        "hl.config({ ${lib.concatStringsSep ", " (
-          lib.mapAttrsToList (k: v: "[${luaStr k}] = ${renderRawOrVal v}") extraConfigCfg
-        )} })"
+        "hl.config({ ${
+          lib.concatStringsSep ", " (
+            lib.mapAttrsToList (k: v: "[${luaStr k}] = ${renderRawOrVal v}") extraConfigCfg
+          )
+        } })"
       ];
 in
 {
@@ -929,7 +1459,13 @@ in
     layoutNames = mkOption {
       type = types.listOf types.str;
       readOnly = true;
-      default = [ "dwindle" "master" "scrolling" "monocle" ] ++ (lib.attrNames cfg.customLayouts);
+      default = [
+        "dwindle"
+        "master"
+        "scrolling"
+        "monocle"
+      ]
+      ++ (lib.attrNames cfg.customLayouts);
       description = "All layout names known to this config: the 4 built-ins plus every customLayouts key";
     };
 
@@ -962,7 +1498,8 @@ in
       default = null;
       description = "hl.on(\"hyprland.start\", function() actions...; apps... end); actions always render before apps";
     };
-  } // configCategoryOptions;
+  }
+  // configCategoryOptions;
 
   options.programs.hyprland.plugins = mkOption {
     type = types.listOf types.package;

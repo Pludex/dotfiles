@@ -2,7 +2,7 @@
   programs.hyprland.settings = {
     mainMod = "SUPER";
     binds = {
-      "Mod+E".dsp.exit = true;
+      # "Mod+E".dsp.exit = true;
       "Mod+R".dsp.exec_cmd = "hyprctl reload";
     };
   };
@@ -10,8 +10,9 @@
   imports = [
     ./animation.nix
     ./input.nix
-    ./window.nix
     ./layout.nix
+    ./rules.nix
+    ./window.nix
   ];
 
   programs.hyprland.monitors = {

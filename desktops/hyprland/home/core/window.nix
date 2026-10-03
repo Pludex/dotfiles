@@ -2,6 +2,13 @@
 let
   resizePx = 30;
   colors = config.lib.stylix.colors;
+
+  confirmExpo = ''
+    function()
+      hl.plugin.hyprexpo.kb_confirm()
+      hl.dispatch(hl.dsp.submap("reset"))
+    end
+  '';
 in
 {
   programs.hyprland.plugins = [
@@ -23,6 +30,15 @@ in
       "Mod+Shift+J".dsp."window.move".direction = "d";
       "Mod+Shift+K".dsp."window.move".direction = "u";
       "Mod+Shift+L".dsp."window.move".direction = "r";
+
+      "Mod+mouse:272" = {
+        dsp."window.drag" = true;
+        flags.mouse = true;
+      };
+      "Mod+mouse:273" = {
+        dsp."window.resize" = true;
+        flags.mouse = true;
+      };
 
       # Focus workspace 1-9
       "Mod+1".dsp.focus.workspace = "1";
@@ -46,10 +62,21 @@ in
       "Mod+Shift+8".dsp."window.move".workspace = "8";
       "Mod+Shift+9".dsp."window.move".workspace = "9";
 
-      "Mod+S".dsp.submap = "resize";
+      "Mod+S".dsp.submap = "Resize";
+      "Mod+Return".dsp."window.fullscreen" = {
+        mode = "fullscreen";
+        action = "toggle";
+      };
+
+      "Mod+Tab".dsp.__raw = ''
+        function()
+          hl.plugin.hyprexpo.expo("toggle")
+          hl.dispatch(hl.dsp.submap("hyprexpo"))
+        end
+      '';
     };
 
-    submaps.resize.binds = {
+    submaps.Resize.binds = {
       "L" = {
         dsp."window.resize" = {
           x = resizePx;
@@ -145,31 +172,6 @@ in
       "Return".dsp.submap = "reset";
     };
 
-    general = {
-      border_size = 2;
-    };
-
-    decoration = {
-      rounding = 4;
-      shadow = {
-        enabled = true;
-        range = 15;
-        render_power = 3;
-        color_inactive = "rgba(1a1a1aaa)";
-      };
-    };
-
-    input.follow_mouse = 0;
-
-    binds = {
-      "Mod+Tab".dsp.__raw = ''
-        function()
-          hl.plugin.hyprexpo.expo("toggle")
-          hl.dispatch(hl.dsp.submap("hyprexpo"))
-        end
-      '';
-    };
-
     submaps.hyprexpo.binds = {
       "H".dsp.__raw = ''function() hl.plugin.hyprexpo.kb_focus("left") end'';
       "J".dsp.__raw = ''function() hl.plugin.hyprexpo.kb_focus("down") end'';
@@ -181,25 +183,42 @@ in
       "Up".dsp.__raw = ''function() hl.plugin.hyprexpo.kb_focus("up") end'';
       "Right".dsp.__raw = ''function() hl.plugin.hyprexpo.kb_focus("right") end'';
 
-      "Return".dsp.__raw = ''
-        function()
-          hl.plugin.hyprexpo.kb_confirm()
-          hl.dispatch(hl.dsp.submap("reset"))
-        end
-      '';
-      "Escape".dsp.__raw = ''
-        function()
-          hl.plugin.hyprexpo.expo("cancel")
-          hl.dispatch(hl.dsp.submap("reset"))
-        end
-      '';
-      "Mod+Tab".dsp.__raw = ''
-        function()
-          hl.plugin.hyprexpo.expo("toggle")
-          hl.dispatch(hl.dsp.submap("reset"))
-        end
-      '';
+      # Confirm the selected workspace and leave the submap
+      "Return".dsp.__raw = confirmExpo;
+      "Escape".dsp.__raw = confirmExpo;
+      "Mod+Tab".dsp.__raw = confirmExpo;
     };
+
+    general = {
+      border_size = 2;
+    };
+
+    decoration = {
+      rounding = 4;
+      active_opacity = 0.75;
+      inactive_opacity = 0.65;
+      fullscreen_opacity = 1.0;
+
+      shadow = {
+        enabled = true;
+        range = 15;
+        render_power = 3;
+        color_inactive = "rgba(1a1a1aaa)";
+      };
+
+      blur = {
+        enabled = true;
+        brightness = 0.4;
+        size = 2;
+        passes = 3;
+        new_optimizations = true;
+        ignore_opacity = true;
+        xray = false;
+        popups = true;
+      };
+    };
+
+    input.follow_mouse = 2;
 
     plugins.hyprexpo = {
       # Layout and Behavior
@@ -269,23 +288,6 @@ in
       keynav_wrap_h = 1;
       keynav_wrap_v = 1;
       keynav_reading_order = 0;
-    };
-
-    decoration = {
-      active_opacity = 0.7;
-      inactive_opacity = 0.6;
-      fullscreen_opacity = 1.0;
-
-      blur = {
-        enabled = true;
-        brightness = 0.5;
-        size = 2;
-        passes = 3;
-        new_optimizations = true;
-        ignore_opacity = true;
-        xray = false;
-        popups = true;
-      };
     };
 
     rules.win = [

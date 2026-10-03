@@ -27,4 +27,6 @@
     enable = true;
     videoDrivers = config.host-config.gpuDrivers;
   };
+
+  services.logind.settings.Login.HandlePowerKey = "ignore";
 }
