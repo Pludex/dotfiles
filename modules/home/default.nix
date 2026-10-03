@@ -16,5 +16,6 @@
     ./sops.nix
     ./style.nix
     ./systemd.nix
+    ./xdg.nix
   ];
 }

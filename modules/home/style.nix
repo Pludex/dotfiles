@@ -79,10 +79,5 @@
     pkgs.dejavu_fonts
   ];
 
-  xdg.portal = {
-    enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-  };
-
   imports = [ inputs.stylix.homeModules.default ];
 }
