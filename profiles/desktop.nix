@@ -34,6 +34,7 @@
         "bat"
         "btop"
         "carapace"
+        "cava"
         "delta"
         "direnv"
         "emacs"
