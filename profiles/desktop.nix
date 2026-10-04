@@ -56,7 +56,7 @@
         "starship"
         # "sunix"
         "superfile"
-        "tirith"
+        # "tirith"
         "yazi"
         "zoxide"
       ];
