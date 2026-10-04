@@ -17,7 +17,7 @@ in
 
   programs.hyprland.settings = {
     binds = {
-      "Mod+Q".dsp."window.close" = true;
+      "Mod+S".dsp."window.close" = true;
 
       # Focus window
       "Mod+H".dsp.focus.direction = "l";
@@ -41,28 +41,38 @@ in
       };
 
       # Focus workspace 1-9
-      "Mod+1".dsp.focus.workspace = "1";
-      "Mod+2".dsp.focus.workspace = "2";
-      "Mod+3".dsp.focus.workspace = "3";
-      "Mod+4".dsp.focus.workspace = "4";
-      "Mod+5".dsp.focus.workspace = "5";
-      "Mod+6".dsp.focus.workspace = "6";
-      "Mod+7".dsp.focus.workspace = "7";
-      "Mod+8".dsp.focus.workspace = "8";
-      "Mod+9".dsp.focus.workspace = "9";
+      "Mod+1".dsp.focus.workspace = "5";
+      "Mod+2".dsp.focus.workspace = "6";
+      "Mod+3".dsp.focus.workspace = "7";
+      "Mod+4".dsp.focus.workspace = "8";
+      "Mod+5".dsp.focus.workspace = "9";
+      "Mod+6".dsp.focus.workspace = "1";
+      "Mod+7".dsp.focus.workspace = "2";
+      "Mod+8".dsp.focus.workspace = "3";
+      "Mod+9".dsp.focus.workspace = "4";
+
+      "Mod+Q".dsp.focus.workspace = "1";
+      "Mod+W".dsp.focus.workspace = "2";
+      "Mod+E".dsp.focus.workspace = "3";
+      "Mod+R".dsp.focus.workspace = "4";
 
       # Move window to workspace 1-9
-      "Mod+Shift+1".dsp."window.move".workspace = "1";
-      "Mod+Shift+2".dsp."window.move".workspace = "2";
-      "Mod+Shift+3".dsp."window.move".workspace = "3";
-      "Mod+Shift+4".dsp."window.move".workspace = "4";
-      "Mod+Shift+5".dsp."window.move".workspace = "5";
-      "Mod+Shift+6".dsp."window.move".workspace = "6";
-      "Mod+Shift+7".dsp."window.move".workspace = "7";
-      "Mod+Shift+8".dsp."window.move".workspace = "8";
-      "Mod+Shift+9".dsp."window.move".workspace = "9";
+      "Mod+Shift+1".dsp."window.move".workspace = "5";
+      "Mod+Shift+2".dsp."window.move".workspace = "6";
+      "Mod+Shift+3".dsp."window.move".workspace = "7";
+      "Mod+Shift+4".dsp."window.move".workspace = "8";
+      "Mod+Shift+5".dsp."window.move".workspace = "9";
+      "Mod+Shift+6".dsp."window.move".workspace = "1";
+      "Mod+Shift+7".dsp."window.move".workspace = "2";
+      "Mod+Shift+8".dsp."window.move".workspace = "3";
+      "Mod+Shift+9".dsp."window.move".workspace = "4";
 
-      "Mod+S".dsp.submap = "Resize";
+      "Mod+Shift+Q".dsp."window.move".workspace = "1";
+      "Mod+Shift+W".dsp."window.move".workspace = "2";
+      "Mod+Shift+E".dsp."window.move".workspace = "3";
+      "Mod+Shift+R".dsp."window.move".workspace = "4";
+
+      "Mod+C".dsp.submap = "Resize";
       "Mod+Return".dsp."window.fullscreen" = {
         mode = "fullscreen";
         action = "toggle";

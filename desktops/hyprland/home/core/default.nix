@@ -3,7 +3,7 @@
     mainMod = "SUPER";
     binds = {
       # "Mod+E".dsp.exit = true;
-      "Mod+R".dsp.exec_cmd = "hyprctl reload";
+      "Mod+F".dsp.exec_cmd = "hyprctl reload";
     };
   };
 

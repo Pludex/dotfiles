@@ -3,7 +3,7 @@
 
   programs.hyprland.settings = {
     binds = {
-      "Mod+W".dsp.__raw =
+      "Mod+D".dsp.__raw =
         let
           layoutsLua =
             "{ "
