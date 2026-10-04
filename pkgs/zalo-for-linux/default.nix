@@ -59,6 +59,10 @@ appimageTools.wrapType2 {
     pkgs.gst_all_1.gstreamer
     pkgs.gst_all_1.gst-plugins-base
     pkgs.gst_all_1.gst-plugins-good
+    (pkgs.writeShellScriptBin "codesign" "exit 0")
+    (pkgs.writeShellScriptBin "xattr" "exit 0")
+    pkgs.wl-clipboard
+    pkgs.xclip
   ];
 
   multiArch = true;
