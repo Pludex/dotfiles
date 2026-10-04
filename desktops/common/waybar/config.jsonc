@@ -1,40 +1,16 @@
 {
   "layer": "top",
-  "custom/left-arrow-dark": {
-    "format": "",
-    "tooltip": false
-  },
-  "custom/left-arrow-light": {
-    "format": "",
-    "tooltip": false
-  },
-  "custom/left-arrow-end": {
-    "format": "",
-    "tooltip": false
-  },
-  "custom/right-arrow-dark": {
-    "format": "",
-    "tooltip": false
-  },
-  "custom/right-arrow-light": {
-    "format": "",
-    "tooltip": false
-  },
-  "custom/right-arrow-end": {
-    "format": "",
-    "tooltip": false
-  },
   "mango/workspaces": {
     "disable-scroll": false,
     "all-outputs": false,
     "format": "{icon}",
     "format-icons": {
-      "1": " ",
+      "1": " ",
       "2": "󰈙 ",
-      "4": " ",
-      "8": " ",
+      "4": " ",
+      "8": " ",
       "16": "󰗔 ",
-      "default": ""
+      "default": ""
     }
   },
   "clock#1": {
@@ -42,7 +18,7 @@
     "tooltip": false
   },
   "clock#2": {
-    "format": "{:%H:%M}",
+    "format": "󰥔  {:%H:%M}",
     "tooltip-format": "{:%A}"
   },
   "clock#3": {
@@ -69,15 +45,21 @@
       "on-scroll-down": "shift_down"
     }
   },
+  "clock#4": {
+    "format": "󰃭  {:%a, %d %b}",
+    "tooltip": false,
+    "on-click": "pgrep -io 'waycal' | xargs kill || waycal"
+  },
   "pulseaudio": {
-    "format": "{icon} {volume:2}%",
-    "format-bluetooth": "{icon}  {volume}%",
-    "format-muted": "MUTE",
+    "format": "{icon}  {volume}%",
+    "format-bluetooth": "󰂰  {volume}%",
+    "format-muted": "󰝟  muted",
     "format-icons": {
-      "headphones": "",
+      "headphones": "󰋋",
       "default": [
-        "",
-        ""
+        "󰕿",
+        "󰖀",
+        "󰕾"
       ]
     },
     "scroll-step": 5,
@@ -86,15 +68,15 @@
   },
   "memory": {
     "interval": 5,
-    "format": "Mem: {}%"
+    "format": "󰍛  {}%"
   },
   "cpu": {
     "interval": 5,
-    "format": "CPU: {usage:2}%",
+    "format": "󰻠  {usage}%",
     "tooltip": false
   },
   "temperature": {
-    "format": " {temperatureC}°C",
+    "format": " {temperatureC}°C",
     "tooltip": false
   },
   "battery": {
@@ -103,37 +85,39 @@
       "warning": 30,
       "critical": 15
     },
-    "format": "{icon} {capacity}%",
+    "format": "{icon}  {capacity}%",
+    "format-charging": "󰂄  {capacity}%",
+    "format-plugged": "󰚥  {capacity}%",
     "format-icons": [
-      "",
-      "",
-      "",
-      "",
-      ""
+      "󰂎",
+      "󰁼",
+      "󰁾",
+      "󰂀",
+      "󰁹"
     ]
   },
   "disk": {
     "interval": 5,
-    "format": "Disk: {percentage_used:2}%",
+    "format": "󰋊  {percentage_used}%",
     "path": "/"
   },
   "tray": {
-    "icon-size": 20,
+    "icon-size": 14,
     "show-passive-items": true,
-    "spacing": 10
+    "spacing": 6
   },
-  "custom/mpris": {
-    "format": "{}",
-    "return-type": "json",
-    "max-length": 70,
-    "exec": "playerctl --player=spotify metadata --format '{\"text\": \"{{artist}} - {{markup_escape(title)}}\", \"tooltip\": \"{{status}}\", \"alt\": \"{{status}}\", \"class\": \"{{status}}\"}' -F",
-    "on-click": "playerctl play-pause"
+  "mpris": {
+    "player": "spotify",
+    "format": "{artist} - {title}",
+    "format-paused": "{artist} - {title}",
+    "format-stopped": "",
+    "artist-len": 24,
+    "title-len": 36,
+    "tooltip-format": "{album}"
   },
   "custom/spotify": {
-    "format": "{icon}",
-    "format-icons": [
-      "󰓇 "
-    ]
+    "format": "󰓇 ",
+    "tooltip": false
   },
   "group/group-power": {
     "orientation": "inherit",
@@ -152,14 +136,14 @@
   "custom/quit": {
     "format": "󰗼 ",
     "tooltip": true,
-    "tooltip-format": "Exit Mango Session",
-    "on-click": "niri msg action quit"
+    "tooltip-format": "Exit Session",
+    "on-click": "hyprctl dispatch exit"
   },
   "custom/lock": {
     "format": "󰍁 ",
     "tooltip": true,
     "tooltip-format": "Lock",
-    "on-click": "swaylock-cmd"
+    "on-click": "hyprlock"
   },
   "custom/reboot": {
     "format": "󰜉 ",
@@ -168,7 +152,7 @@
     "on-click": "reboot"
   },
   "custom/power": {
-    "format": "   ",
+    "format": "󰐥 ",
     "tooltip": true,
     "tooltip-format": "Power Off",
     "on-click": "poweroff"
@@ -180,31 +164,31 @@
     "exec-if": "which sway-audio-idle-inhibit",
     "return-type": "json",
     "format-icons": {
-      "output": "",
-      "input": "",
-      "output-input": "  ",
-      "none": " "
+      "output": "󰓃",
+      "input": "󰍬",
+      "output-input": "󰓃 󰍬",
+      "none": "󰓄"
     }
   },
   "idle_inhibitor": {
     "format": "{icon}",
     "format-icons": {
-      "activated": "",
-      "deactivated": ""
+      "activated": "󰅶",
+      "deactivated": "󰾪"
     }
   },
   "custom/notification": {
     "tooltip": false,
     "format": " {icon} ",
     "format-icons": {
-      "notification": "<span foreground='red'><sup></sup></span>",
-      "none": "",
-      "dnd-notification": "<span foreground='red'><sup></sup></span>",
-      "dnd-none": "",
-      "inhibited-notification": "<span foreground='red'><sup></sup></span>",
-      "inhibited-none": "",
-      "dnd-inhibited-notification": "<span foreground='red'><sup></sup></span>",
-      "dnd-inhibited-none": ""
+      "notification": "󰂚<span foreground='red'><sup></sup></span>",
+      "none": "󰂜",
+      "dnd-notification": "󰂛<span foreground='red'><sup></sup></span>",
+      "dnd-none": "󰂛",
+      "inhibited-notification": "󰂚<span foreground='red'><sup></sup></span>",
+      "inhibited-none": "󰂜",
+      "dnd-inhibited-notification": "󰂛<span foreground='red'><sup></sup></span>",
+      "dnd-inhibited-none": "󰂛"
     },
     "return-type": "json",
     "exec-if": "which swaync-client",
@@ -213,40 +197,28 @@
     "on-click-right": "swaync-client -d -sw",
     "escape": true
   },
-  "custom/gpu-usage": {
-    "format": "{} {icon}",
-    "exec": "gpu-usage-waybar",
-    "return-type": "json",
-    "format-icons": "󰾲",
-    "on-click": "kitty -d ~/ --app-id='nvtop' --hold fish -c 'nvtop' &"
-  },
   "custom/sunix": {
-    "format": " SUNix",
+    "format": " SUNix",
     "on-click": "pgrep -io 'sunix' | xargs kill || sunix",
     "tooltip-format": "Software Updates for Nix",
     "tooltip": false
   },
-  "clock#4": {
-    "format": "{:%b %d}",
-    "tooltip": false,
-    "on-click": "pgrep -io 'waycal' | xargs kill || waycal"
-  },
   "mango/layout": {
     "format": " {symbol} ",
     "format-T": " 󰕴 Tile ",
-    "format-S": "  Scroller ",
+    "format-S": "  Scroller ",
     "format-M": " 󰊓 Monocle ",
     "format-G": " 󰝘 Grid ",
-    "format-K": "  Deck ",
-    "format-CT": "  Center Tile ",
-    "format-RT": "  Right Tile ",
-    "format-VT": "  Vertical Tile ",
-    "format-VS": "  Vertical Scroller ",
-    "format-VG": "  Vertical Grid ",
-    "format-VK": "  Vertical Deck ",
-    "format-DW": "  Dwindle ",
-    "format-F": "  Fair ",
-    "format-VF": "  Vertical Fair ",
+    "format-K": "  Deck ",
+    "format-CT": "  Center Tile ",
+    "format-RT": "  Right Tile ",
+    "format-VT": "  Vertical Tile ",
+    "format-VS": "  Vertical Scroller ",
+    "format-VG": "  Vertical Grid ",
+    "format-VK": "  Vertical Deck ",
+    "format-DW": "  Dwindle ",
+    "format-F": "  Fair ",
+    "format-VF": "  Vertical Fair ",
     "tooltip": false,
     "expand": false
   },
@@ -255,7 +227,7 @@
     "max-length": 8,
     "tooltip": false,
     "icons": {
-      "resize": ""
+      "resize": ""
     }
   }
 }

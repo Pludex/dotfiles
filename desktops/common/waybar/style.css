@@ -1,230 +1,271 @@
-@define-color background-color #2b2b2b;
-@define-color bar-background-color rgba(50, 60, 70, 0.85);
-@define-color bar-background-color rgba(35, 42, 50, 0.9);
-@define-color background-color-content #4a4a4a;
-@define-color bar-foreground-color #fdf6e3;
+* {
+  border: none;
+  border-radius: 0;
+  min-height: 0;
+  box-shadow: none;
+  text-shadow: none;
+  font-size: 12px;
+  transition: background 200ms ease, color 200ms ease;
+}
 
 window#waybar {
-  background: @bar-background-color;
-  color: @bar-foreground-color;
+  background: transparent;
+  color: @base05;
 }
 
-#custom-right-arrow-dark,
-#custom-left-arrow-dark {
-  color: @background-color;
-
-  background: @background-color-content;
+tooltip {
+  background: alpha(@base00, 0.95);
+  border: 1px solid alpha(@base0D, 0.6);
+  border-radius: 10px;
 }
 
-#custom-right-arrow-light,
-#custom-left-arrow-light {
-  color: @background-color-content;
-  background: @background-color;
+tooltip label {
+  color: @base05;
+  padding: 2px 4px;
 }
 
-#custom-right-arrow-end,
-#custom-left-arrow-end {
-  color: @background-color;
-  /* background: @bar-background-color; */
-background-color: transparent;
-}
-
-/* just the logo */
-#custom-spotify {
-  background: @background-color;
-  color: #04982c;
-  padding: 5px 5px;
-}
-
-/* the info displayed by playerctl */
-#custom-mpris {
-  background: @background-color;
-  color: #2aa198;
-  padding: 5px 5px;
-}
-
-/* gpu usage */
-#custom-gpu-usage {
-  background: @background-color;
-  color: #8baef0;
-  padding: 0 10px;
-}
-
-/* software updates for nix */
-#custom-sunix {
-  background: @background-color;
-  color: #8baef0;
-  padding: 0 10px;
-}
-
-#workspaces,
-#clock.1,
-#clock.2,
-#clock.3,
-#clock.4,
-#pulseaudio,
-#language,
-#network,
+/* Islands */
+#wm,
+#datetime,
+#stats,
+#media,
+#controls,
+#tray,
+#submap,
 #window,
+#custom-sunix {
+  background: alpha(@base00, 0.8);
+  border: 1px solid alpha(@base0D, 0.25);
+  border-radius: 12px;
+  padding: 0 2px;
+}
+
+window#waybar.empty #window {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* Modules inside islands */
+#clock,
+#network,
 #memory,
 #cpu,
 #temperature,
-#battery,
 #disk,
-#submap,
+#battery,
+#pulseaudio,
+#idle_inhibitor,
+#custom-audio_idle_inhibitor,
+#custom-notification,
+#custom-spotify,
+#mpris,
+#custom-gpu-nvidia,
+#custom-gpu-amd,
+#custom-gpu-intel,
+#layout {
+  background: transparent;
+  padding: 0 8px;
+}
+
+#custom-sunix {
+  color: @base0D;
+  padding: 0 10px;
+}
+
+#window {
+  color: @base05;
+  padding: 0 12px;
+}
+
+#submap {
+  color: @base0A;
+  font-weight: bold;
+  padding: 0 10px;
+}
+
 #tray {
-  background: @background-color;
+  padding: 0 8px;
 }
 
+#tray > .passive {
+  -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+  -gtk-icon-effect: highlight;
+}
+
+/* Workspaces */
 #workspaces button {
-  padding: 0 2px;
-  color: @bar-foreground-color;
-}
-
-#workspaces button.active {
-  color: #268bd2;
-}
-
-#workspaces button.focused {
-  color: #268bd2;
+  background: transparent;
+  color: @base04;
+  border-radius: 9px;
+  margin: 2px 1px;
+  padding: 0 6px;
 }
 
 #workspaces button:hover {
+  background: alpha(@base0D, 0.25);
+  color: @base05;
   box-shadow: inherit;
   text-shadow: inherit;
 }
 
-#workspaces button:hover {
-  background: @background-color;
-  border: @background-color;
-  padding: 0 3px;
+#workspaces button.active,
+#workspaces button.focused {
+  background: @base0D;
+  color: @base00;
+}
+
+#workspaces button.urgent {
+  background: @base08;
+  color: @base00;
 }
 
 #workspaces button.empty,
 #workspaces button.empty label,
 #workspaces button#niri-workspace-scratch,
 #workspaces button#niri-workspace-scratch label {
-  background: None;
-  border: None;
+  background: none;
+  border: none;
   font-size: 0;
   padding: 0;
   margin: 0;
   min-width: 0;
 }
 
-#pulseaudio {
-  color: #268bd2;
+#layout {
+  color: @base0D;
+}
+
+/* Time and date */
+#clock.2 {
+  color: @base05;
+  font-weight: bold;
+}
+
+#clock.4 {
+  color: @base0E;
+}
+
+/* Stats */
+#network {
+  color: @base0D;
+}
+
+#network.disconnected,
+#network.disabled {
+  color: @base03;
 }
 
 #memory {
-  color: #2aa198;
+  color: @base0C;
 }
 
 #cpu {
-  color: #6c71c4;
+  color: @base0E;
 }
 
 #temperature {
-  color: #f54927;
+  color: @base09;
+}
+
+#disk {
+  color: @base0A;
+}
+
+#custom-gpu-usage {
+  color: @base0D;
 }
 
 #battery {
-  color: #859900;
+  color: @base0B;
 }
 
-#disk {
-  color: #b58900;
+#battery.warning:not(.charging) {
+  color: @base0A;
 }
 
-#clock,
-#pulseaudio,
-#memory,
-#cpu,
-#temperature,
-#battery,
-#disk {
-  padding: 0 10px;
+@keyframes blink {
+  to {
+    color: @base05;
+  }
 }
 
-#custom-quit {
-  color: #f59809;
-  background: @background-color;
+#battery.critical:not(.charging) {
+  color: @base08;
+  animation: blink 0.8s steps(12) infinite alternate;
 }
 
-#custom-lock {
-  color: #6f05e5;
-  background: @background-color;
+/* Media and controls */
+#custom-spotify {
+  color: @base0B;
 }
 
-#custom-reboot {
-  color: #00aba3;
-  background: @background-color;
+#mpris {
+  color: @base0C;
 }
 
-#custom-power {
-  color: #ff1818;
-  background: @background-color;
+#mpris.paused {
+  color: @base04;
 }
 
-#not-power {
-  padding: 0 0px;
-  padding-left: 10px;
+#pulseaudio {
+  color: @base0D;
 }
 
-#idle_inhibitor {
-  background: @background-color;
-  padding: 0px 15px;
+#pulseaudio.muted {
+  color: @base03;
 }
 
 #custom-audio_idle_inhibitor {
-  color: #a66edb;
-  background: @background-color;
-  padding: 0px 15px;
+  color: @base0C;
 }
 
-#network {
-  background: @background-color;
-  padding: 0px 15px;
+#idle_inhibitor {
+  color: @base04;
 }
 
-#network.disabled {
-  color: #aba8a8;
-}
-
-#network.disconnected {
-  color: #aba8a8;
-}
-
-#network.linked {
-  color: #2aa198;
-}
-
-#network.ethernet {
-  color: #2aa198;
-}
-
-#network.wifi {
-  color: #268bd2;
-}
-
-#language {
-  color: #b58900;
-  background: @background-color;
-  border-radius: 0px;
-  padding: 0px 5px;
-}
-
-#window {
-  background: @background-color;
-  padding: 0px 0px;
+#idle_inhibitor.activated {
+  color: @base0A;
 }
 
 #custom-notification {
-  color: #a66edb;
-  background: @background-color;
+  color: @base0E;
 }
 
-#layout {
-  background: @background-color;
-  color: #268bd2;
+#pulseaudio:hover,
+#custom-notification:hover,
+#mpris:hover,
+#custom-sunix:hover,
+#clock.4:hover {
+  background: alpha(@base0D, 0.15);
+  border-radius: 10px;
+}
+
+/* Power group (not used in the bars right now) */
+#custom-quit {
+  color: @base09;
+}
+
+#custom-lock {
+  color: @base0E;
+}
+
+#custom-reboot {
+  color: @base0C;
+}
+
+#custom-power {
+  color: @base08;
+}
+
+#not-power {
+  padding-left: 10px;
+}
+
+#custom-gpu-nvidia,
+#custom-gpu-amd,
+#custom-gpu-intel {
+  color: @base0D;
 }

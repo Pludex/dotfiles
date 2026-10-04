@@ -2,14 +2,15 @@
   pkgs,
   lib,
   config,
+  osConfig,
   ...
 }:
 
 let
   include = [ "${./config.jsonc}" ];
 
-  # Module names per desktop. Supporting a new WM only needs a new entry here;
-  # `layout = null` means the WM has no waybar layout module.
+  term = "kitty --class waybar-tui -e";
+
   desktops = {
     mango = {
       workspaces = "mango/workspaces";
@@ -35,160 +36,256 @@ let
     desktops.${config.desktop}
       or (throw "waybar: unsupported desktop \"${config.desktop}\", expected one of: ${lib.concatStringsSep ", " (lib.attrNames desktops)}");
 
-  sep = [
-    "custom/right-arrow-dark"
-    "custom/right-arrow-light"
-  ];
+  gpuDrivers = osConfig.host-config.gpuDrivers;
 
-  sepLeft = [
-    "custom/left-arrow-light"
-    "custom/left-arrow-dark"
-  ];
+  gpuScripts = {
+    nvidia = pkgs.writeShellScript "waybar-gpu-nvidia" ''
+      /run/current-system/sw/bin/nvidia-smi \
+        --query-gpu=utilization.gpu --format=csv,noheader,nounits | head -n1 | tr -d ' '
+    '';
+
+    amd = pkgs.writeShellScript "waybar-gpu-amd" ''
+      for dev in /sys/class/drm/card*/device; do
+        if [ "$(cat "$dev/vendor" 2>/dev/null)" = 0x1002 ] && [ -r "$dev/gpu_busy_percent" ]; then
+          cat "$dev/gpu_busy_percent"
+          exit 0
+        fi
+      done
+      echo 0
+    '';
+
+    # Needs CAP_PERFMON, see the note below
+    intel = pkgs.writeShellScript "waybar-gpu-intel" ''
+      top=/run/wrappers/bin/intel_gpu_top
+      [ -x "$top" ] || top=${lib.getExe' pkgs.intel-gpu-tools "intel_gpu_top"}
+      "$top" -J -s 1000 -n 2 2>/dev/null \
+        | ${lib.getExe pkgs.jq} -rs 'flatten | last | [(.engines // {})[].busy] | (max // 0) | round'
+    '';
+  };
+
+  gpuTag = name: lib.optionalString (lib.length gpuDrivers > 1) "${lib.toUpper name} ";
+
+  gpuModules = lib.listToAttrs (
+    map (
+      name:
+      lib.nameValuePair "custom/gpu-${name}" {
+        exec = "${gpuScripts.${name}}";
+        interval = 5;
+        format = "󰾲  ${gpuTag name}{}%";
+        tooltip = false;
+        on-click = "${term} nvtop";
+      }
+    ) gpuDrivers
+  );
+
+  gpuNames = map (name: "custom/gpu-${name}") gpuDrivers;
+
+  commonModules = {
+    cpu.on-click = "${term} btop";
+    memory.on-click = "${term} btop";
+    disk.on-click = "${term} ncdu /";
+
+    pulseaudio = {
+      on-click = "${term} pulsemixer";
+      on-click-right = "pavucontrol";
+      on-click-middle = "pactl set-sink-mute @DEFAULT_SINK@ toggle";
+    };
+
+    mpris = {
+      on-click = "playerctl -p spotify play-pause";
+      on-click-right = "playerctl -p spotify next";
+      on-click-middle = "playerctl -p spotify previous";
+    };
+
+    "custom/spotify".on-click = "playerctl -p spotify status >/dev/null 2>&1 || spotify";
+  };
+
+  barBase = {
+    inherit include;
+    height = 28;
+    spacing = 6;
+    margin-left = 8;
+    margin-right = 8;
+  };
+
+  island = modules: {
+    orientation = "horizontal";
+    inherit modules;
+  };
 in
 {
   home.packages = with pkgs; [
     myPkgs.waycal
     playerctl
     sway-audio-idle-inhibit
+    btop
+    ncdu
+    pulsemixer
+    nvtopPackages.full
   ];
 
   # scale waycal
-  stylix.targets.gtk.extraCss = ''
-    window.waycal, .waycal {
-        font-size: 2.0rem;
-    }
+  stylix.targets.gtk.extraCss =
+    let
+      c = config.lib.stylix.colors;
+    in
+    ''
+      window.waycal {
+        background: alpha(#${c.base00}, 0.92);
+        border: 1px solid alpha(#${c.base0D}, 0.4);
+        border-radius: 16px;
+        font-size: 1.6rem;
+      }
 
-    window.waycal button, window.waycal label {
+      window.waycal calendar {
+        background: transparent;
+        padding: 12px;
+      }
+
+      window.waycal calendar > header {
+        margin-bottom: 8px;
+      }
+
+      window.waycal button {
+        border-radius: 10px;
         padding: 6px 12px;
-    }
-  '';
+        background: transparent;
+      }
+
+      window.waycal button:hover {
+        background: alpha(#${c.base0D}, 0.2);
+      }
+
+      window.waycal label.day-number {
+        border-radius: 10px;
+        padding: 6px 12px;
+      }
+
+      window.waycal label.day-number.today {
+        background: #${c.base0D};
+        color: #${c.base00};
+      }
+
+      window.waycal label.other-month {
+        color: #${c.base03};
+      }
+
+      window.waycal label.week-number {
+        color: #${c.base04};
+      }
+    '';
 
   programs.waybar = {
     enable = true;
     package = pkgs.waybar;
     style = ''
       @import url("${./style.css}");
+      * { font-family: "${config.stylix.fonts.monospace.name}"; }
     '';
     settings = [
-      {
-        inherit include;
-        position = "top";
-        network = {
-          "format" = " {bandwidthUpBits}  {bandwidthDownBits}";
-        };
-        modules-left =
-          sep
-          ++ [ wm.workspaces ]
-          ++ lib.optionals (wm.layout != null) (sep ++ [ wm.layout ])
-          ++ sep
-          ++ [
+      (
+        barBase
+        // commonModules
+        // gpuModules
+        // {
+          position = "top";
+          margin-top = 4;
+
+          network = {
+            format = "󰁝 {bandwidthUpBits}  󰁅 {bandwidthDownBits}";
+            on-click = "${term} nmtui";
+          };
+
+          "group/wm" = island ([ wm.workspaces ] ++ lib.optional (wm.layout != null) wm.layout);
+          "group/datetime" = island [
+            "clock#2"
+            "clock#4"
+          ];
+          "group/stats" = island (
+            [
+              "network"
+              "memory"
+              "cpu"
+            ]
+            ++ gpuNames
+            ++ [
+              "disk"
+              "battery"
+            ]
+          );
+
+          modules-left = [
+            "group/wm"
             "custom/sunix"
-            "custom/right-arrow-end"
+          ];
+          modules-center = [ "group/datetime" ];
+          modules-right = [
+            "tray"
+            "group/stats"
+          ];
+        }
+      )
+      (
+        barBase
+        // commonModules
+        // {
+          position = "bottom";
+          height = 30;
+          margin-bottom = 4;
+
+          network = {
+            format = "{ifname}";
+            "format-wifi" = "󰖩 {ipaddr}/{cidr}";
+            "format-ethernet" = "󰈀 {ifname}";
+            "format-disconnected" = "󰖪 Offline";
+            "tooltip-format" = "{ifname} via {gwaddr}";
+            "tooltip-format-wifi" = "{essid} ({signalStrength}%)";
+            "tooltip-format-ethernet" = "{ipaddr}/{cidr}";
+            "tooltip-format-disconnected" = "Disconnected";
+            "max-length" = 50;
+            on-click = "${term} wifitui";
+          };
+
+          "group/media" = island [
+            "custom/spotify"
+            "mpris"
+          ];
+          "group/controls" = island [
+            "network"
+            "pulseaudio"
+            "custom/audio_idle_inhibitor"
+            "custom/notification"
           ];
 
-        modules-center = [
-          "custom/left-arrow-end"
-          "clock#2"
-          "custom/left-arrow-light"
-          "custom/left-arrow-dark"
-          "tray"
-          "custom/right-arrow-dark"
-          "custom/right-arrow-light"
-          "clock#4"
-          "custom/right-arrow-end"
-        ];
-        modules-right = [
-          "custom/left-arrow-end"
-          "network"
-          "custom/left-arrow-light"
-          "custom/left-arrow-dark"
-          "memory"
-          "custom/left-arrow-light"
-          "custom/left-arrow-dark"
-          "cpu"
-          "custom/left-arrow-light"
-          "custom/left-arrow-dark"
-          #"custom/gpu-usage"
-          #"custom/left-arrow-light"
-          #"custom/left-arrow-dark"
-          # "temperature"
-          # "custom/left-arrow-light"
-          # "custom/left-arrow-dark"
-          "disk"
-          "custom/left-arrow-light"
-          "custom/left-arrow-dark"
-          "battery"
-          "custom/left-arrow-light"
-          "custom/left-arrow-dark"
-        ];
-      }
-      {
-        inherit include;
-        position = "bottom";
+          modules-left = [ "group/media" ];
+          modules-center = [ wm.window ];
+          modules-right = lib.optional (wm.mode != null) wm.mode ++ [ "group/controls" ];
 
-        network = {
-          format = "{ifname}";
-          "format-wifi" = "{ipaddr}/{cidr} ";
-          "format-ethernet" = "{ifname} ";
-          "format-disconnected" = " ";
-          "tooltip-format" = "{ifname} via {gwaddr} 󰊗";
-          "tooltip-format-wifi" = "{essid} ({signalStrength}%) ";
-          "tooltip-format-ethernet" = "{ipaddr}/{cidr} 󰊗";
-          "tooltip-format-disconnected" = "Disconnected 󰌙";
-          "max-length" = 50;
-        };
-
-        modules-left = [
-          "custom/right-arrow-dark"
-          "custom/right-arrow-light"
-          "custom/spotify"
-          "custom/mpris"
-          "custom/right-arrow-end"
-        ];
-
-        modules-center = [
-          "custom/left-arrow-end"
-          wm.window
-          "custom/right-arrow-end"
-        ];
-
-        modules-right =
-          [
-            "custom/left-arrow-end"
-            "network"
-          ]
-          ++ sepLeft
-          ++ [ "pulseaudio" ]
-          ++ sepLeft
-          ++ [ "custom/audio_idle_inhibitor" ]
-          ++ sepLeft
-          ++ [ "custom/notification" ]
-          ++ sepLeft
-          ++ lib.optionals (wm.mode != null) ([ wm.mode ] ++ sepLeft);
-
-        ${wm.mode} = {
-          format = "{}";
-          always-on = true;
-        };
-
-        ${wm.window} = {
-          "format" = "{title}";
-          "rewrite" = {
-            "^.*Github.*" = "  Github";
-            "~/(.*)" = "   [~/$1]";
-            "nvim (.*)" = "   [$1]";
-            "(.*)fish" = " 󰈺 [~/$1]";
+          ${wm.mode} = {
+            format = "{}";
+            always-on = true;
           };
-          "icon" = true;
-          "max-length" = 50;
-          "separate-outputs" = true;
-        };
-      }
+
+          ${wm.window} = {
+            "format" = "{title}";
+            "rewrite" = {
+              "^.*Github.*" = "  Github";
+              "~/(.*)" = "   [~/$1]";
+              "nvim (.*)" = "   [$1]";
+              "(.*)fish" = " 󰈺 [~/$1]";
+            };
+            "icon" = true;
+            "max-length" = 50;
+            "separate-outputs" = true;
+          };
+        }
+      )
     ];
     systemd.enable = true;
   };
+
   stylix.targets.waybar = {
     enable = true;
-    colors.enable = false;
+    colors.enable = true;
   };
 }
