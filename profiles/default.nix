@@ -8,7 +8,7 @@ in
 
   imports = [
     ./desktop.nix
-    ./ecode.nix
+    ./editor.nix
     ./live.nix
     ./ci.nix
   ];

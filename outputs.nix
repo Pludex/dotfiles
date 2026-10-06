@@ -45,7 +45,7 @@
   };
 
   nixvim = {
-    ecode = { };
+    editor = { };
   };
 
   systems = [

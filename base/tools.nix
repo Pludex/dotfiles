@@ -12,7 +12,7 @@
         };
 
         shell = pkgs.fish;
-        editor = pkgs.myPkgs.ecode;
+        editor = pkgs.myPkgs.editor;
         browser = pkgs.vivaldi;
         # pager = "bat --plain --pager='less -FR'";
         pager = pkgs.bat;

@@ -1,5 +1,5 @@
 {
-  profiles.ecode.nixvim = {
+  profiles.editor.nixvim = {
     languages = [
       # "bazel"
       "c-cpp"

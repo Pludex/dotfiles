@@ -4,7 +4,7 @@
   ...
 }:
 {
-  home.packages = with pkgs; [ myPkgs.ecode ];
+  home.packages = with pkgs; [ myPkgs.editor ];
 
   programs.neovide = {
     enable = true;
