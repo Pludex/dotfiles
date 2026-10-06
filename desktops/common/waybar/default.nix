@@ -275,7 +275,7 @@ in
               "(.*)fish" = " 󰈺 [~/$1]";
             };
             "icon" = true;
-            "max-length" = 50;
+            "max-length" = 100;
             "separate-outputs" = true;
           };
         }

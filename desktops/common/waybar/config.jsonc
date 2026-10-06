@@ -51,15 +51,15 @@
     "on-click": "pgrep -io 'waycal' | xargs kill || waycal"
   },
   "pulseaudio": {
-    "format": "{icon}  {volume}%",
-    "format-bluetooth": "󰂰  {volume}%",
-    "format-muted": "󰝟  muted",
+    "format": "{icon} {volume}%",
+    "format-bluetooth": "󰂰 {volume}%",
+    "format-muted": "  muted",
     "format-icons": {
       "headphones": "󰋋",
       "default": [
-        "󰕿",
-        "󰖀",
-        "󰕾"
+        " ",
+        " ",
+        " "
       ]
     },
     "scroll-step": 5,
