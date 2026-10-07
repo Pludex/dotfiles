@@ -1498,6 +1498,22 @@
         "type": "github"
       }
     },
+    "openleetcode": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1778362499,
+        "narHash": "sha256-1iwIzIDov5eQi7uetD1WRqJpFsach8TKmC3yuGqRfD4=",
+        "owner": "mbucko",
+        "repo": "openleetcode",
+        "rev": "d9a5883c306111b72ad9ed1db9e5300586011418",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mbucko",
+        "repo": "openleetcode",
+        "type": "github"
+      }
+    },
     "plasma-manager": {
       "inputs": {
         "home-manager": [
@@ -1596,6 +1612,7 @@
         "nur": "nur",
         "nushell-highlight": "nushell-highlight",
         "obsidian-extensions": "obsidian-extensions",
+        "openleetcode": "openleetcode",
         "plasma-manager": "plasma-manager",
         "schemes": "schemes",
         "sops-nix": "sops-nix",

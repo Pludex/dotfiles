@@ -262,5 +262,10 @@
       url = "github:ferion11/ttf-wps-fonts";
       flake = false;
     };
+
+    openleetcode = {
+      url = "github:mbucko/openleetcode";
+      flake = false;
+    };
   };
 }
