@@ -89,6 +89,8 @@
     devShells.default = import ./devshell.nix base;
   };
 
+  flake.lib = inputs.nixpkgs.lib;
+
   imports = [
     ./base
     ./pkgs
