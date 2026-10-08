@@ -16,9 +16,12 @@
   stylix.targets.fcitx5.enable = false;
 
   xdg.configFile."fcitx5/config".source = ./fcitx5/config;
+  xdg.configFile."fcitx5/profile".source = ./fcitx5/profile;
   xdg.configFile."fcitx5/conf/clipboard.conf".source = ./fcitx5/conf/clipboard.conf;
   xdg.configFile."fcitx5/conf/notifications.conf".source = ./fcitx5/conf/notifications.conf;
-  xdg.configFile."fcitx5/profile".source = ./fcitx5/profile;
+  xdg.configFile."fcitx5/conf/keyboard.conf".source = ./fcitx5/conf/keyboard.conf;
+  xdg.configFile."fcitx5/conf/quickphrase.conf".source = ./fcitx5/conf/quickphrase.conf;
+  xdg.configFile."fcitx5/conf/unicode.conf".source = ./fcitx5/conf/unicode.conf;
 
   home.sessionVariables = {
     GTK_IM_MODULE = lib.mkForce "fcitx";
