@@ -5,6 +5,7 @@
     ./formatter.nix
     ./hightlight.nix
     ./lsp.nix
+    ./trouble.nix
     ./utils.nix
   ];
 }
