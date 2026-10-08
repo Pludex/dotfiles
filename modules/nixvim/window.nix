@@ -1,81 +1,50 @@
+let
+  mapk = key: action: {
+    mode = "n";
+    inherit key action;
+  };
+
+  mapr = key: action: {
+    mode = "n";
+    inherit key;
+    action.__raw = action;
+  };
+
+  resize = dir: cmd: ''
+    function()
+      local grow = vim.fn.winnr("${dir}") ~= vim.fn.winnr()
+      vim.cmd("${cmd} " .. (grow and "+2" or "-2"))
+    end
+  '';
+in
 {
   keymaps = [
-    {
-      mode = "n";
-      key = "<leader>w\\";
-      action = "<cmd>vsplit<CR><cmd>lua Snacks.picker({ source = \"files\" })<CR>";
-    }
+    (mapk "<leader>w\\" "<cmd>vsplit<CR><cmd>lua Snacks.picker({ source = \"files\" })<CR>")
+    (mapk "<leader>w_" "<cmd>split<CR><cmd>lua Snacks.picker({ source = \"files\" })<CR>")
 
-    {
-      mode = "n";
-      key = "<leader>w_";
-      action = "<cmd>split<CR><cmd>lua Snacks.picker({ source = \"files\" })<CR>";
-    }
+    (mapk "<leader>w1" "<cmd>1wincmd w<CR>")
+    (mapk "<leader>w2" "<cmd>2wincmd w<CR>")
+    (mapk "<leader>w3" "<cmd>3wincmd w<CR>")
+    (mapk "<leader>w4" "<cmd>4wincmd w<CR>")
 
-    {
-      mode = "n";
-      key = " <leader> w=";
-      action = "<cmd>wincmd + <CR>";
-    }
+    (mapk "<A-s>" "<cmd>close<CR>")
 
-    {
-      mode = "n";
-      key = "<leader>w-";
-      action = "<cmd>wincmd - <CR>";
-    }
+    # focus
+    (mapk "<A-h>" "<cmd>wincmd h<CR>")
+    (mapk "<A-j>" "<cmd>wincmd j<CR>")
+    (mapk "<A-k>" "<cmd>wincmd k<CR>")
+    (mapk "<A-l>" "<cmd>wincmd l<CR>")
 
-    {
-      mode = "n";
-      key = "<leader>wh";
-      action = "<cmd>wincmd h <CR>";
-    }
+    # move
+    (mapk "<A-S-h>" "<cmd>wincmd H<CR>")
+    (mapk "<A-S-j>" "<cmd>wincmd J<CR>")
+    (mapk "<A-S-k>" "<cmd>wincmd K<CR>")
+    (mapk "<A-S-l>" "<cmd>wincmd L<CR>")
 
-    {
-      mode = "n";
-      key = "<leader>wj";
-      action = "<cmd>wincmd j <CR>";
-    }
-
-    {
-      mode = "n";
-      key = "<leader>wk";
-      action = "<cmd>wincmd k <CR>";
-    }
-
-    {
-      mode = "n";
-      key = "<leader>wl";
-      action = "<cmd>wincmd l <CR>";
-    }
-
-    {
-      mode = "n";
-      key = "<leader>w1";
-      action = "<cmd>1wincmd w <CR>";
-    }
-
-    {
-      mode = "n";
-      key = "<leader>w2";
-      action = "<cmd>2wincmd w <CR>";
-    }
-
-    {
-      mode = "n";
-      key = "<leader>w3";
-      action = "<cmd>3wincmd w <CR>";
-    }
-
-    {
-      mode = "n";
-      key = "<leader>w4";
-      action = "<cmd>4wincmd w <CR>";
-    }
-
-    {
-      mode = "n";
-      key = "<leader>ws";
-      action = "<cmd>close<CR>";
-    }
+    # resize
+    (mapr "<C-A-h>" (resize "h" "vertical resize"))
+    (mapr "<C-A-l>" (resize "l" "vertical resize"))
+    (mapr "<C-A-j>" (resize "j" "resize"))
+    (mapr "<C-A-k>" (resize "k" "resize"))
   ];
 }
