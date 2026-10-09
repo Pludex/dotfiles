@@ -49,27 +49,34 @@
 
   outputs = inputs: ((import ./builder { inherit inputs; }).mkDotfiles { });
   inputs = {
+    # core
+
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/61b7c44c4073f0b827768aff0049561b5110ea5a";
     flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-compat.url = "github:edolstra/flake-compat";
 
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    flake-compat.url = "github:edolstra/flake-compat";
     nur = {
       url = "github:nix-community/NUR";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # system
+
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     lanzaboote = {
       url = "github:nix-community/lanzaboote";
@@ -81,6 +88,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+
+    nix-virt = {
+      url = "github:AshleyYakeley/NixVirt";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nix-flatpak.url = "github:gmodena/nix-flatpak/v0.7.0";
 
     # home
 
@@ -103,7 +117,12 @@
       flake = false;
     };
 
-    # wm
+    wps-fonts = {
+      url = "github:ferion11/ttf-wps-fonts";
+      flake = false;
+    };
+
+    # wm / desktop
 
     niri = {
       # url = "github:sodiboo/niri-flake";
@@ -122,32 +141,6 @@
       inputs.nixpkgs.follows = "nixpkgs-stable";
     };
 
-    waycal = {
-      url = "github:forrestknight/waycal";
-      flake = false;
-    };
-
-    waybar = {
-      url = "github:Alexays/Waybar";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    nsticky = {
-      url = "github:lonerOrz/nsticky";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    plasma-manager = {
-      url = "github:nix-community/plasma-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
-    };
-
-    walker = {
-      url = "github:abenz1267/walker";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     hyprland-plugins = {
       url = "github:hyprwm/hyprland-plugins/v0.56.0";
       inputs.nixpkgs.follows = "nixpkgs-stable";
@@ -160,16 +153,56 @@
       inputs.hyprland.follows = "hyprland";
     };
 
-    # nixvim
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
 
-    nixvim = {
-      url = "github:nix-community/nixvim";
+    # desktop shell / utilities
+
+    waybar = {
+      url = "github:Alexays/Waybar";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    waycal = {
+      url = "github:forrestknight/waycal";
+      flake = false;
+    };
+
+    nsticky = {
+      url = "github:lonerOrz/nsticky";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    walker = {
+      url = "github:abenz1267/walker";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # terminal / shell
 
     wezterm-types = {
       url = "github:/DrKJeff16/wezterm-types";
       flake = false;
+    };
+
+    ghostty-cursor = {
+      url = "github:hced/ghostty-cursor-trails";
+      flake = false;
+    };
+
+    nushell-highlight = {
+      url = "git+https://github.com/cptpiepmatz/nu-plugin-highlight?submodules=1";
+      flake = false;
+    };
+
+    # editors / ide
+
+    nixvim = {
+      url = "github:nix-community/nixvim";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     msbuild-project-tools-server = {
@@ -177,7 +210,26 @@
       flake = false;
     };
 
-    # firefox/floorp
+    emacs-overlays = {
+      url = "github:nix-community/emacs-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs-stable.follows = "nixpkgs-stable";
+    };
+
+    doom-emacs = {
+      url = "github:marienz/nix-doom-emacs-unstraightened";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.emacs-overlay.follows = "emacs-overlays";
+    };
+
+    vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
+
+    jetbrains-plugins = {
+      url = "github:nix-community/nix-jetbrains-plugins";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
+    };
+
+    # browser
 
     nix-firefox-addons = {
       url = "github:osipog/nix-firefox-addons";
@@ -194,73 +246,16 @@
       flake = false;
     };
 
-    # nushell
-
-    nushell-highlight = {
-      url = "git+https://github.com/cptpiepmatz/nu-plugin-highlight?submodules=1";
-      flake = false;
-    };
-
-    # ghostty
-
-    ghostty-cursor = {
-      url = "github:hced/ghostty-cursor-trails";
-      flake = false;
-    };
-
-    # obsidian
+    # apps
 
     obsidian-extensions = {
       url = "github:karaolidis/nix-obsidian-extensions";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # jetbrains
-
-    jetbrains-plugins = {
-      url = "github:nix-community/nix-jetbrains-plugins";
-      inputs.nixpkgs.follows = "nixpkgs-stable";
-    };
-
-    # vm
-
-    nix-virt = {
-      url = "github:AshleyYakeley/NixVirt";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # emacs
-
-    emacs-overlays = {
-      url = "github:nix-community/emacs-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.nixpkgs-stable.follows = "nixpkgs-stable";
-    };
-
-    doom-emacs = {
-      url = "github:marienz/nix-doom-emacs-unstraightened";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.emacs-overlay.follows = "emacs-overlays";
-    };
-
-    # miscelaneous
-
-    nix-flatpak.url = "github:gmodena/nix-flatpak/v0.7.0";
-    vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
-
-    nix-index-database = {
-      url = "github:nix-community/nix-index-database";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     sunix = {
       url = "github:gvolpe/sunix";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    wps-fonts = {
-      url = "github:ferion11/ttf-wps-fonts";
-      flake = false;
     };
 
     openleetcode = {
