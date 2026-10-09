@@ -35,7 +35,8 @@ tooltip label {
 #window,
 #custom-sunix {
   background: alpha(@base00, 0.8);
-  border: 1px solid alpha(@base0D, 0.25);
+  /* border: 1px solid alpha(@base0D, 0.25); */
+  border: 2px solid alpha(@base0D, 0.6);
   border-radius: 12px;
   padding: 0 2px;
 }
@@ -58,7 +59,7 @@ window#waybar.empty #window {
 #custom-audio_idle_inhibitor,
 #custom-notification,
 #custom-spotify,
-#mpris,
+#custom-media,
 #custom-gpu-nvidia,
 #custom-gpu-amd,
 #custom-gpu-intel,
@@ -202,14 +203,18 @@ window#waybar.empty #window {
   color: @base0B;
 }
 
-#mpris {
+#custom-media {
   color: @base0C;
 }
 
-#mpris.paused {
-  color: @base04;
+#custom-media.playing {
+  color: @base0C;
 }
 
+#custom-media.paused,
+#custom-media.stopped {
+  color: @base04;
+}
 #pulseaudio {
   color: @base0D;
 }
@@ -236,7 +241,7 @@ window#waybar.empty #window {
 
 #pulseaudio:hover,
 #custom-notification:hover,
-#mpris:hover,
+#custom-media:hover,
 #custom-sunix:hover,
 #clock.4:hover {
   background: alpha(@base0D, 0.15);
