@@ -24,26 +24,41 @@ let
           "${cfg.paths.modules}/nixvim"
           # Overlays are baked into base.pkgs
           { nixpkgs.pkgs = base.pkgs; }
+          {
+            options.argsStart = mkOption {
+              type = types.listOf types.str;
+              default = [ ];
+              description = "Extra arguments passed to nvim (and neovide) on startup.";
+            };
+          }
         ];
     };
 
-  # Wraps the built nixvim in neovide, so `<profile>ide` starts a GUI with the
-  # same config while `<profile>` is the plain terminal nvim.
+  # `<profile>` is the plain terminal nvim, `<profile>-gui` starts neovide
+  # with the same config. Both forward "$@" and apply `argsStart`.
   mkPackage =
     {
       profile,
       pkgs,
       nixvimPkg,
+      argsStart ? [ ],
     }:
+    let
+      nvimFlags = lib.escapeShellArgs argsStart;
+      # neovide forwards everything after `--` to nvim
+      guiFlags = lib.escapeShellArgs ([ "--" ] ++ argsStart);
+    in
     pkgs.stdenv.mkDerivation {
       name = profile;
       nativeBuildInputs = [ pkgs.makeWrapper ];
       dontUnpack = true;
       installPhase = ''
         mkdir -p $out/bin
-        makeWrapper ${pkgs.neovide}/bin/neovide $out/bin/${profile}ide \
-          --prefix PATH : "${nixvimPkg}/bin"
-        ln -s ${nixvimPkg}/bin/nvim $out/bin/${profile}
+        makeWrapper ${nixvimPkg}/bin/nvim $out/bin/${profile} \
+          --add-flags ${lib.escapeShellArg nvimFlags}
+        makeWrapper ${pkgs.neovide}/bin/neovide $out/bin/${profile}-gui \
+          --prefix PATH : "${nixvimPkg}/bin" \
+          ${lib.optionalString (argsStart != [ ]) "--append-flags ${lib.escapeShellArg guiFlags}"}
       '';
       meta.mainProgram = profile;
     };
@@ -77,6 +92,7 @@ let
             inherit profile;
             pkgs = final;
             nixvimPkg = nvimCfg.config.build.package;
+            argsStart = nvimCfg.config.argsStart;
           }
         ) nixvimConfigs;
     };
@@ -145,5 +161,4 @@ in
         nixvimConfigurations = lib.mapAttrs (profile: c: mkConfig base profile c) cfg.nixvim;
       };
   };
-
 }

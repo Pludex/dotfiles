@@ -27,8 +27,6 @@ in
     (mapk "<leader>w3" "<cmd>3wincmd w<CR>")
     (mapk "<leader>w4" "<cmd>4wincmd w<CR>")
 
-    (mapk "<A-s>" "<cmd>close<CR>")
-
     # focus
     (mapk "<A-h>" "<cmd>wincmd h<CR>")
     (mapk "<A-j>" "<cmd>wincmd j<CR>")

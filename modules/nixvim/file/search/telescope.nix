@@ -61,7 +61,7 @@ in
           prompt_position = "bottom";
           width = 0.9;
           height = 0.9;
-          preview_width = 0.55;
+          horizontal.preview_width = 0.55;
         };
 
         mappings = {
