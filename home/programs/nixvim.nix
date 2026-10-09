@@ -4,7 +4,10 @@
   ...
 }:
 {
-  home.packages = with pkgs; [ myPkgs.editor ];
+  home.packages = with pkgs; [
+    myPkgs.editor
+    myPkgs.leetcode
+  ];
 
   programs.neovide = {
     enable = true;

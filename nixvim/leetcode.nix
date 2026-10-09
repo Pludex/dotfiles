@@ -62,4 +62,12 @@
       ];
     };
   };
+
+  autoCmd = [
+    {
+      event = "VimEnter";
+      command = "Leet";
+      once = true;
+    }
+  ];
 }

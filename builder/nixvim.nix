@@ -25,7 +25,7 @@ let
           # Overlays are baked into base.pkgs
           { nixpkgs.pkgs = base.pkgs; }
           {
-            options.argsStart = mkOption {
+            options.startupArgs = mkOption {
               type = types.listOf types.str;
               default = [ ];
               description = "Extra arguments passed to nvim (and neovide) on startup.";
@@ -35,33 +35,32 @@ let
     };
 
   # `<profile>` is the plain terminal nvim, `<profile>-gui` starts neovide
-  # with the same config. Both forward "$@" and apply `argsStart`.
+  # with the same config. Both forward "$@" and apply `startupArgs`.
   mkPackage =
     {
       profile,
       pkgs,
       nixvimPkg,
-      argsStart ? [ ],
+      startupArgs ? [ ],
     }:
     let
-      nvimFlags = lib.escapeShellArgs argsStart;
+      nvimArgs = lib.escapeShellArgs startupArgs;
       # neovide forwards everything after `--` to nvim
-      guiFlags = lib.escapeShellArgs ([ "--" ] ++ argsStart);
-    in
-    pkgs.stdenv.mkDerivation {
-      name = profile;
-      nativeBuildInputs = [ pkgs.makeWrapper ];
-      dontUnpack = true;
-      installPhase = ''
-        mkdir -p $out/bin
-        makeWrapper ${nixvimPkg}/bin/nvim $out/bin/${profile} \
-          --add-flags ${lib.escapeShellArg nvimFlags}
-        makeWrapper ${pkgs.neovide}/bin/neovide $out/bin/${profile}-gui \
-          --prefix PATH : "${nixvimPkg}/bin" \
-          ${lib.optionalString (argsStart != [ ]) "--append-flags ${lib.escapeShellArg guiFlags}"}
+      guiArgs = lib.optionalString (startupArgs != [ ]) (lib.escapeShellArgs ([ "--" ] ++ startupArgs));
+
+      nvim = pkgs.writeShellScript profile ''
+        exec ${nixvimPkg}/bin/nvim ${nvimArgs} "$@"
       '';
-      meta.mainProgram = profile;
-    };
+      gui = pkgs.writeShellScript "${profile}-gui" ''
+        export PATH=${nixvimPkg}/bin:$PATH
+        exec ${pkgs.neovide}/bin/neovide "$@" ${guiArgs}
+      '';
+    in
+    pkgs.runCommand profile { meta.mainProgram = profile; } ''
+      mkdir -p $out/bin
+      ln -s ${nvim} $out/bin/${profile}
+      ln -s ${gui} $out/bin/${profile}-gui
+    '';
 
   # Every pkgs built through this flake's overlay chain (mkPkgs/mksPkgs)
   # already carries `pkgs.myPkgs.<profile>`, baked in by the overlay
@@ -92,7 +91,7 @@ let
             inherit profile;
             pkgs = final;
             nixvimPkg = nvimCfg.config.build.package;
-            argsStart = nvimCfg.config.argsStart;
+            startupArgs = nvimCfg.config.startupArgs;
           }
         ) nixvimConfigs;
     };

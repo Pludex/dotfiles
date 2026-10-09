@@ -46,6 +46,7 @@
 
   nixvim = {
     editor = { };
+    leetcode = {  };
   };
 
   systems = [

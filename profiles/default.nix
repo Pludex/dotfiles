@@ -7,10 +7,11 @@ in
 {
 
   imports = [
+    ./ci.nix
     ./desktop.nix
     ./editor.nix
+    ./leetcode.nix
     ./live.nix
-    ./ci.nix
   ];
 
   # Every handler here has the same shape: subkey name -> the matching

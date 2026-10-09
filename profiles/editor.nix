@@ -26,7 +26,6 @@
     ];
 
     root = [
-      "leetcode"
       "obsidian"
     ];
   };
