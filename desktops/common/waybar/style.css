@@ -5,7 +5,9 @@
   box-shadow: none;
   text-shadow: none;
   font-size: 12px;
-  transition: background 200ms ease, color 200ms ease;
+  transition:
+    background 200ms ease,
+    color 200ms ease;
 }
 
 window#waybar {

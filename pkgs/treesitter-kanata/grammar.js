@@ -10,34 +10,24 @@
 module.exports = grammar({
   name: "kanata",
 
-  extras: $ => [
-    $.line_comment,
-    $.block_comment,
-    /\n/,
-    /\r/,
-    /\p{Zs}/,
-  ],
+  extras: ($) => [$.line_comment, $.block_comment, /\n/, /\r/, /\p{Zs}/],
 
   // TODO
   // regex queries here are very naive with regards to kanata syntax
 
   rules: {
-    kanata: $ => repeat($.list),
+    kanata: ($) => repeat($.list),
 
-    line_comment: _ => seq(';;', /[^\n]*/),
+    line_comment: (_) => seq(";;", /[^\n]*/),
 
-    block_comment: _ => seq('#|', /[^|]*\|+([^|#][^|]*\|+)*/, '#'),
+    block_comment: (_) => seq("#|", /[^|]*\|+([^|#][^|]*\|+)*/, "#"),
 
-    list: $ => seq('(', repeat($._item), ')'),
+    list: ($) => seq("(", repeat($._item), ")"),
 
-    _item: $ => choice(
-      $.unquoted_item,
-      $.quoted_item,
-      $.list,
-    ),
+    _item: ($) => choice($.unquoted_item, $.quoted_item, $.list),
 
-    unquoted_item: _ => /[^\s)("]+/,
+    unquoted_item: (_) => /[^\s)("]+/,
 
-    quoted_item: _ => seq('"', /[^"]*/, '"'),
-  }
+    quoted_item: (_) => seq('"', /[^"]*/, '"'),
+  },
 });

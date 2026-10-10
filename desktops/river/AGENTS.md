@@ -29,23 +29,24 @@
 
 ## 🏷️ Tag Bitmask Quick Reference
 
-| Tag Index | Binary | Base-10 Integer | Combination Example | Base-10 Integer |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tag 1** | `000000001` | `1` | Tags 1 & 2 | `3` |
-| **Tag 2** | `000000010` | `2` | Tags 1, 2, 3 | `7` |
-| **Tag 3** | `000000100` | `4` | Tags 1, 3, 4, 9 | `269` |
-| **Tag 4** | `000001000` | `8` | All Tags (1–9) | `511` |
-| **Tag 5** | `000010000` | `16` | | |
-| **Tag 6** | `000100000` | `32` | | |
-| **Tag 7** | `001000000` | `64` | | |
-| **Tag 8** | `010000000` | `128` | | |
-| **Tag 9** | `100000000` | `256` | | |
+| Tag Index | Binary      | Base-10 Integer | Combination Example | Base-10 Integer |
+| :-------- | :---------- | :-------------- | :------------------ | :-------------- |
+| **Tag 1** | `000000001` | `1`             | Tags 1 & 2          | `3`             |
+| **Tag 2** | `000000010` | `2`             | Tags 1, 2, 3        | `7`             |
+| **Tag 3** | `000000100` | `4`             | Tags 1, 3, 4, 9     | `269`           |
+| **Tag 4** | `000001000` | `8`             | All Tags (1–9)      | `511`           |
+| **Tag 5** | `000010000` | `16`            |                     |                 |
+| **Tag 6** | `000100000` | `32`            |                     |                 |
+| **Tag 7** | `001000000` | `64`            |                     |                 |
+| **Tag 8** | `010000000` | `128`           |                     |                 |
+| **Tag 9** | `100000000` | `256`           |                     |                 |
 
 ---
 
 ## ⌨️ Key & Pointer Mappings Syntax
 
 ### Commands
+
 - `declare-mode <mode>`
 - `enter-mode <mode>`
 - `map [-release|-repeat|-layout <index>] <mode> <modifiers> <keysym> <command>`
@@ -56,6 +57,7 @@
 - `unmap-switch <mode> lid|tablet <state>`
 
 ### Accepted Options
+
 - **Modifiers**: `Shift`, `Control`, `Mod1` (Alt), `Mod3`, `Mod4` (Super), `Mod5`, `None`
 - **Keysyms**: XKB keysym names (e.g., `Return`, `space`, `Print`, `J`)
 - **Buttons**: Linux input event codes (`BTN_LEFT`, `BTN_RIGHT`, `BTN_MIDDLE`)
@@ -65,27 +67,30 @@
 ## 📐 Window Rules (`rule-add` / `rule-del`)
 
 ### Command Structure
+
 - `riverctl rule-add [-app-id <glob>] [-title <glob>] <action> [<args>]`
 - `riverctl rule-del [-app-id <glob>] [-title <glob>] <action>`
 - `riverctl list-rules float|ssd|tags|position|dimensions|fullscreen`
 
 ### Supported Actions
-| Action | Parameters | Requires `float`? | Target Scope |
-| :--- | :--- | :--- | :--- |
-| `float` / `no-float` | None | N/A | New views |
-| `ssd` / `csd` | None | No | New & existing views |
-| `tags` | `<tags_bitmask>` | No | New views |
-| `output` | `<connector\|identifier>` | No | New views |
-| `position` | `<x> <y>` | **YES** | New views |
-| `dimensions` | `<w> <h>` | **YES** | New views |
-| `fullscreen` / `no-fullscreen` | None | No | New views |
-| `tearing` / `no-tearing` | None | No | New & existing views |
+
+| Action                         | Parameters                | Requires `float`? | Target Scope         |
+| :----------------------------- | :------------------------ | :---------------- | :------------------- |
+| `float` / `no-float`           | None                      | N/A               | New views            |
+| `ssd` / `csd`                  | None                      | No                | New & existing views |
+| `tags`                         | `<tags_bitmask>`          | No                | New views            |
+| `output`                       | `<connector\|identifier>` | No                | New views            |
+| `position`                     | `<x> <y>`                 | **YES**           | New views            |
+| `dimensions`                   | `<w> <h>`                 | **YES**           | New views            |
+| `fullscreen` / `no-fullscreen` | None                      | No                | New views            |
+| `tearing` / `no-tearing`       | None                      | No                | New & existing views |
 
 ---
 
 ## ⚙️ Core Actions & Window Management
 
 ### Actions
+
 - **View Focus**: `focus-view [-skip-floating] next|previous|up|down|left|right`
 - **Output Focus**: `focus-output next|previous|up|right|down|left|<name>`
 - **View Operations**: `close`, `toggle-float`, `toggle-fullscreen`, `zoom`, `swap next|previous|up|down|left|right`
@@ -97,11 +102,13 @@
 - **System**: `spawn <shell_command>`, `exit`
 
 ### Layout Management
+
 - `default-layout <namespace>`
 - `output-layout <namespace>`
 - `send-layout-cmd <namespace> <command>` (e.g., `riverctl send-layout-cmd rivertile "main-ratio 0.5"`)
 
 ### Tag Operations
+
 - `set-focused-tags <tags_bitmask>`
 - `set-view-tags <tags_bitmask>`
 - `toggle-focused-tags <tags_bitmask>`
@@ -111,6 +118,7 @@
 - `send-to-previous-tags`
 
 ### Visual & Behavior Configuration
+
 - `default-attach-mode top|bottom|above|below|after <N>`
 - `output-attach-mode top|bottom|above|below|after <N>`
 - `allow-tearing enabled|disabled`
@@ -131,13 +139,15 @@
 ## 🎛️ Input Device Configuration
 
 ### Global Commands
+
 - `list-inputs`
 - `list-input-configs`
 - `keyboard-layout [-rules <r>] [-model <m>] [-variant <v>] [-options <o>] <layout>`
 - `keyboard-layout-file <path>`
 
 ### Input Device Properties (`input <device_name> <property> <value>`)
-*Device name format: `type-vendor_id-product_id-name` or glob pattern.*
+
+_Device name format: `type-vendor_id-product_id-name` or glob pattern._
 
 - `events enabled|disabled|disabled-on-external-mouse`
 - `accel-profile none|flat|adaptive`

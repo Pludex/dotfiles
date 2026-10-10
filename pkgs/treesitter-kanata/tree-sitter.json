@@ -6,9 +6,7 @@
       "camelcase": "kanata",
       "title": "kanata",
       "scope": "source.kanata",
-      "file-types": [
-        "kbd"
-      ],
+      "file-types": ["kbd"],
       "injection-regex": "^kanata$",
       "class-name": "TreeSitterKanata"
     }

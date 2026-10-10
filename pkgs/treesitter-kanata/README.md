@@ -58,6 +58,7 @@ This flake provides a Home Manager module that integrates with nixvim. Import bo
 ```
 
 What the module does for you:
+
 - Recognizes files with the `.kbd` extension and sets the `kanata` filetype.
 - Registers the `kanata` grammar with the `nvim-treesitter` plugin, mapped to the `kbd` filetype (the package is made available via the overlay described below).
 - Exposes Home Manager options that integrate with nixvim; however, the grammar package itself is provided via the overlay and must be applied where you construct `pkgs`.
@@ -68,7 +69,7 @@ This flake exposes the built grammar as an overlay at `overlays.default`. You mu
 
 Add the overlay where you import `nixpkgs` / construct `pkgs`. Examples for common setups follow.
 
-1) Home Manager (standalone, flake-based `homeConfigurations`)
+1. Home Manager (standalone, flake-based `homeConfigurations`)
 
 ```nix
 inputs = {
@@ -93,7 +94,7 @@ in {
 }
 ```
 
-2) NixOS system configuration (nixosConfigurations in a flake)
+2. NixOS system configuration (nixosConfigurations in a flake)
 
 ```nix
 nixosConfigurations.hostname = nixpkgs.lib.nixosSystem {
@@ -106,7 +107,7 @@ nixosConfigurations.hostname = nixpkgs.lib.nixosSystem {
 };
 ```
 
-3) If you import `pkgs` elsewhere (scripts, CI, utilities)
+3. If you import `pkgs` elsewhere (scripts, CI, utilities)
 
 ```nix
 let
@@ -116,6 +117,7 @@ in
 ```
 
 Notes
+
 - After applying the overlay, the grammar is available as `pkgs.vimPlugins.nvim-treesitter.kanata` and the Home Manager module options will work as expected.
 - The Home Manager module remains useful for filetype registration and wiring the grammar into `programs.nixvim.plugins.treesitter.grammarPackages`, but the overlay is required so the package can be referenced from `pkgs`.
 
@@ -144,6 +146,7 @@ nix build github:pbcdev210/treesitter-kanata#packages.x86_64-linux.default
 ## Supported platforms
 
 This flake builds the grammar for common platforms. Examples:
+
 - x86_64-linux
 - aarch64-linux
 - x86_64-darwin

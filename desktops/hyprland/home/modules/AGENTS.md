@@ -46,7 +46,7 @@ Inside `config.wayland.windowManager.hyprland.extraConfig = lib.mkAfter (...)`:
 
 1. `programs.hyprland.monitors.*` → `hl.monitor({...})`
 2. `programs.hyprland.extraConfig` → one batched `hl.config({ ["a.b"] = v, ... })` call
-2b. `programs.hyprland.settings.<category>` (general, decoration, ...) → one `hl.config({ <category> = {...} })` line per non-empty category
+   2b. `programs.hyprland.settings.<category>` (general, decoration, ...) → one `hl.config({ <category> = {...} })` line per non-empty category
 3. `programs.hyprland.settings.layouts.*` → `hl.config({ dwindle/master/scrolling/monocle = {...} })`
 4. `programs.hyprland.settings.animations` → `hl.curve(...)` lines, then `hl.animation({...})` lines
 5. `programs.hyprland.settings.rules.layer` → `hl.layer_rule({...})`
@@ -108,11 +108,11 @@ The tokens are rejoined with a bare `+` (no spaces), e.g.
 Nix-side substitution**, not a Lua `mod .. " + Q"` concatenation — that
 alternative was explicitly considered and rejected.
 
-*Changed: `mkKeyExpr` used to uppercase every token. That turned
+_Changed: `mkKeyExpr` used to uppercase every token. That turned
 `"mod+mouse:273"` into `MOUSE:273`, and Hyprland rejected it with "no such
 key". Because literal tokens now keep the user's casing, write them in the
 lowercase form the wiki uses (`mouse:272`, not `Mouse:272`). See §15 for the
-generalized rule.*
+generalized rule._
 
 Mouse binds therefore look like this (source: the Binds page, see §14):
 
@@ -120,6 +120,7 @@ Mouse binds therefore look like this (source: the Binds page, see §14):
 binds."mod+mouse:272" = { dsp."window.drag" = true;   flags.mouse = true; };
 binds."mod+mouse:273" = { dsp."window.resize" = true; flags.mouse = true; };
 ```
+
 → `hl.bind("SUPER+mouse:272", hl.dsp.window.drag(), { mouse = true })`.
 
 ### 3.2 `dsp` — the dispatcher field
@@ -134,16 +135,17 @@ in Nix, NOT a flat key. Always use a quoted dotted key:
 
 Value handling (`mkDspCallExpr`):
 
-| value | rendered as |
-|---|---|
-| `true` | `hl.dsp.name()` |
-| `false` | `throw` |
-| string | `hl.dsp.name("x")` |
-| list of strings | `hl.dsp.name("a","b")` |
+| value                       | rendered as              |
+| --------------------------- | ------------------------ |
+| `true`                      | `hl.dsp.name()`          |
+| `false`                     | `throw`                  |
+| string                      | `hl.dsp.name("x")`       |
+| list of strings             | `hl.dsp.name("a","b")`   |
 | attrset (not `{__raw=...}`) | `hl.dsp.name({ k = v })` |
-| `{ __raw = "..."; }` | raw, unquoted arg |
+| `{ __raw = "..."; }`        | raw, unquoted arg        |
 
 Two distinct `__raw` mechanisms — don't confuse them:
+
 - **top-level `dsp.__raw`** replaces the entire dispatcher call.
 - **per-arg `dsp.<name>.__raw`** replaces only that dispatcher's argument.
 
@@ -168,6 +170,7 @@ binds."XF86AudioRaiseVolume" = {
   flags.repeating = true;
 };
 ```
+
 → `hl.bind("XF86AUDIORAISEVOLUME", hl.dsp.exec_cmd("volume-control --inc"), { repeating = true })`.
 
 Repeat timing is not a bind option: it comes from `input.repeat_delay`
@@ -230,14 +233,14 @@ from documented defaults are included.
 `programs.hyprland.settings.layoutNames` is a `readOnly` option, not
 something the user sets — its `default` is computed as
 `[ "dwindle" "master" "scrolling" "monocle" ] ++ (lib.attrNames
-cfg.customLayouts)`. It exists so a bind defined *outside* this module
+cfg.customLayouts)`. It exists so a bind defined _outside_ this module
 (e.g. a "cycle through every layout" keybind) can reference the full,
 always-up-to-date set of layout names via
 `config.programs.hyprland.settings.layoutNames` instead of hand-listing
 them and letting the list drift out of sync with `customLayouts`. The 4
 built-ins are always included unconditionally — they exist in Hyprland
 regardless of whether `layouts.dwindle`/`layouts.master`/etc are
-configured (those only override a layout's *config*, not its existence).
+configured (those only override a layout's _config_, not its existence).
 This is the first `readOnly`-style derived option in the file; if more
 show up, consider grouping them under their own comment block rather than
 scattering them among the Lua-emitting options.
@@ -251,6 +254,7 @@ customLayouts."<name>".__raw = ''
   { ... }
 '';
 ```
+
 → `hl.layout.register("<name>", <verbatim __raw content>)`.
 
 **Unverified**: the exact `hl.layout.register(name, tableOrExpr)`
@@ -285,6 +289,7 @@ Enumerating all of them as typed Nix options would be a large maintenance
 burden for little benefit (most effects are simple scalars anyway).
 
 Instead:
+
 - `match` is **fully typed** (19 documented props: `class`, `content`,
   `focus`, `fullscreen`, `fullscreen_state_client`,
   `fullscreen_state_internal`, `float`, `group`, `initial_class`,
@@ -298,7 +303,7 @@ Instead:
 - `winEffectValueType` supports bool/string/number, a flat list (for
   `move`/`size`/`max_size`/`min_size`-style vec2/expression lists), a
   flat attrset of leaves (for e.g. `border_color = { colors = [...]; angle
-  = 45; }`), and `{ __raw = "..."; }` for anything else (an expression,
+= 45; }`), and `{ __raw = "..."; }` for anything else (an expression,
   a gradient string with named colors, etc).
 - Rendering effect values goes through `renderRawOrVal`, which checks for
   the single-key `{ __raw = ...; }` shape before falling back to the
@@ -325,8 +330,8 @@ silently expanding it.
 - A rule only applies if `match` hits. A rule that "does nothing" is
   almost always a class/title mismatch: check `hyprctl clients` for
   `class`/`initialClass`/`initialTitle` before touching the effects.
-  *(Learned from a case where a terminal ignored `--class=...`, so the
-  window kept the terminal's default class and the rule never matched.)*
+  _(Learned from a case where a terminal ignored `--class=...`, so the
+  window kept the terminal's default class and the rule never matched.)_
 - Static effects are evaluated once, when the window opens, using the
   initial class/title.
 
@@ -366,7 +371,7 @@ animations = {
 
 - `curves.*` → `hl.curve(name, { type = "bezier", points = {...} })` or
   `hl.curve(name, { type = "spring", mass = ..., stiffness = ...,
-  dampening = ... })`. `mkCurveLine` throws if the required fields for
+dampening = ... })`. `mkCurveLine` throws if the required fields for
   the declared `type` are missing.
 - `entries[]` → `hl.animation({ leaf = ..., enabled = ..., ... })`.
   `mkAnimLine` throws if both `bezier` and `spring` are set, or if
@@ -458,7 +463,7 @@ Per-item design notes (all in `mkAppLines`):
    `hl.dispatch(hl.dsp.<name>(...))`, placed immediately after the
    `hl.exec_cmd(...)` line. The assumption is that
    this ends up applying to the window that was just spawned — but
-   nothing in `startWith` actually scopes the dispatch to *this specific*
+   nothing in `startWith` actually scopes the dispatch to _this specific_
    app; it will simply run in sequence during startup. If this doesn't
    behave as expected (e.g. dispatcher fires before the app's window
    exists), rework into a proper `hl.on("window.*", ...)` listener keyed
@@ -468,8 +473,8 @@ Per-item design notes (all in `mkAppLines`):
    `hl.env("<exact field name>", "<value>")` calls before the exec line.
    `hl.env()` itself is a **confirmed, documented function**
    (`wiki.hypr.land` FAQ page: `hl.env("XDG_CURRENT_DESKTOP",
-   "Hyprland")`) -- what's still this file's own invention is *using it
-   automatically for arbitrary freeform fields on an app entry*, inferred
+"Hyprland")`) -- what's still this file's own invention is _using it
+   automatically for arbitrary freeform fields on an app entry_, inferred
    from the user's own example (`fictx5 = "bamboo";`, described as
    "default is not setting anything; if you can't do it, dropping this
    field is fine too"). Treat the auto-env-var convenience as optional
@@ -528,7 +533,6 @@ attrset of leaves, and `{ __raw = "..."; }` for anything deeper (nested
 tables, gradients with an `angle`, etc) — same pattern as the win-rule
 effects in §7.2.
 
-
 ### 10.1 Nested category options (`settings.general`, `settings.decoration`, ...)
 
 Added so users can write hierarchical config instead of dotted-path strings:
@@ -542,6 +546,7 @@ programs.hyprland.settings = {
   decoration.blur.__raw = "{ enabled = true, size = 6 }";
 };
 ```
+
 → `hl.config({ general = { border_size = 2, col = {...} } })`,
 `hl.config({ decoration = {...} })`.
 
@@ -569,8 +574,8 @@ programs.hyprland.settings = {
 - **Unverified (from memory of the wiki):** the category list, and the
   gradient table shape `{ colors = {...}, angle = N }` for
   `general.col.*_border`. Check against config-options.md if Hyprland rejects
-  a key. *(The category list was later re-read against the config-options
-  page and matches; the gradient shape was not re-checked.)*
+  a key. _(The category list was later re-read against the config-options
+  page and matches; the gradient shape was not re-checked.)_
 - `settings.plugins` is a later addition to `configCategories` (maps to the
   `plugin` category, for per-plugin settings like `plugin.hyprexpo.columns`),
   added once `programs.hyprland.plugins` (the package-list option, a separate
@@ -598,7 +603,7 @@ programs.hyprland.settings = {
   shape `{ __raw = "..."; }`, inserting that string verbatim instead.
   Used wherever a field needs an escape hatch for values Nix's plain
   types can't express (window-rule effects, `extraConfig` values). This
-  is a *different* `__raw` convention from the per-arg dsp `__raw`
+  is a _different_ `__raw` convention from the per-arg dsp `__raw`
   (§3.2) and the top-level dsp/action `__raw` (§3.2, §9) — all three
   exist because they sit at different points in the render pipeline, but
   they all follow the same "single key named `__raw`, value inserted
@@ -626,8 +631,8 @@ parallel ad-hoc string-building logic.
 
 Several types in this file (`winRuleType`, `appType`) use NixOS's
 **`freeformType`** submodule mechanism: declare a few strongly-typed
-`options`, and set `freeformType = types.attrsOf SomeType;` so that *any
-other* top-level attribute the user provides is accepted, typechecked
+`options`, and set `freeformType = types.attrsOf SomeType;` so that _any
+other_ top-level attribute the user provides is accepted, typechecked
 against `SomeType`, and merged into the final value alongside the
 declared options. This is what lets `rules.win` entries mix a typed
 `match` with arbitrary effect keys, and what lets `startWith.apps` entries
@@ -654,32 +659,32 @@ whenever you resolve one or add a new one.
    `hl.dispatch(hl.dsp.exec_cmd(...))`~~ — **RESOLVED**. `exec_cmd` is now
    special-cased to call the standalone `hl.exec_cmd(...)` directly via
    `mkDispatchOrExecLine` (§9.3). Kept here as a changelog note per §16.
-2. **`hl.layout.register` signature** (§6) — exact call shape for custom
+3. **`hl.layout.register` signature** (§6) — exact call shape for custom
    layouts.
-3. **`layouts.monocle` having no config fields at all** (§5) — confirmed
+4. **`layouts.monocle` having no config fields at all** (§5) — confirmed
    as of the last check; Hyprland's Lua config surface is still evolving.
-4. **Spring curve field name: `dampening` vs `damping`** (§8) — the docs
+5. **Spring curve field name: `dampening` vs `damping`** (§8) — the docs
    are internally inconsistent; this file uses `dampening`. The
    `decoration.wobble` options use `damping`, which hints at the real name.
-5. **`startWith.apps[].desktopFile` launching via `gtk-launch`** (§9.1) —
+6. **`startWith.apps[].desktopFile` launching via `gtk-launch`** (§9.1) —
    not a documented `hl.*` API, a generic freedesktop convention.
-6. ~~`startWith.apps[].workspaces` prefixing with `"[workspace N
-   silent] "`~~ — **RESOLVED/removed**. Replaced with the documented
+7. ~~`startWith.apps[].workspaces` prefixing with `"[workspace N
+silent] "`~~ — **RESOLVED/removed**. Replaced with the documented
    `hl.exec_cmd(cmd, { workspace = ... })` second-arg form (§9.2). Keeping
    this line as a changelog note per §16's "don't delete history" rule.
-7. **`startWith.apps[].dsp` actually targeting the just-spawned window**
+8. **`startWith.apps[].dsp` actually targeting the just-spawned window**
    (§9.3) — likely the weakest assumption in the whole file; may need a
    rework using an `hl.on("window.*", ...)` listener instead.
-8. **Freeform env-var fields in `startWith.apps`** (§9.4) — the
-   underlying `hl.env()` call is confirmed/documented; *auto-applying it
-   to arbitrary freeform fields* is still this file's own inferred
+9. **Freeform env-var fields in `startWith.apps`** (§9.4) — the
+   underlying `hl.env()` call is confirmed/documented; _auto-applying it
+   to arbitrary freeform fields_ is still this file's own inferred
    convenience, explicitly described by the user as optional/best-effort.
-9. **`extraConfig` requiring full dotted-path keys** (§10) — a
-   deliberate, documented deviation from the user's shorthand example.
-10. **Category list and gradient table shape in §10.1** — the category list
+10. **`extraConfig` requiring full dotted-path keys** (§10) — a
+    deliberate, documented deviation from the user's shorthand example.
+11. **Category list and gradient table shape in §10.1** — the category list
     was re-read against the config-options page and matches; the gradient
     table shape `{ colors = {...}, angle = N }` is still from memory.
-11. **`settings.plugins` -> `hl.config({ plugin = {...} })`** — category name
+12. **`settings.plugins` -> `hl.config({ plugin = {...} })`** — category name
     assumed to be singular `plugin` (matching the old `plugin:hyprexpo:...`
     hyprlang namespace), not re-verified against hyprland-lua docs. If
     Hyprland errors on an unknown category when a plugin is loaded, change
@@ -687,16 +692,16 @@ whenever you resolve one or add a new one.
     (The config-options page's category list does not include a plugin
     category at all, so plugin settings may need another path — e.g.
     `extraConfig` or `__raw` — depending on the plugin.)
-12. **Case-insensitive keysym lookup** (§3.1) — ordinary keys such as
+13. **Case-insensitive keysym lookup** (§3.1) — ordinary keys such as
     `XF86AudioRaiseVolume` are emitted uppercased (`XF86AUDIORAISEVOLUME`)
     and appeared to work, but it was never checked that Hyprland resolves
     keysym names case-insensitively. If a normal key is rejected as "no
     such key", suspect this first.
-13. **`isLiteralKeyToken` coverage** (§3.1) — only `mouse:`, `code:`,
+14. **`isLiteralKeyToken` coverage** (§3.1) — only `mouse:`, `code:`,
     `switch:`, `mouse_up`, `mouse_down` are kept as written.
     `mouse_left`/`mouse_right` were left out on purpose because the wiki
     doesn't list them. If another special key gets mangled, add it there.
-14. **Spaces around `+` in bind keys** (§3.1) — the wiki writes
+15. **Spaces around `+` in bind keys** (§3.1) — the wiki writes
     `"SUPER + mouse:272"` with spaces; this file emits `"SUPER+mouse:272"`
     without. Assumed equivalent, not verified. If binds with a modifier
     stop working, change the `lib.concatStringsSep "+"` in `mkKeyExpr` to
@@ -708,7 +713,7 @@ whenever you resolve one or add a new one.
 
 - Binds & flags: `wiki.hypr.land/Configuring/Binds/Flags/` (or the
   equivalent `Configuring/Binds/` path) — `hl.bind(keys, dispatcher,
-  { flags })` syntax and the full flags table.
+{ flags })` syntax and the full flags table.
   Re-read later at `https://wiki.hypr.land/configuring/core/binds/flags/`
   (rendered page) and `https://wiki.hypr.land/Configuring/Basics/Binds/` —
   confirms the flag names in §3.4 and the mouse-bind format
@@ -749,7 +754,7 @@ whenever you resolve one or add a new one.
   this file (`startWith` only covers `hyprland.start`); a natural future
   addition (`stopWith`?) if ever requested. `hl.env()` is confirmed separately via
   `wiki.hypr.land`'s FAQ page (`hl.env("XDG_CURRENT_DESKTOP",
-  "Hyprland")`). Everything in `startWith` beyond these bare documented
+"Hyprland")`). Everything in `startWith` beyond these bare documented
   calls (the `actions`/`apps` split, `desktopFile`, per-app `dsp`, the
   auto-env-var convenience) is this file's own design (§9).
 - Plugins: `wiki.hypr.land/Plugins/Using-Plugins/` — Hyprland has no
@@ -775,7 +780,7 @@ non-versioned** `wiki.hypr.land/...` URL over a `/0.NN.0/...` snapshot.
   semicolons on every binding, one attribute per line inside multi-field
   `mkOption { ... }` calls once a submodule has more than ~4 short
   fields, otherwise short single-line `mkOption { type = ...; default =
-  ...; }` is fine (see `monitorType`/rule-match fields for the compact
+...; }` is fine (see `monitorType`/rule-match fields for the compact
   style, `bindType`/`appType` for the expanded style). Match whichever
   style already dominates the section you're editing rather than mixing
   both within one submodule's `options`.
@@ -808,7 +813,7 @@ non-versioned** `wiki.hypr.land/...` URL over a `/0.NN.0/...` snapshot.
   `window.drag`/`window.resize`.
 - **Builtins**: use the un-prefixed global form when Nix exposes one
   (`baseNameOf`, `dirOf`, `toString`, `map`, `removeAttrs`, `import`, ...)
-  — `builtins.<name>` is only needed for functions that are *not*
+  — `builtins.<name>` is only needed for functions that are _not_
   aliased into the global scope (`builtins.toJSON`, `builtins.attrNames`,
   `builtins.elem`, `builtins.isAttrs`, `builtins.isList`,
   `builtins.isString`, `builtins.isBool`, `builtins.head` has a `lib`
@@ -827,7 +832,7 @@ non-versioned** `wiki.hypr.land/...` URL over a `/0.NN.0/...` snapshot.
   malformed input or producing broken Lua. Every `mk*Line`/`mk*Expr`
   helper that has a "must have exactly one of X or Y" or "must have all
   of X, Y, Z when condition C" invariant should enforce it with `throw`,
-  not a comment. Build a `label` string identifying *which* entry failed
+  not a comment. Build a `label` string identifying _which_ entry failed
   (e.g. `"startWith.apps[${toString i}]"`, `"bind \"${name}\""`) so the
   error is traceable to the specific user-written entry, not just the
   function name.
@@ -840,7 +845,7 @@ non-versioned** `wiki.hypr.land/...` URL over a `/0.NN.0/...` snapshot.
   from the corresponding `*Defaults` attrset so it can be found/updated
   in one place.
 - **Naming**: `mk<Thing>Line` returns a single Lua source line (string).
-  `mk<Thing>Lines` (plural) returns a *list* of lines (used when one Nix
+  `mk<Thing>Lines` (plural) returns a _list_ of lines (used when one Nix
   entry expands to several Lua statements, e.g. `mkAppLines`,
   `mkBindLines`). `mk<Thing>Expr`/`mk<Thing>Val` return a fragment meant
   to be embedded inside a larger line, not a standalone statement. Keep
@@ -851,7 +856,7 @@ non-versioned** `wiki.hypr.land/...` URL over a `/0.NN.0/...` snapshot.
   `nix-instantiate` available to test-parse this file in the sandbox this
   file has been edited in. After any nontrivial edit, at minimum
   eyeball-check brace/paren/bracket balance (`grep -o '[{}]' file | sort |
-  uniq -c`-style counting caught the one real bug found so far) and
+uniq -c`-style counting caught the one real bug found so far) and
   re-read the diff slowly for the list-literal gotcha above. Don't claim
   a change is "verified correct" — say it's "balanced/structurally
   consistent, not run through a real Nix parser" and let the user run
@@ -904,7 +909,7 @@ non-versioned** `wiki.hypr.land/...` URL over a `/0.NN.0/...` snapshot.
   superseded, say so in place ("X used to work like Y; changed to Z
   because ...") rather than silently rewriting the section as if Z was
   always the design — the same principle the memory-filesystem rules use
-  for editing stored facts applies here: preserve the trail of *why*
+  for editing stored facts applies here: preserve the trail of _why_
   something changed, future-you may need it when the user asks to revert.
 - **File is currently a single flat document.** If it grows past a size
   where a future agent would rather jump straight to one topic (a rough
