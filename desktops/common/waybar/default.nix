@@ -203,9 +203,9 @@ let
     };
 
     pulseaudio = {
-      format = "{icon} {volume}%";
+      format = "{icon}{volume}%";
       format-bluetooth = "󰂰 {volume}%";
-      format-muted = "  muted";
+      format-muted = "  muted";
       format-icons = {
         headphones = "󰋋";
         default = [
@@ -512,7 +512,7 @@ in
 
           modules-left = [
             "group/wm"
-            "custom/sunix"
+            # "custom/sunix"
           ];
           modules-center = [ "group/datetime" ];
           modules-right = [
