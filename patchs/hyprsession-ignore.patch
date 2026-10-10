@@ -1,0 +1,52 @@
+diff --git a/src/session.rs b/src/session.rs
+--- a/src/session.rs
++++ b/src/session.rs
+@@ -12,6 +12,17 @@ use std::path::PathBuf;
+ const EXEC_NAME: &str = "exec.conf";
+ const CLIENTS_PATH_NAME: &str = "clients.json";
+
++fn is_ignored(client: &Client) -> bool {
++    std::env::var("HYPRSESSION_IGNORE_CLASSES")
++        .map(|list| {
++            list.split(',')
++                .map(|c| c.trim().to_lowercase())
++                .filter(|c| !c.is_empty())
++                .any(|c| c == client.class.to_lowercase() || c == client.initial_class.to_lowercase())
++        })
++        .unwrap_or(false)
++}
++
+ pub trait Session {
+     fn save(&self, name: &str) -> hyprland::Result<()>;
+     fn load(&self, name: &str) -> hyprland::Result<()>;
+@@ -216,7 +227,12 @@ impl Session for LocalSession {
+             |info: &Client| format!("fullscreenstate {}", info.fullscreen as i32),
+         ];
+
+-        let client_info = Clients::get().expect("Unable to fetch clients");
++        let client_info: Vec<Client> = Clients::get()
++            .expect("Unable to fetch clients")
++            .iter()
++            .filter(|c| !is_ignored(c))
++            .cloned()
++            .collect();
+
+         let mut exec_file = File::create(base_dir.join(EXEC_NAME))
+             .expect("Failed to create session file");
+@@ -293,6 +309,7 @@ impl Session for LocalSession {
+         if !self.simulate {
+             let pids: Vec<i32> = Clients::get()?
+                 .iter()
++                .filter(|c| !is_ignored(c))
+                 .map(|c| c.pid)
+                 .collect();
+             for pid in pids {
+@@ -303,7 +320,7 @@ impl Session for LocalSession {
+             }
+
+             loop {
+-                if Clients::get()?.iter().collect::<Vec<&Client>>().is_empty() {
++                if Clients::get()?.iter().all(|c| is_ignored(c)) {
+                     break;
+                 }
+                 std::thread::sleep(std::time::Duration::from_millis(500));

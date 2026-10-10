@@ -8,7 +8,7 @@
     ./launcher.nix
     ./lockscreen.nix
     ./notification.nix
-    ./startSession.nix
+    ./session.nix
     ./wallpaper.nix
     ./waybar.nix
   ];

@@ -153,6 +153,16 @@
       inputs.hyprland.follows = "hyprland";
     };
 
+    hyprsession = {
+      url = "github:joshurtree/hyprsession/v0.2.1";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
+    };
+
+    hyprdrover = {
+      url = "github:S-Sigdel/hyprdrover/v1.0.1";
+      flake = false;
+    };
+
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs.nixpkgs.follows = "nixpkgs";
