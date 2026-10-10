@@ -6,6 +6,9 @@ api-keys:
         dotfiles: ENC[AES256_GCM,data:0D3IeuaK+PqKmXsUbwBWflFiR54v0vQVlCYVDAHkOAZN4NPOrwbdiL4wuyfZA8vELwpAT5g=,iv:9ms6vvp1u1E+PmY8Ijvtn6CBlShVqjdnTOsi9ZF3ft4=,tag:0JhhWtme1xjVID5rZC6B6Q==,type:str]
     openrouter:
         claude-code: ENC[AES256_GCM,data:7eNbGybLvRqWUgkGL6pidPJvlHINI/kq3RFc9hjtbEcb7vomQWQVMT9ByV77uMu9HXUpRyHqnuKJSvFtRM/bD7b2+RmHitbg+w==,iv:fCMbY5crsCWyvSZQ7i4QUmv80yNJklNqId8wskzq5q0=,tag:kVOSV/8nMChyFwyEkaztXg==,type:str]
+        omniroute: ENC[AES256_GCM,data:bfwlclSQppzs8c4GuCrSrfwZJs2xHFDtYBj2W6JwThyu0k4FEP+S4NKBvlEEmIed4ot+OwsCptlwp0ywODxfFCBHGxHEHkucKA==,iv:Y56lfYHdY6Ca0vks5PNLOzL1X/I3BatnlwM3ifWVQGU=,tag:9VACicA7F5qqcKSUK0ZlPQ==,type:str]
+    omniroute:
+        claude-code: ENC[AES256_GCM,data:6n1KdhGclABB80xhMYMYV+Z1SGI+/l7kq+00XkJuNozmgJQ=,iv:rp1rYJcBup+lJ+d4PKPYh3x/HblT8grf7G8BcDpnJXA=,tag:L6C6C5DSwI5JS5ATSuL2UA==,type:str]
 sops:
     age:
         - enc: |
@@ -17,7 +20,7 @@ sops:
             lTnvZx4UOwXLmQSbn5mswO0oddOmymWD61zwTt9wEcgcNxEZlk6n0w==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0
-    lastmodified: "2026-10-10T08:31:11Z"
-    mac: ENC[AES256_GCM,data:Zkrt1jb0XGoyaInS5iPy38Oez1At2YKZef1z67TzAEihry8FXbNjlp5pnWyw7/kJLv4TAfDYm+S/lhTUN01q9mBmy5+EzAjP2vT9/T2iNRe0eyMjC6s6lSlq9XO1co7cxDHG8IAjwNMlNWHnIEJHAYMLgLwE+vsmh4z3wgq4GeU=,iv:NqiCk0V3yCV3ODrjP9O1jaB+w/KWcki15yOoTMjdUoE=,tag:69GewdavtshkiRkDhZgejg==,type:str]
+    lastmodified: "2026-10-10T10:56:04Z"
+    mac: ENC[AES256_GCM,data:K4TEQxdJGU+T+ij/cPMaGK2nm8ZggXlleu6ee8mBIshIQzW/Pal/1jMAX15KLVILpsP4lKuRKV+l/V0f+yOX4t6Y+7owyqpUWv/VLFaurFA9Qhxh8EmzoKAT9vMOmtvI1B7PtL/j+dPD0jmoTRu35w/w6JKD1AycIFF/VhuMTZE=,iv:wzBoWeE44JU83oyUxED+u2ErGHgXBaQOtVgR+S874KE=,tag:AxKataIUaJX2bbQA6Z5BvA==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.3

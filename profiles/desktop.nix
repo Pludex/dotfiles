@@ -6,6 +6,7 @@
         "claude-desktop"
         "aider"
         "claude-code"
+        "omniroute"
       ];
 
       apps = [
