@@ -91,6 +91,16 @@ In other words, the flake-parts builder is the architecture: base infrastructure
 ├── hosts/                     # Host-specific NixOS configuration
 ├── nixos/                     # System services and virtualization configuration
 ├── home/                      # Home Manager modules: apps, programs, services, development, IDEs, and AI tools
+│   ├── ai/                    # AI tooling: Claude Code CLI/OpenRouter setup, Claude Desktop launcher, and other AI helpers
+│   │   ├── claude-code.nix    # Shell wrapper for Claude Code via OpenRouter
+│   │   ├── claude-desktop.nix # Home Manager module to install claude-desktop package
+│   │   └── aider.nix          # Aider AI pairing tool configuration
+│   ├── apps/                  # GUI applications
+│   ├── develop/               # Development tools and environments
+│   ├── flatpak/               # Flatpak application management
+│   ├── ides/                  # IDE configurations and extensions
+│   ├── programs/              # CLI programs and utilities
+│   └── services/              # System services and daemons
 ├── desktops/                  # Desktop/window-manager compositions and desktop-specific Home Manager setup
 │   ├── common/                # Shared desktop utilities
 │   ├── niri/                  # Niri configuration
@@ -104,6 +114,11 @@ In other words, the flake-parts builder is the architecture: base infrastructure
 ├── emacs/                     # Emacs configuration and package setup
 ├── overlays/                  # Nixpkgs overlays
 ├── pkgs/                      # Custom packages and project-local tools
+│   ├── audio-manager/         — Python MPRIS/audio-management daemon.
+│   ├── vaultwarden-sync/      — Python backup and synchronization utility.
+│   ├── vivaldi-sync/          — Nushell browser-profile synchronization utility.
+│   ├── claude-desktop/        — Package for Claude Desktop
+│   └── patchy-cnb/            — Rust/NAPI-RS package for input, window, and monitor operations.
 ├── data/                      # Encrypted secrets and static data; handle as sensitive
 ├── lib/                       # Local Nix library functions and helpers
 ├── .github/                   # GitHub configuration and automation
@@ -119,6 +134,7 @@ The `pkgs/` tree includes project-local tools implemented in multiple languages,
 - `vaultwarden-sync/` — Python backup and synchronization utility.
 - `vivaldi-sync/` — Nushell browser-profile synchronization utility.
 - `patchy-cnb/` — Rust/NAPI-RS package for input, window, and monitor operations.
+- `claude-desktop/` — Package for Claude Desktop
 
 When changing one of these packages, follow the package's own manifest and existing implementation style before introducing a new build mechanism.
 
@@ -134,6 +150,7 @@ When changing one of these packages, follow the package's own manifest and exist
 - **SOPS + Age** for encrypted secrets. Secrets are referenced through configuration paths and must never be replaced with plaintext credentials.
 - **treefmt** for formatting Nix, Prettier-supported files, and shell files. The repository enables `nixfmt` and `shfmt`; Ruff is currently not enabled in the shared treefmt configuration.
 - **Custom overlays and flake inputs** for packages, editor integrations, fonts, Firefox extensions, virtualization, and desktop components.
+- **AI Tooling**: Claude Code CLI via OpenRouter integration (`home/ai/claude-code.nix`) and Claude Desktop package (`pkgs/claude-desktop/`).
 
 The main output flow is:
 
