@@ -9,7 +9,7 @@
       hyprexpo = inputs.hyprexpo.packages.${final.stdenv.system}.default;
 
       hyprsession = inputs.hyprsession.packages.${final.stdenv.system}.default.overrideAttrs (old: {
-        patches = (old.patches or [ ]) ++ [ "${base.paths.patchs}/hyprsession-ignore.patch" ];
+        patches = (old.patches or [ ]) ++ [ "${base.paths.patches}/hyprsession-ignore.patch" ];
         meta.mainProgram = "hyprsession";
       });
 

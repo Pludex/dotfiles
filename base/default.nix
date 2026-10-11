@@ -40,7 +40,7 @@
     overlays = ../overlays;
     emacs = ../emacs;
     libx = ../lib;
-    patchs = ../patchs;
+    patches = ../patches;
 
     nixos = {
       root = ../nixos;
