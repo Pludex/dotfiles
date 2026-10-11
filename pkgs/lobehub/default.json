@@ -1,0 +1,13 @@
+{
+  "cli": {
+    "version": "0.0.62",
+    "url": "https://registry.npmjs.org/@lobehub/cli/-/cli-0.0.62.tgz",
+    "hash": "sha512-fa9aN7dQv8yan0WcM7co/ocuuWbZxIiV2q2cHy0dHzf5zWwL3Q6OfU4g8Rl4k9KdS/uJMdAfJStOiZAfpzlkjQ==",
+    "npmDepsHash": "sha256-S/vp/0VHysxctMOFW9yIqroo6ABY0HhUmY+HKCC72Yc="
+  },
+  "desktop": {
+    "version": "2.2.19",
+    "url": "https://github.com/lobehub/lobehub/releases/download/v2.2.19/LobeHub-2.2.19.AppImage",
+    "hash": "sha256-vrTVgxLvbyJyuri1wuwOSSKvyb9Ql68fOJhpokFvMts="
+  }
+}

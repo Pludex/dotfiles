@@ -10,7 +10,7 @@
         # "open-webui"
         "basic-memory"
         "librechat"
-        "lobechat"
+        "lobehub"
       ];
 
       apps = [
@@ -97,6 +97,7 @@
 
       virtualisation = [
         "core/libvirt"
+        "core/podman"
         "win10"
       ];
 

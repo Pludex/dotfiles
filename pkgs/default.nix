@@ -4,6 +4,7 @@
     audio-manager.path = ./audio-manager;
     brightness-control.path = ./brightness-control;
     claude-desktop.path = ./claude-desktop;
+    lobehub.path = ./lobehub;
     msbuild-ls.path = ./msbuild-ls;
     patchy-cnb.path = ./patchy-cnb;
     schemes.path = ./schemes;

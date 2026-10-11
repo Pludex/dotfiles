@@ -1165,6 +1165,22 @@
         "type": "github"
       }
     },
+    "lobehub": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791698022,
+        "narHash": "sha256-xeyvy2feEHCWQFMzxwWss4enXEoYvX1vjSNMZ9GMRm0=",
+        "owner": "lobehub",
+        "repo": "lobehub",
+        "rev": "31b02b55f90d97a498220dbf21665b6f2980430b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "lobehub",
+        "repo": "lobehub",
+        "type": "github"
+      }
+    },
     "msbuild-project-tools-server": {
       "flake": false,
       "locked": {
@@ -1658,6 +1674,7 @@
         "hyprsession": "hyprsession",
         "jetbrains-plugins": "jetbrains-plugins",
         "lanzaboote": "lanzaboote",
+        "lobehub": "lobehub",
         "msbuild-project-tools-server": "msbuild-project-tools-server",
         "niri": "niri",
         "nix-firefox-addons": "nix-firefox-addons",

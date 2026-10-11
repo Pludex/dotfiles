@@ -1,0 +1,29 @@
+{
+  "name": "@lobehub/cli",
+  "version": "0.0.62",
+  "type": "module",
+  "bin": {
+    "lh": "dist/index.js",
+    "lobe": "dist/index.js",
+    "lobehub": "dist/index.js"
+  },
+  "man": [
+    "./man/man1/lh.1",
+    "./man/man1/lobe.1",
+    "./man/man1/lobehub.1"
+  ],
+  "files": [
+    "dist",
+    "man"
+  ],
+  "dependencies": {
+    "ws": "^8.21.0"
+  },
+  "engines": {
+    "node": ">=22.15"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  }
+}

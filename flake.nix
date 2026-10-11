@@ -272,5 +272,11 @@
       url = "github:mbucko/openleetcode";
       flake = false;
     };
+
+    # AI
+    lobehub = {
+      url = "github:lobehub/lobehub";
+      flake = false;
+    };
   };
 }
