@@ -7,6 +7,10 @@
         "aider"
         "claude-code"
         "omniroute"
+        # "open-webui"
+        "basic-memory"
+        "librechat"
+        "lobechat"
       ];
 
       apps = [

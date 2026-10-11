@@ -88,5 +88,19 @@ in
         PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
       };
     };
+
+    mcpServers.basic-memory = {
+      type = "http";
+      url = "http://127.0.0.1:8765/mcp";
+    };
+
+    memory.text = ''
+      # Shared memory
+      Use the basic-memory MCP tools as long-term memory shared across clients.
+      - At session start, search for notes relevant to the current project or task.
+      - Save durable facts only: decisions, conventions, project state.
+      - Never save secrets or raw chat logs.
+      - Update an existing note instead of creating a duplicate.
+    '';
   };
 }
