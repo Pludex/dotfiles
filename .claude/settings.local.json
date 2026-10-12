@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "mcp__plugin_hm_basic-memory__search_notes",
+      "mcp__plugin_hm_github__search_issues",
+      "mcp__plugin_hm_github__search_code",
+      "mcp__plugin_hm_context7__resolve-library-id"
+    ]
+  }
+}

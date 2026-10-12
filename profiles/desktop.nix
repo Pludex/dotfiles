@@ -11,6 +11,7 @@
         "basic-memory"
         "librechat"
         "lobehub"
+        "mcp"
       ];
 
       apps = [

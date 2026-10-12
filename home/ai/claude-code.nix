@@ -35,6 +35,13 @@ let
     '';
     meta = pkgs.claude-code.meta;
   };
+
+  sharedMcp = [
+    "context7"
+    "fetch"
+    "github"
+    "basic-memory"
+  ];
 in
 {
   home.packages = [
@@ -81,18 +88,21 @@ in
         "playwright-cli@playwright-cli" = true;
       };
     };
-    mcpServers.playwright = {
-      command = lib.getExe pkgs.playwright-mcp;
-      env = {
-        PLAYWRIGHT_BROWSERS_PATH = pkgs.playwright-driver.browsers;
-        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
-      };
-    };
 
-    mcpServers.basic-memory = {
+    mcpServers = {
+      # Own stdio instance so browser state is not shared with LobeHub
+      playwright = {
+        command = lib.getExe pkgs.playwright-mcp;
+        env = {
+          PLAYWRIGHT_BROWSERS_PATH = pkgs.playwright-driver.browsers;
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
+        };
+      };
+    }
+    // lib.genAttrs sharedMcp (name: {
       type = "http";
-      url = "http://127.0.0.1:8765/mcp";
-    };
+      url = config.my.mcp.endpoints.${name};
+    });
 
     memory.text = ''
       # Shared memory
