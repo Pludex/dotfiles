@@ -3,16 +3,7 @@
   profiles.desktop = {
     home = {
       ai = [
-        "claude-desktop"
-        "aider"
-        "claude-code"
-        "omniroute"
-        # "open-webui"
-        "basic-memory"
-        "librechat"
-        "lobehub"
-        "mcp"
-        "hermes"
+        "default"
       ];
 
       apps = [

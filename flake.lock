@@ -1641,6 +1641,22 @@
         "type": "github"
       }
     },
+    "omniroute": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791690028,
+        "narHash": "sha256-XyRKNrMc02nuEh/U1t4XJlHEXFrrqFu/wpbmHfC1m+U=",
+        "owner": "diegosouzapw",
+        "repo": "OmniRoute",
+        "rev": "7f3cbb046b3706bf0bbc047b7eaa0cbada8d9e50",
+        "type": "github"
+      },
+      "original": {
+        "owner": "diegosouzapw",
+        "repo": "OmniRoute",
+        "type": "github"
+      }
+    },
     "openleetcode": {
       "flake": false,
       "locked": {
@@ -1809,6 +1825,7 @@
         "nur": "nur",
         "nushell-highlight": "nushell-highlight",
         "obsidian-extensions": "obsidian-extensions",
+        "omniroute": "omniroute",
         "openleetcode": "openleetcode",
         "plasma-manager": "plasma-manager",
         "schemes": "schemes",

@@ -2,9 +2,7 @@
 {
   virtualisation.podman.enable = true;
   users.users.${base.username} = {
-    linger= true;
-    extraGroups = [
-      "podman"
-    ];
+    linger = true;
+    extraGroups = [ "podman" ];
   };
 }
