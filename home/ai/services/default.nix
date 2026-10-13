@@ -1,7 +1,7 @@
 {
   imports = [
     ./omniroute.nix
-    ./hermes.nix
+    ./hermes-podman.nix
     ./mcp
   ];
 }

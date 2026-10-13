@@ -31,5 +31,8 @@
 
     packagesOfInputs.walker = inputs'.walker.packages.default;
     ciPackages.walker = config.packagesOfInputs.walker;
+
+    packagesOfInputs.hermes = inputs'.hermes-agent.packages.default;
+    ciPackages.hermes = config.packagesOfInputs.hermes;
   };
 }

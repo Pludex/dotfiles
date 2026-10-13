@@ -6,8 +6,8 @@
   ...
 }:
 let
+  cfg = config.ai.omniroute;
   src = inputs.omniroute;
-  ports = config.ports.omniroute;
   podman = config.services.podman.package;
   srcId = builtins.substring 0 12 (baseNameOf (toString src));
 
@@ -33,12 +33,17 @@ let
   '';
 in
 {
-  options.ports.omniroute = lib.mkOption {
-    type = lib.types.attrsOf lib.types.port;
-    default = {
-      http = 20128;
+  options.ai.omniroute = {
+    port = lib.mkOption {
+      type = lib.types.port;
+      default = 20128;
+      description = "Port used by OmniRoute (dashboard and API share it).";
     };
-    description = "Ports used by OmniRoute (dashboard and API share one port).";
+    url-base = lib.mkOption {
+      type = lib.types.str;
+      default = "http://127.0.0.1:${toString cfg.port}";
+      description = "Base URL other services use to reach OmniRoute.";
+    };
   };
 
   config = {
@@ -56,7 +61,7 @@ in
         autoStart = false;
         network = "host";
         environment = {
-          PORT = toString ports.http;
+          PORT = toString cfg.port;
           HOSTNAME = "127.0.0.1";
           DATA_DIR = "/app/data";
         };
