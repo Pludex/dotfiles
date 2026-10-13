@@ -12,6 +12,7 @@
         "librechat"
         "lobehub"
         "mcp"
+        "hermes"
       ];
 
       apps = [
