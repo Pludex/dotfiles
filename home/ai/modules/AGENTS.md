@@ -27,8 +27,11 @@ files from NousResearch/hermes-agent: `nix/moduleCommon.nix` and
 
 - Linux only. Darwin is a future target and will use the upstream module
   natively, which is why our options live under a different root.
-- The runtime is the container image. The Nix `package` is used only at build
-  time to read `_config_version` (or skipped when `configVersion` is set).
+- The runtime is the container image. The Nix `package`
+  (default `pkgs.hermes.full`) is used only at build time to read
+  `_config_version`. It is not evaluated when `configVersion` is set.
+- Linger must be enabled (`loginctl enable-linger <name>`), or the user
+  manager and the containers stop at logout.
 
 ## Naming rules (do not break)
 
@@ -36,27 +39,65 @@ files from NousResearch/hermes-agent: `nix/moduleCommon.nix` and
   **Never** declare or set `services.hermes-agent.*` or
   `programs.hermes-agent.*` here. Those belong to upstream and must be able to
   coexist with this module.
-- Default container name is `hermes-podman` (backend: `hermes-podman-backend`).
-  Default CLI wrapper is `hermes`, configurable by
-  `programs.hermes-podman.commandName`.
+- Containers are `<podman.namePrefix>-gateway` and `<podman.namePrefix>-backend`.
+  The default prefix is `hermes`, so the defaults are `hermes-gateway` and
+  `hermes-backend`, and the units are `podman-hermes-gateway.service` and
+  `podman-hermes-backend.service`.
+- CLI wrappers: `<commandName>` (default `hermes`), `<commandName>-tui`,
+  `<commandName>-web`. Configurable by `programs.hermes-podman.commandName`.
 - User-facing strings and error messages say `hermes-podman`, not
   `hermes-agent`.
 
 ## Layout
 
-| Path                 | Purpose                                   |
-| -------------------- | ----------------------------------------- |
-| `hermes-podman.nix`  | The whole module: options and config      |
-| `AGENTS.md`          | This file                                 |
+| Path                | Purpose                              |
+| ------------------- | ------------------------------------ |
+| `hermes-podman.nix` | The whole module: options and config |
+| `AGENTS.md`         | This file                            |
 
 External dependencies (not in this repo):
 
 - Home Manager (`lib.hm.dag`, `config.home.homeDirectory`,
   `services.podman`).
-- Optional flake `inputs` in `extraSpecialArgs`, only for the default
-  `package` (`inputs.self.packages.<system>.default`, with `.hermesVenv`).
+- `pkgs.hermes.full` and `pkgs.hermes.desktop` from an overlay, used only for
+  the default `package` and `desktop.package`.
 - The container image `docker.io/nousresearch/hermes-agent` (entrypoint is
   `hermes`).
+
+## How it works
+
+1. **State setup** (`stateScript`, serialised with `flock` because the gateway
+   and backend units run it in parallel). It runs twice: as the Home Manager
+   activation entry `hermesPodmanSetup`, and as `ExecStartPre` of each
+   container unit. It does the following:
+   - creates `hermesHome`, `workingDirectory` and the subdirs in `stateSubdirs`
+   - deep-merges the Nix `settings` into `config.yaml` (`mergeScript`), or
+     installs `configFile` unchanged
+   - writes `.managed`
+   - **rewrites `.env` from scratch**: `environment` first, then each file of
+     `environmentFiles` appended (unreadable files only produce a warning)
+   - copies `authFile` to `auth.json` (only if missing, unless
+     `authFileForceOverwrite`)
+   - installs `documents` into `workingDirectory` and `hermesHomeFiles` into
+     `hermesHome`
+   - recreates the `nix-managed-*` plugin symlinks from `extraPlugins`
+2. **Containers** (`mkContainer`): host network, `hermesHome` mounted at
+   `/opt/data`, `HERMES_HOME` and `HERMES_MANAGED=home-manager` set,
+   `environmentFiles` passed with `--env-file`.
+3. **Host wrappers** (`mkCli`): `podman exec` into the running gateway (or
+   backend) container, with a one-shot `podman run` fallback that uses the same
+   mounts and environment. The desktop app is wrapped to use the backend URL.
+
+## Permission modes
+
+- `keep-id` (default): the container runs with
+  `--userns=keep-id:uid=<uid>,gid=<gid>` (default 10000), so `hermesHome`
+  stays owned by the host user. The state script runs directly, with no
+  `podman unshare`.
+- `chown`: volumes get `:U` and the state script runs inside
+  `podman unshare`. Files end up owned by a subuid, so the host user cannot
+  edit them. Do not call `chown` manually in either mode.
+- `programs.hermes-podman.desktop` requires `keep-id` (asserted).
 
 ## Conventions
 
@@ -66,20 +107,21 @@ External dependencies (not in this repo):
   `literalExpression` when the shape is not obvious.
 - Inside `''` strings, escape Nix interpolation meant for the shell as
   `''${...}`. Quote shell paths with `lib.escapeShellArg(s)`.
-- Activation runs inside `podman unshare`. Do not call `chown`; ownership is
-  handled by the `:U` volume flag and the user namespace.
 - Keep unsupported upstream options **removed**, not stubbed: `user`, `group`,
   `stateDir`, container-mode of NixOS, `installPackage`,
   `extraPythonPackages`, `extraDependencyGroups`, `extraPackages`,
   `backend.waitFor`, `backend.interfaceName`, `backend.waitTimeout`,
   `backend.sessionTokenFile`. They have no effect in a container.
+- Add an assertion for every invalid option combination, and a warning for
+  harmless misconfiguration.
 
 ## Security rules
 
 - Never put secrets in the Nix store. Secret-bearing options use `types.str`
-  runtime paths (`environmentFiles`, `authFile`). Never change them to
-  `types.path`.
-- `environment` is for non-secret values only.
+  runtime paths (`environmentFiles`, `authFile`, `desktop.remoteTokenFile`).
+  Never change them to `types.path`.
+- `environment` is for non-secret values only. It is written to `.env` and
+  passed to the containers.
 - `.env`, `auth.json`, `config.yaml`, documents are mode `0600`.
 - Non-loopback `backend.host` enables the dashboard auth gate. Put
   `HERMES_DASHBOARD_SESSION_TOKEN=<token>` in `environmentFiles`.
@@ -89,9 +131,30 @@ External dependencies (not in this repo):
 
 - `settings` is deep-merged (`lib.recursiveUpdate`) across modules, and deep
   merged again into the `config.yaml` on disk. Nix keys win; runtime keys stay.
-- `terminal.cwd` is the path **inside the container**.
-- Both containers share `hermesHome`, mounted at `/opt/data`.
-- `config.yaml` is written atomically.
+- `mcpServers` is converted by `mcpServersToConfig` and merged into
+  `settings.mcp_servers`. Stdio servers run inside the container.
+- `terminal.cwd` is the path **inside the container**
+  (`containerWorkdir`). A `workingDirectory` outside `hermesHome` gets its own
+  volume at the same path.
+- Both containers share `hermesHome`.
+- `config.yaml` is written atomically (tmp file, then rename).
+- `.env` is rebuilt on every activation and every container start, so runtime
+  edits to it are lost by design.
+- `extraPlugins` mounts `/nix/store` read-only into the containers.
+
+## Gotchas
+
+- Removing a key from `settings` does **not** remove it from `config.yaml` on
+  disk, because the merge keeps keys that Nix does not set. Edit the file or
+  delete it (it is regenerated) to drop stale values.
+- `configFile` replaces `settings` and overwrites runtime edits on each
+  activation.
+- A secret in `environmentFiles` must be rendered before the state script
+  runs, so order the units after `sops-nix.service` with `podman.after` and
+  `podman.wants`. Otherwise `.env` silently lacks the keys (only a warning is
+  logged).
+- Container name in `podman exec` and `journalctl` is
+  `<namePrefix>-gateway`, not `hermes`.
 
 ## Verify before finishing
 
@@ -99,7 +162,8 @@ External dependencies (not in this repo):
 nixfmt hermes-podman.nix
 nix-instantiate --parse hermes-podman.nix >/dev/null      # syntax
 home-manager build --flake .#<user>                       # evaluation + build
-systemctl --user list-units 'podman-hermes-podman*'       # after switch
+systemctl --user list-units 'podman-hermes*'              # after switch
+podman ps -a --format '{{.Names}}\t{{.Status}}'
 ```
 
 If you change an option, check that no reference to the old name remains

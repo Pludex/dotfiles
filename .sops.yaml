@@ -6,3 +6,8 @@ creation_rules:
     key_groups:
       - age:
           - *main
+
+  - path_regex: data/.*\.enc.json$
+    key_groups:
+      - age:
+          - *main

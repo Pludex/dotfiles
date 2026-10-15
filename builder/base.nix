@@ -285,7 +285,7 @@ in
           # output. Per-system by nature, so it lives here rather than
           # at the top level.
           packagesOfInputs = mkOption {
-            type = types.attrsOf types.package;
+            type = types.raw;
             default = { };
           };
         };

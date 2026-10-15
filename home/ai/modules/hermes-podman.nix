@@ -5,51 +5,36 @@
 #   https://github.com/NousResearch/hermes-agent
 #
 # Copyright (c) 2026 <YOUR NAME>
-#   Modifications: the two upstream files are merged into one Home Manager
-#   module, the podman variant only. The option roots are renamed from
-#   `services.hermes-agent` / `programs.hermes-agent` to
-#   `services.hermes-podman` / `programs.hermes-podman`, so the module does
-#   not clash with the upstream options (for example on a future Darwin host).
-#   Several defects of the originals are fixed. See AGENTS.md ("Changes from
-#   upstream").
+#   Modifications: merged into one Home Manager module (podman variant only),
+#   option roots renamed to `services.hermes-podman` / `programs.hermes-podman`,
+#   keep-id permission model, locked state setup, wrapped CLI/TUI/desktop/web.
 #
 # NOTE: confirm the licence against the LICENSE file of the upstream
 # repository and keep this header in sync with it.
 #
-# ─────────────────────────────────────────────────────────────────────────────
-# hermes-podman — Hermes Agent in rootless Podman containers, for Home Manager.
+# Usage:
 #
-# Wiring (flake):
-#
-#   homeConfigurations.me = home-manager.lib.homeManagerConfiguration {
-#     inherit pkgs;
-#     extraSpecialArgs = { inherit inputs; };   # only needed for the default `package`
-#     modules = [ ./hermes-podman.nix ./home.nix ];
+#   programs.hermes-podman = {
+#     desktop.enable = true;
+#     web.enable = true;
 #   };
-#
-#   # home.nix
-#   programs.hermes-podman.enable = true;
 #   services.hermes-podman = {
 #     enable = true;
 #     gateway.enable = true;
-#     settings.model.default = "anthropic/claude-sonnet-4";
+#     hermesHome = "/workspaces/hermes";
 #     environmentFiles = [ config.sops.secrets."hermes/env".path ];
+#     settings.model.default = "anthropic/claude-sonnet-4";
 #   };
 #
-# If `inputs` is not available, set `services.hermes-podman.configVersion`
-# (no package needed), or set `services.hermes-podman.package` yourself.
-#
-# CAUTION: enable linger for the account, or the user manager (and both
-# containers) stop at logout. On NixOS: users.users.<name>.linger = true;
-# elsewhere: loginctl enable-linger <name>
-# ─────────────────────────────────────────────────────────────────────────────
+# Enable linger for the account, or the user manager (and the containers)
+# stop at logout: `loginctl enable-linger <name>`.
 
 {
   config,
   lib,
   pkgs,
   ...
-}@args:
+}:
 
 let
   inherit (lib)
@@ -62,18 +47,19 @@ let
     ;
 
   cfg = config.services.hermes-podman;
-  cfgPrograms = config.programs.hermes-podman;
+  pgm = config.programs.hermes-podman;
   pcfg = cfg.podman;
 
   podman = config.services.podman.package;
 
-  # Where HERMES_HOME is mounted inside the container.
   dataDir = "/opt/data";
   managedSystem = "home-manager";
 
-  # ── Configuration type ──────────────────────────────────────────────────
-  # More than one module can set `settings = { ... }`. recursiveUpdate joins
-  # all of the definitions. Without it, only the last definition applies.
+  keepId = pcfg.permissions.mode == "keep-id";
+
+  gatewayName = "${pcfg.namePrefix}-gateway";
+  backendName = "${pcfg.namePrefix}-backend";
+
   deepConfigType = types.mkOptionType {
     name = "hermes-config-attrs";
     description = "Hermes YAML config (attrset), merged deeply via lib.recursiveUpdate.";
@@ -83,10 +69,8 @@ let
 
   documentsType = types.attrsOf (types.either types.str types.path);
 
-  # ── MCP server submodule ────────────────────────────────────────────────
   mcpServerType = types.submodule {
     options = {
-      # Stdio transport
       command = mkOption {
         type = types.nullOr types.str;
         default = null;
@@ -102,8 +86,6 @@ let
         default = { };
         description = "Environment variables for the server process (stdio transport).";
       };
-
-      # HTTP/StreamableHTTP transport
       url = mkOption {
         type = types.nullOr types.str;
         default = null;
@@ -114,7 +96,6 @@ let
         default = { };
         description = "HTTP headers, e.g. for authentication (HTTP transport).";
       };
-
       auth = mkOption {
         type = types.nullOr (types.enum [ "oauth" ]);
         default = null;
@@ -123,13 +104,11 @@ let
           (remote MCP servers). Tokens are stored in $HERMES_HOME/mcp-tokens/.
         '';
       };
-
       enabled = mkOption {
         type = types.bool;
         default = true;
         description = "Enable or disable this MCP server.";
       };
-
       timeout = mkOption {
         type = types.nullOr types.int;
         default = null;
@@ -140,7 +119,6 @@ let
         default = null;
         description = "Initial connection timeout in seconds (default: 60).";
       };
-
       tools = mkOption {
         type = types.nullOr (
           types.submodule {
@@ -148,12 +126,12 @@ let
               include = mkOption {
                 type = types.listOf types.str;
                 default = [ ];
-                description = "Tool allowlist — only these tools are registered.";
+                description = "Tool allowlist: only these tools are registered.";
               };
               exclude = mkOption {
                 type = types.listOf types.str;
                 default = [ ];
-                description = "Tool blocklist — these tools are hidden.";
+                description = "Tool blocklist: these tools are hidden.";
               };
             };
           }
@@ -161,7 +139,6 @@ let
         default = null;
         description = "Filter which tools are exposed by this server.";
       };
-
       sampling = mkOption {
         type = types.nullOr (
           types.submodule {
@@ -221,7 +198,6 @@ let
     };
   };
 
-  # Convert the mcpServers submodules into the shape that config.yaml uses.
   mcpServersToConfig =
     servers:
     lib.mapAttrs (
@@ -258,20 +234,18 @@ let
     ) servers;
 
   # ── Paths ───────────────────────────────────────────────────────────────
-  # The workspace may live inside HERMES_HOME (already mounted) or outside it
-  # (needs its own mount, at the same path).
-  inHome = cfg.workingDirectory == cfg.hermesHome || lib.hasPrefix "${cfg.hermesHome}/" cfg.workingDirectory;
+  inHome =
+    cfg.workingDirectory == cfg.hermesHome || lib.hasPrefix "${cfg.hermesHome}/" cfg.workingDirectory;
 
-  # terminal.cwd must be the path the agent sees inside the container.
   containerWorkdir =
-    if inHome then dataDir + lib.removePrefix cfg.hermesHome cfg.workingDirectory else cfg.workingDirectory;
+    if inHome then
+      dataDir + lib.removePrefix cfg.hermesHome cfg.workingDirectory
+    else
+      cfg.workingDirectory;
+
+  home = lib.escapeShellArg cfg.hermesHome;
 
   # ── Rendered config.yaml ────────────────────────────────────────────────
-  # YAML contains JSON, so the output of toJSON is a valid config.yaml.
-  # In managed mode Hermes refuses to write config.yaml, so it cannot stamp
-  # `_config_version` itself and an unstamped file reads as version 0 at every
-  # boot. The version comes from `configVersion`, or else from the package's
-  # DEFAULT_CONFIG at build time.
   generatedConfig =
     if cfg.configVersion != null then
       pkgs.writeText "hermes-config.json" (
@@ -299,8 +273,6 @@ let
           PY
         '';
 
-  # Deep-merge Nix settings into the config.yaml on disk. Nix keys override;
-  # keys added at runtime (skills, streaming, …) are preserved.
   mergeScript = pkgs.writeScript "hermes-config-merge" ''
     #!${pkgs.python3.withPackages (ps: [ ps.ruamel-yaml ])}/bin/python3
     import json, sys
@@ -308,7 +280,6 @@ let
     from ruamel.yaml import YAML
 
     yaml = YAML(typ="safe", pure=True)
-    # Existing configs use YAML 1.1 booleans such as yes and off.
     yaml.version = (1, 1)
     yaml.default_flow_style = False
     yaml.sort_base_mapping_type_on_output = False
@@ -334,7 +305,6 @@ let
 
     merged = deep_merge(existing, nix)
 
-    # Write atomically, so a crash never leaves a half-written config.yaml.
     tmp = config_path.with_name(config_path.name + ".tmp")
     with open(tmp, "w") as f:
         yaml.dump(merged, f)
@@ -342,8 +312,6 @@ let
   '';
 
   # ── Documents ───────────────────────────────────────────────────────────
-  # Strings become store files (no heredoc, so no content can end the script
-  # early); paths and store paths are copied as they are.
   mkTree =
     name: files:
     pkgs.runCommand name { } (
@@ -356,10 +324,7 @@ let
           let
             dir = builtins.dirOf rel;
             src =
-              if builtins.isPath value || lib.isStorePath value then
-                value
-              else
-                pkgs.writeText "hermes-doc" value;
+              if builtins.isPath value || lib.isStorePath value then value else pkgs.writeText "hermes-doc" value;
           in
           lib.optionalString (dir != ".") "mkdir -p \"$out\"/${lib.escapeShellArg dir}\n"
           + "cp --no-preserve=mode ${src} \"$out\"/${lib.escapeShellArg rel}"
@@ -380,9 +345,6 @@ let
     );
 
   # ── .env ────────────────────────────────────────────────────────────────
-  # Non-secret values come from the Nix store. Activation then appends the
-  # secrets from runtime paths outside the store. The file is rewritten from
-  # the start each time, so a second activation never duplicates secrets.
   envBase = pkgs.writeText "hermes-env-base" (
     lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: "${k}=${v}") cfg.environment)
     + lib.optionalString (cfg.environment != { }) "\n"
@@ -404,15 +366,24 @@ let
   '';
 
   # ── State setup ─────────────────────────────────────────────────────────
-  # Runs inside `podman unshare`, so the files are owned by the user that the
-  # container maps to the host user, and `:U` volumes can be re-chowned.
-  home = lib.escapeShellArg cfg.hermesHome;
+  stateSubdirs = [
+    "cron"
+    "sessions"
+    "logs"
+    "memories"
+    "plugins"
+  ];
 
-  stateScript = pkgs.writeShellScript "hermes-podman-state" ''
+  stateScriptInner = pkgs.writeShellScript "hermes-podman-state-inner" ''
     set -eu
-    export PATH=${lib.makeBinPath [ pkgs.coreutils pkgs.findutils ]}:$PATH
+    export PATH=${
+      lib.makeBinPath [
+        pkgs.coreutils
+        pkgs.findutils
+        pkgs.gnused
+      ]
+    }:$PATH
 
-    # Directories, created here so the first activation sets the right mode.
     mkdir -p ${
       lib.escapeShellArgs (
         [
@@ -423,8 +394,6 @@ let
       )
     }
 
-    # config.yaml: merge the Nix settings into the file on disk. Hermes writes
-    # this file at runtime, so a read-only store symlink would break each save.
     ${
       if cfg.configFile != null then
         "install -m 0600 -D ${cfg.configFile} ${home}/config.yaml"
@@ -435,8 +404,6 @@ let
         ''
     }
 
-    # The managed-mode marker: an interactive shell also refuses to change the
-    # configuration that Nix owns.
     install -m 0600 ${pkgs.writeText "hermes-managed" managedSystem} ${home}/.managed
 
     ${lib.optionalString (cfg.environment != { } || cfg.environmentFiles != [ ]) ''
@@ -459,8 +426,6 @@ let
     ${installTree documentTree cfg.workingDirectory cfg.documents}
     ${installTree homeFilesTree cfg.hermesHome cfg.hermesHomeFiles}
 
-    # Declarative plugins. Old managed symlinks go first, so a plugin that you
-    # remove from the configuration also leaves the plugins directory.
     find ${home}/plugins -maxdepth 1 -type l -name 'nix-managed-*' -delete 2>/dev/null || true
     ${lib.concatMapStringsSep "\n" (plugin: ''
       if [ ! -f ${plugin}/plugin.yaml ]; then
@@ -471,28 +436,30 @@ let
     '') cfg.extraPlugins}
   '';
 
-  stateSubdirs = [
-    "cron"
-    "sessions"
-    "logs"
-    "memories"
-    "plugins"
-  ];
+  # The gateway and backend units run this in parallel, so serialize it.
+  stateScript = pkgs.writeShellScript "hermes-podman-state" ''
+    set -eu
+    ${pkgs.coreutils}/bin/mkdir -p ${home}
+    exec ${pkgs.util-linux}/bin/flock ${home} ${stateScriptInner}
+  '';
 
-  # ── Containers ──────────────────────────────────────────────────────────
-  # The image entrypoint is already `hermes`, so these are its arguments.
-  gatewayArgs = [ "gateway" ] ++ cfg.extraArgs;
+  runState =
+    if keepId then
+      "${stateScript}"
+    else
+      "${pkgs.coreutils}/bin/env PATH=/run/wrappers/bin:/usr/bin:/bin ${podman}/bin/podman unshare ${stateScript}";
 
-  backendArgs = [
-    cfg.backend.mode
-    "--host"
-    cfg.backend.host
-    "--port"
-    (toString cfg.backend.port)
-    # A service must not try to open a browser when it starts.
-    "--no-open"
+  # ── Container definition ────────────────────────────────────────────────
+  usernsArgs = lib.optional keepId "--userns=keep-id:uid=${toString pcfg.permissions.uid},gid=${toString pcfg.permissions.gid}";
+
+  volumeOpts = lib.optionalString (!keepId) ":U";
+
+  volumes = [
+    "${cfg.hermesHome}:${dataDir}${volumeOpts}"
   ]
-  ++ cfg.backend.extraArgs;
+  ++ lib.optional (!inHome) "${cfg.workingDirectory}:${cfg.workingDirectory}${volumeOpts}"
+  ++ lib.optional (cfg.extraPlugins != [ ]) "/nix/store:/nix/store:ro"
+  ++ pcfg.extraVolumes;
 
   containerEnvironment = {
     HERMES_HOME = dataDir;
@@ -500,18 +467,29 @@ let
   }
   // cfg.environment;
 
+  gatewayArgs = [
+    "gateway"
+    "run"
+  ]
+  ++ cfg.extraArgs;
+
+  backendArgs = [
+    cfg.backend.mode
+    "--host"
+    cfg.backend.host
+    "--port"
+    (toString cfg.backend.port)
+  ]
+  ++ lib.optional (cfg.backend.mode == "dashboard") "--no-open"
+  ++ cfg.backend.extraArgs;
+
   mkContainer = args': {
     inherit (pcfg) image network;
     exec = lib.escapeShellArgs args';
     environment = containerEnvironment;
     environmentFile = cfg.environmentFiles;
-    volumes = [
-      "${cfg.hermesHome}:${dataDir}:U"
-    ]
-    ++ lib.optional (!inHome) "${cfg.workingDirectory}:${cfg.workingDirectory}:U"
-    ++ lib.optional (cfg.extraPlugins != [ ]) "/nix/store:/nix/store:ro"
-    ++ pcfg.extraVolumes;
-    extraPodmanArgs = pcfg.extraArgs;
+    inherit volumes;
+    extraPodmanArgs = usernsArgs ++ pcfg.extraArgs;
     extraConfig = {
       Unit = {
         After = pcfg.after;
@@ -519,20 +497,106 @@ let
       };
       Container.StopTimeout = pcfg.stopTimeout;
       Service = {
+        ExecStartPre = runState;
         Restart = lib.mkForce cfg.restart;
         RestartSec = lib.mkForce (toString cfg.restartSec);
       };
     };
   };
 
-  # The CLI wrapper talks to the gateway container, or to the backend
-  # container when only that one is enabled.
-  cliTarget = if cfg.gateway.enable then pcfg.name else "${pcfg.name}-backend";
+  # ── Host wrappers ───────────────────────────────────────────────────────
+  cliTarget =
+    if cfg.gateway.enable then
+      gatewayName
+    else if cfg.backend.mode != "none" then
+      backendName
+    else
+      "";
 
-  cliWrapper = pkgs.writeShellScriptBin cfgPrograms.commandName ''
-    flags=-i
-    if [ -t 0 ] && [ -t 1 ]; then flags=-it; fi
-    exec ${podman}/bin/podman exec $flags ${lib.escapeShellArg cliTarget} hermes "$@"
+  # Same mounts and environment as the services, for the one-shot fallback.
+  runFlags = lib.escapeShellArgs (
+    usernsArgs
+    ++ [
+      "--network"
+      pcfg.network
+    ]
+    ++ lib.concatMap (v: [
+      "--volume"
+      v
+    ]) volumes
+    ++ lib.concatMap (f: [
+      "--env-file"
+      f
+    ]) cfg.environmentFiles
+    ++ lib.concatLists (
+      lib.mapAttrsToList (k: v: [
+        "--env"
+        "${k}=${v}"
+      ]) containerEnvironment
+    )
+    ++ pcfg.extraArgs
+  );
+
+  mkCli =
+    name: hermesArgs:
+    pkgs.writeShellScriptBin name ''
+      set -eu
+      podman=${podman}/bin/podman
+      target=${lib.escapeShellArg cliTarget}
+      cwd=${lib.escapeShellArg containerWorkdir}
+
+      case "$PWD" in
+        ${lib.escapeShellArg cfg.workingDirectory}|${lib.escapeShellArg cfg.workingDirectory}/*)
+          cwd=${lib.escapeShellArg containerWorkdir}"''${PWD#${cfg.workingDirectory}}"
+          ;;
+      esac
+
+      flags=-i
+      if [ -t 0 ] && [ -t 1 ]; then flags=-it; fi
+
+      if [ -n "$target" ] && [ "$("$podman" container inspect --format '{{.State.Running}}' "$target" 2>/dev/null)" = true ]; then
+        exec "$podman" exec $flags --workdir "$cwd" --env TERM "$target" hermes ${lib.escapeShellArgs hermesArgs} "$@"
+      fi
+
+      exec "$podman" run --rm $flags --workdir "$cwd" --env TERM ${runFlags} ${lib.escapeShellArg pcfg.image} ${lib.escapeShellArgs hermesArgs} "$@"
+    '';
+
+  backendUrl =
+    let
+      host =
+        if
+          lib.elem cfg.backend.host [
+            "0.0.0.0"
+            "::"
+          ]
+        then
+          "127.0.0.1"
+        else
+          cfg.backend.host;
+    in
+    "http://${host}:${toString cfg.backend.port}";
+
+  desktopPackage =
+    let
+      tokenFile = pgm.desktop.remoteTokenFile;
+      tokenSnippet = "[ -r ${lib.escapeShellArg tokenFile} ] && export HERMES_DESKTOP_REMOTE_TOKEN=\"$(cat ${lib.escapeShellArg tokenFile})\"";
+    in
+    pkgs.symlinkJoin {
+      name = "hermes-desktop-podman";
+      paths = [ pgm.desktop.package ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        for bin in "$out"/bin/*; do
+          wrapProgram "$bin" \
+            --set HERMES_HOME ${lib.escapeShellArg cfg.hermesHome} \
+            --set HERMES_DESKTOP_REMOTE_URL ${lib.escapeShellArg backendUrl} \
+            ${lib.optionalString (tokenFile != null) "--run ${lib.escapeShellArg tokenSnippet}"}
+        done
+      '';
+    };
+
+  webOpener = pkgs.writeShellScriptBin "${pgm.commandName}-web" ''
+    exec ${pkgs.xdg-utils}/bin/xdg-open ${lib.escapeShellArg backendUrl}
   '';
 
   badDocName = name: lib.hasPrefix "/" name || lib.elem ".." (lib.splitString "/" name);
@@ -542,19 +606,55 @@ in
   # Options
   # ════════════════════════════════════════════════════════════════════════
   options.programs.hermes-podman = {
-    enable = mkEnableOption ''
-      the Hermes CLI on PATH. It is a wrapper that runs `hermes` inside the
-      Hermes container
-    '';
-
     commandName = mkOption {
       type = types.str;
       default = "hermes";
       description = ''
-        The name of the wrapper command. Change it when another `hermes`
-        (for example the upstream package) is also on your PATH.
+        Name of the CLI wrapper. The TUI wrapper is `<name>-tui` and the web
+        opener is `<name>-web`.
       '';
       example = "hermes-podman";
+    };
+
+    cli.enable = mkOption {
+      type = types.bool;
+      default = cfg.enable;
+      defaultText = literalExpression "config.services.hermes-podman.enable";
+      description = "Install the CLI wrapper that runs `hermes` inside the container.";
+    };
+
+    tui.enable = mkOption {
+      type = types.bool;
+      default = cfg.enable;
+      defaultText = literalExpression "config.services.hermes-podman.enable";
+      description = "Install `<commandName>-tui`, which runs `hermes --tui` inside the container.";
+    };
+
+    web.enable = mkEnableOption ''
+      the web dashboard. It runs in the backend container and
+      `<commandName>-web` opens it in the browser
+    '';
+
+    desktop = {
+      enable = mkEnableOption ''
+        the Hermes Desktop app. It is wrapped to use the backend container
+        instead of a local runtime in ~/.hermes
+      '';
+      package = mkOption {
+        type = types.package;
+        default = pkgs.hermes.desktop;
+        defaultText = literalExpression "pkgs.hermes.desktop";
+        description = "The Hermes Desktop package to wrap.";
+      };
+      remoteTokenFile = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          Runtime path of a file that holds the session token. It is exported
+          as HERMES_DESKTOP_REMOTE_TOKEN at launch. Needed only when the
+          backend requires authentication (non-loopback host).
+        '';
+      };
     };
   };
 
@@ -563,17 +663,12 @@ in
 
     package = mkOption {
       type = types.package;
-      default =
-        if args ? inputs then
-          # args.inputs.hermes.packages.${pkgs.stdenv.hostPlatform.system}.default
-          args.pkgs.hermes
-        else
-          throw "services.hermes-podman.package: no `inputs` in specialArgs. Pass `extraSpecialArgs = { inherit inputs; }`, set `package`, or set `configVersion`.";
-      defaultText = literalExpression "inputs.self.packages.\${system}.default";
+      default = pkgs.hermes.full;
+      defaultText = literalExpression "pkgs.hermes.full";
       description = ''
-        The hermes-agent package. In podman mode the runtime is the container
-        image, so this is used only at build time, to read `_config_version`
-        for config.yaml. It is not evaluated when `configVersion` is set.
+        The hermes-agent package. The runtime is the container image, so this
+        is used only at build time, to read `_config_version` for config.yaml.
+        It is not evaluated when `configVersion` is set.
       '';
     };
 
@@ -582,8 +677,7 @@ in
       default = null;
       description = ''
         The `_config_version` to stamp into config.yaml. When null, the value
-        is read from the `package`. Set it to build config.yaml without the
-        package. It must match the image that you run.
+        is read from `package`. It must match the image that you run.
       '';
     };
 
@@ -609,9 +703,8 @@ in
       type = types.nullOr types.path;
       default = null;
       description = ''
-        The path to an existing config.yaml. If you set this option, it
-        replaces the `settings` option. The module installs the file without a
-        change and overwrites all runtime edits on each activation.
+        Path to an existing config.yaml. It replaces the `settings` option,
+        is installed unchanged, and overwrites runtime edits on each activation.
       '';
     };
 
@@ -619,13 +712,10 @@ in
       type = deepConfigType;
       default = { };
       description = ''
-        The Hermes configuration, as an attribute set. The module joins the
-        definitions from all modules and writes the result to config.yaml.
-
-        The merge into the config.yaml on disk is also a deep merge. These keys
-        replace the keys on disk. The module keeps all other keys, which
-        includes the keys that `hermes config set` and the settings panes of
-        the TUI and the desktop app write at runtime.
+        The Hermes configuration as an attribute set. Definitions from all
+        modules are deep-merged. The merge into the config.yaml on disk is
+        also deep: these keys replace the keys on disk, all other keys
+        (written at runtime) are kept.
       '';
       example = literalExpression ''
         {
@@ -636,19 +726,14 @@ in
       '';
     };
 
-    # ── Secrets / environment ───────────────────────────────────────────
     environmentFiles = mkOption {
-      # `str` and not `path`: a Nix path literal copies the secret into the
-      # Nix store, which all users can read.
+      # `str`, not `path`: a path literal would copy the secret into the Nix store.
       type = types.listOf types.str;
       default = [ ];
       description = ''
-        The paths to environment files that contain secrets, for example API
-        keys and tokens. They are read at runtime, added to $HERMES_HOME/.env,
-        and also given to the containers with --env-file.
-
-        Each activation writes .env again from the start, so a secret file
-        cannot go into .env two times.
+        Paths to environment files that contain secrets. They are read at
+        runtime, appended to $HERMES_HOME/.env, and passed to the containers
+        with --env-file. .env is rewritten from scratch on each activation.
       '';
       example = literalExpression ''[ config.sops.secrets."hermes/env".path ]'';
     };
@@ -657,26 +742,31 @@ in
       type = types.attrsOf types.str;
       default = { };
       description = ''
-        Environment variables that are not secret. Activation writes them to
-        $HERMES_HOME/.env, and the containers receive them.
-
-        CAUTION: Do not put secrets in this option. All users can read the Nix
-        store. Use environmentFiles for secrets.
+        Non-secret environment variables, written to $HERMES_HOME/.env and
+        given to the containers. Do not put secrets here: the Nix store is
+        world-readable.
       '';
     };
 
     authFile = mkOption {
-      # `str` and not `path`: auth.json holds OAuth credentials.
       type = types.nullOr types.str;
       default = null;
       description = ''
-        A runtime path to a file that gives the first contents of auth.json,
-        the OAuth credentials. The module copies the file only when auth.json
-        does not exist, so a token that Hermes refreshes stays after an
-        activation. Use a path from sops-nix or agenix, never a Nix path
-        literal.
+        Runtime path of the initial auth.json (OAuth credentials). It is
+        copied only when auth.json does not exist, so refreshed tokens stay.
       '';
       example = literalExpression ''config.sops.secrets."hermes/auth".path'';
+    };
+
+    substituteVars = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = ''
+        Variable names whose ''${NAME} placeholders in config.yaml are replaced
+        at runtime with values read from environmentFiles, so secrets stay out
+        of the Nix store.
+      '';
+      example = [ "OMNIROUTE_API_KEY" ];
     };
 
     authFileForceOverwrite = mkOption {
@@ -685,18 +775,12 @@ in
       description = "Always overwrite auth.json from authFile on activation.";
     };
 
-    # ── Documents ───────────────────────────────────────────────────────
     documents = mkOption {
       type = documentsType;
       default = { };
       description = ''
-        Workspace files. The module installs them into workingDirectory. Each
-        key is a relative path (subdirectories are created), and each value is
-        a string or a path.
-
-        Use this for the project context that the agent reads from its working
-        directory, for example AGENTS.md, notes and checklists. Hermes reads
-        SOUL.md and memories/ from HERMES_HOME, so put those in
+        Workspace files installed into workingDirectory. Keys are relative
+        paths, values are strings or paths. SOUL.md and memories/ belong in
         `hermesHomeFiles`.
       '';
       example = literalExpression ''
@@ -711,12 +795,8 @@ in
       type = documentsType;
       default = { };
       description = ''
-        Files that the module installs into HERMES_HOME. Each key is a relative
-        path, and each value is a string or a path.
-
-        Hermes reads SOUL.md and the memory files from HERMES_HOME and not from
-        the working directory. Declare those files here, or Hermes does not
-        load them.
+        Files installed into HERMES_HOME. Hermes reads SOUL.md and the memory
+        files from here, not from the working directory.
       '';
       example = literalExpression ''
         {
@@ -726,15 +806,12 @@ in
       '';
     };
 
-    # ── MCP servers ─────────────────────────────────────────────────────
     mcpServers = mkOption {
       type = types.attrsOf mcpServerType;
       default = { };
       description = ''
-        MCP server configurations (merged into settings.mcp_servers). Each
-        server uses either stdio (command/args) or HTTP (url) transport.
-        A stdio server runs inside the container, so its command must exist in
-        the image.
+        MCP server configurations (merged into settings.mcp_servers). A stdio
+        server runs inside the container, so its command must exist in the image.
       '';
       example = literalExpression ''
         {
@@ -754,10 +831,9 @@ in
       type = types.listOf types.package;
       default = [ ];
       description = ''
-        Directory-based plugin packages to symlink into the hermes plugins
-        directory. Each package must contain a plugin.yaml and __init__.py at
-        its root. The host /nix/store is mounted read-only into the containers
-        so the symlinks resolve.
+        Directory-based plugin packages symlinked into the plugins directory.
+        Each needs plugin.yaml and __init__.py at its root. The host
+        /nix/store is mounted read-only into the containers.
       '';
       example = literalExpression ''
         [
@@ -772,11 +848,10 @@ in
       '';
     };
 
-    # ── Service behaviour ───────────────────────────────────────────────
     extraArgs = mkOption {
       type = types.listOf types.str;
       default = [ ];
-      description = "Extra command-line arguments for `hermes gateway`.";
+      description = "Extra command-line arguments for `hermes gateway run`.";
     };
 
     restart = mkOption {
@@ -793,8 +868,6 @@ in
 
     gateway.enable = mkEnableOption "the messaging gateway container";
 
-    # `hermes serve` and `hermes dashboard` are one entry point with one flag
-    # of difference; you can run only one of them, so this is an enum.
     backend = {
       mode = mkOption {
         type = types.enum [
@@ -802,16 +875,20 @@ in
           "serve"
           "dashboard"
         ];
-        default = "none";
+        default =
+          if pgm.web.enable then
+            "dashboard"
+          else if pgm.desktop.enable then
+            "serve"
+          else
+            "none";
+        defaultText = literalExpression ''"dashboard" with web.enable, "serve" with desktop.enable, else "none"'';
         description = ''
           The backend container to run.
 
-          - "none"      — no backend
-          - "serve"     — the backend without a user interface. It gives the
-                          /api/ws and /api/pty sockets that Hermes Desktop
-                          connects to.
-          - "dashboard" — all that "serve" gives, and the browser admin panel
-                          on the same port
+          - "none":      no backend
+          - "serve":     headless backend (/api/ws and /api/pty) for Hermes Desktop
+          - "dashboard": everything "serve" gives, plus the browser admin panel
         '';
       };
 
@@ -819,13 +896,10 @@ in
         type = types.str;
         default = "127.0.0.1";
         description = ''
-          The address that the backend binds to. The container uses the host
-          network by default.
-
-          An address other than loopback starts the authentication gate of the
-          dashboard. Configure credentials then, or a client cannot connect.
-          The server also refuses each request with a Host header that differs
-          from the bound address (a defence against DNS rebinding).
+          Address the backend binds to (the container uses the host network).
+          A non-loopback address enables the authentication gate, so configure
+          credentials first. Requests whose Host header differs from the bound
+          address are refused.
         '';
       };
 
@@ -838,29 +912,63 @@ in
       extraArgs = mkOption {
         type = types.listOf types.str;
         default = [ ];
-        description = "More command-line arguments for the backend command.";
+        description = "Extra command-line arguments for the backend command.";
       };
     };
 
     podman = {
-      name = mkOption {
+      namePrefix = mkOption {
         type = types.str;
-        default = "hermes-podman";
-        description = "Container name. The backend container is named `<name>-backend`.";
+        default = "hermes";
+        description = ''
+          Container name prefix. Containers are `<prefix>-gateway` and
+          `<prefix>-backend`, so the units are `podman-<prefix>-gateway.service`
+          and `podman-<prefix>-backend.service`.
+        '';
       };
+
       image = mkOption {
         type = types.str;
         default = "docker.io/nousresearch/hermes-agent:latest";
-        description = ''
-          OCI image to run. Pin a tag that matches your `package` or
-          `configVersion`, or `_config_version` can drift from the image.
-        '';
+        description = "OCI image to run. Pin a tag that matches `package` or `configVersion`.";
       };
+
       network = mkOption {
         type = types.str;
         default = "host";
         description = "Podman network mode.";
       };
+
+      permissions = {
+        mode = mkOption {
+          type = types.enum [
+            "keep-id"
+            "chown"
+          ];
+          default = "keep-id";
+          description = ''
+            How file ownership is handled.
+
+            - "keep-id": the host user is mapped to the image user, so
+              hermesHome stays owned by you and the CLI, desktop app and
+              container all share it. No recursive chown.
+            - "chown":   the volume is mounted with `:U` and the state is
+              prepared inside `podman unshare`. Files end up owned by a subuid,
+              so the host user cannot edit them.
+          '';
+        };
+        uid = mkOption {
+          type = types.int;
+          default = 10000;
+          description = "UID of the user inside the image (keep-id mode).";
+        };
+        gid = mkOption {
+          type = types.int;
+          default = 10000;
+          description = "GID of the user inside the image (keep-id mode).";
+        };
+      };
+
       extraArgs = mkOption {
         type = types.listOf types.str;
         default = [ ];
@@ -874,12 +982,12 @@ in
       after = mkOption {
         type = types.listOf types.str;
         default = [ ];
-        description = "Systemd units the container service is ordered after.";
+        description = "Systemd units the container services are ordered after.";
       };
       wants = mkOption {
         type = types.listOf types.str;
         default = [ ];
-        description = "Systemd units the container service wants.";
+        description = "Systemd units the container services want.";
       };
       stopTimeout = mkOption {
         type = types.int;
@@ -893,13 +1001,18 @@ in
   # Config
   # ════════════════════════════════════════════════════════════════════════
   config = mkMerge [
-    (mkIf cfgPrograms.enable {
-      home.packages = [ cliWrapper ];
+    {
+      home.packages =
+        lib.optional pgm.cli.enable (mkCli pgm.commandName [ ])
+        ++ lib.optional pgm.tui.enable (mkCli "${pgm.commandName}-tui" [ "--tui" ])
+        ++ lib.optional pgm.desktop.enable desktopPackage
+        ++ lib.optional pgm.web.enable webOpener;
 
-      warnings = lib.optional (
-        !cfg.enable
-      ) "programs.hermes-podman.enable is set, but services.hermes-podman.enable is not. The `${cfgPrograms.commandName}` wrapper has no container to talk to.";
-    })
+      warnings =
+        lib.optional
+          (!cfg.enable && (pgm.cli.enable || pgm.tui.enable || pgm.web.enable || pgm.desktop.enable))
+          "programs.hermes-podman is enabled, but services.hermes-podman.enable is not. The wrappers have no container to talk to.";
+    }
 
     (mkIf cfg.enable (mkMerge [
       (mkIf (cfg.mcpServers != { }) {
@@ -913,13 +1026,26 @@ in
             message = "services.hermes-podman supports Linux only (rootless Podman with systemd user units).";
           }
           {
-            # Two plugins with the same name use one nix-managed-<name>
-            # symlink, and one of them would vanish without a message.
-            assertion = lib.length (map lib.getName cfg.extraPlugins) == lib.length (lib.unique (map lib.getName cfg.extraPlugins));
+            assertion = !pgm.desktop.enable || keepId;
+            message = "programs.hermes-podman.desktop needs podman.permissions.mode = \"keep-id\": the app writes logs into hermesHome as the host user.";
+          }
+          {
+            assertion = !pgm.web.enable || cfg.backend.mode == "dashboard";
+            message = "programs.hermes-podman.web.enable needs services.hermes-podman.backend.mode = \"dashboard\".";
+          }
+          {
+            assertion = !pgm.desktop.enable || cfg.backend.mode != "none";
+            message = "programs.hermes-podman.desktop.enable needs a backend container (backend.mode = \"serve\" or \"dashboard\").";
+          }
+          {
+            assertion =
+              lib.length (map lib.getName cfg.extraPlugins)
+              == lib.length (lib.unique (map lib.getName cfg.extraPlugins));
             message = "services.hermes-podman.extraPlugins: duplicate plugin names: ${toString (map lib.getName cfg.extraPlugins)}. With fetchFromGitHub, set name = \"plugin-name\".";
           }
           {
-            assertion = !(lib.any badDocName (lib.attrNames cfg.documents ++ lib.attrNames cfg.hermesHomeFiles));
+            assertion =
+              !(lib.any badDocName (lib.attrNames cfg.documents ++ lib.attrNames cfg.hermesHomeFiles));
             message = "services.hermes-podman.documents / hermesHomeFiles: a key must be a relative path without `..`.";
           }
         ];
@@ -930,20 +1056,20 @@ in
 
         services.podman.enable = true;
 
-        # Rootless: run inside the user namespace so that files in hermesHome
-        # (re-owned by `:U` volumes) stay writable. newuidmap/newgidmap must
-        # be on PATH: /run/wrappers/bin on NixOS, /usr/bin elsewhere.
-        home.activation.hermesPodmanSetup = lib.hm.dag.entryAfter [ "writeBoundary" "linkGeneration" ] ''
-          run env PATH="/run/wrappers/bin:$PATH:/usr/bin" ${podman}/bin/podman unshare ${stateScript}
-        '';
+        home.activation.hermesPodmanSetup = lib.hm.dag.entryAfter [ "writeBoundary" "linkGeneration" ] (
+          if keepId then
+            "run ${stateScript}"
+          else
+            ''run env PATH="/run/wrappers/bin:$PATH:/usr/bin" ${podman}/bin/podman unshare ${stateScript}''
+        );
       }
 
       (mkIf cfg.gateway.enable {
-        services.podman.containers.${pcfg.name} = mkContainer gatewayArgs;
+        services.podman.containers.${gatewayName} = mkContainer gatewayArgs;
       })
 
       (mkIf (cfg.backend.mode != "none") {
-        services.podman.containers."${pcfg.name}-backend" = mkContainer backendArgs;
+        services.podman.containers.${backendName} = mkContainer backendArgs;
       })
     ]))
   ];

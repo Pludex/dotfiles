@@ -66,7 +66,7 @@ in
           DATA_DIR = "/app/data";
         };
         environmentFile = [ config.sops.templates."omniroute.env".path ];
-        volumes = [ "/data/omniroute:/app/data:U" ];
+        volumes = [ "/workspaces/omniroute:/app/data:U" ];
         extraConfig = {
           Unit = {
             After = [ "sops-nix.service" ];

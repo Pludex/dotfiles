@@ -7,10 +7,8 @@
 let
   omnirouteKey = config.sops.placeholder."api-keys/omniroute/hermes";
   omniroute = config.ai.omniroute;
-  podman = config.services.podman.package;
   hermesHome = "/workspaces/hermes";
 
-  # Runs inside `podman unshare` so files owned by the container's subuids are readable.
   syncBody = pkgs.writeShellScript "hermes-git-sync-body" ''
     set -euo pipefail
     cd ${hermesHome}
@@ -44,6 +42,10 @@ let
   '';
 in
 {
+  imports = [
+    ../modules/hermes-podman.nix
+  ];
+
   sops.secrets."api-keys/omniroute/hermes" = { };
   sops.secrets."api-keys/hermes/api-server" = { };
   sops.secrets."ssh/hermes-deploy" = { };
@@ -54,25 +56,33 @@ in
     API_SERVER_KEY=${config.sops.placeholder."api-keys/hermes/api-server"}
   '';
 
-  programs.hermes-podman.enable = true;
-
   services.hermes-podman = {
     enable = true;
     inherit hermesHome;
     gateway.enable = true;
     restart = "on-failure";
-    extraArgs = [ "run" ];
 
     settings = {
       model = {
-        base_url = "${omniroute.url-base}/v1";
-        default = "antigravity/gemini-3.1-flash-lite";
+        provider = "custom:omniroute";
+        default = "auto";
+        base_url = "";
       };
+
+      providers.omniroute = {
+        api = "${omniroute.url-base}/v1";
+        api_key = "\${OMNIROUTE_API_KEY}";
+        transport = "openai_chat";
+        discover_models = false;
+        models = [ "auto" ];
+      };
+
       mcp_servers.omniroute = {
         url = "${omniroute.url-base}/api/mcp/stream";
         headers.Authorization = "Bearer \${OMNIROUTE_API_KEY}";
       };
     };
+    substituteVars = [ "OMNIROUTE_API_KEY" ];
 
     environment = {
       API_SERVER_ENABLED = "true";
@@ -96,7 +106,9 @@ in
   };
 
   sops.templates."hermes-git-sync-env".content = ''
-    GIT_SSH_COMMAND="ssh -F /dev/null -i ${config.sops.secrets."ssh/hermes-deploy".path} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+    GIT_SSH_COMMAND="ssh -F /dev/null -i ${
+      config.sops.secrets."ssh/hermes-deploy".path
+    } -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
     GIT_AUTHOR_NAME=hermes-sync
     GIT_AUTHOR_EMAIL=hermes-sync@localhost
     GIT_COMMITTER_NAME=hermes-sync
@@ -107,11 +119,10 @@ in
     Unit.Description = "Commit and push Hermes data";
     Service = {
       Type = "oneshot";
-      ExecStart = "${podman}/bin/podman unshare ${syncBody}";
+      ExecStart = "${syncBody}";
       Environment = [
         "PATH=${
           lib.makeBinPath [
-            podman
             pkgs.git
             pkgs.openssh
             pkgs.coreutils
@@ -130,12 +141,4 @@ in
     };
     Install.WantedBy = [ "timers.target" ];
   };
-
-  programs.git.settings.safe.directory = [
-    hermesHome
-  ];
-
-  imports = [
-    ../modules/hermes-podman.nix
-  ];
 }

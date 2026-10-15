@@ -3,17 +3,18 @@ ssh:
     hermes-deploy: ENC[AES256_GCM,data:RERQdzF9dOhu03pIaHkHu9QJefhJ3aLXWcpCcJbKGlKRjzHqM1PAh8ox+feJd9SLln4OsDwwMKagUymJjH2IdCXRpHmTe8oRXwA9XeuoPd4UpUwB4Htue1ZVt9O9wIpZEeL1gPMkbva7wAn3qZd6rKcUES6bCc95u6T0GpwnW7PfjKMuvmH9bhind+1MbEEVV1krl3XJGI4OJiZJ/xcYIaDqyjPPj8c5rbTy6iHggO/IDEprMJGjdRgfXXv469Fq6+Oix8GxI3ozxXZKHiBtTJprHD/hUMR4YBa58efzs0MyHv4Xv61cA9m7JjActAjicq1XQE1QBR61hmCcjVLVGdkvTfjUYku1Jf2SXtPlObHs4o+oO9QQTqlckVYj4/OekSJfBRsMxC0HzRYwkpmUSwECSQyUnEZg0GSCMdxJ6IE9g48zAB8xK0w+dfnsdUfQriKYSvVQ65lZVKBG/1TvQC2/5L0lJ4yh4oDmg8FWk920tbApRN86pi3RobFEEwLDGsm67eqtbP1tQpodDrCyBw52Vnc2KBJluU1s,iv:hqE/YmT9ryUPULaksxMTJNDjOn1SZn+BfbiyZA+VZNs=,tag:F9bf1bAbaEZ3bOo/c/Fkiw==,type:str]
 hashedPassword: ENC[AES256_GCM,data:zv5tvQjj3DXsQkI35ZzVHUJNH1y9YLewl8PoL5uHM95PB9gLhur7d91gpiub2V6hFR0cFm97NodL0yzd0oDf8F49pHrszW21x0ji8oPloI2DQK65i16Nf3iIYMTBRthar/NU1Nf1FmjqLg==,iv:ingUEGfztHouGhLdLwemSSUNKjRRSsz6PyUlE64T8nU=,tag:Hr4R1Q/hBtCHxN4685i2Ug==,type:str]
 api-keys:
-    gemini:
-        dotfiles: ENC[AES256_GCM,data:0D3IeuaK+PqKmXsUbwBWflFiR54v0vQVlCYVDAHkOAZN4NPOrwbdiL4wuyfZA8vELwpAT5g=,iv:9ms6vvp1u1E+PmY8Ijvtn6CBlShVqjdnTOsi9ZF3ft4=,tag:0JhhWtme1xjVID5rZC6B6Q==,type:str]
     openrouter:
-        claude-code: ENC[AES256_GCM,data:7eNbGybLvRqWUgkGL6pidPJvlHINI/kq3RFc9hjtbEcb7vomQWQVMT9ByV77uMu9HXUpRyHqnuKJSvFtRM/bD7b2+RmHitbg+w==,iv:fCMbY5crsCWyvSZQ7i4QUmv80yNJklNqId8wskzq5q0=,tag:kVOSV/8nMChyFwyEkaztXg==,type:str]
-        omniroute: ENC[AES256_GCM,data:bfwlclSQppzs8c4GuCrSrfwZJs2xHFDtYBj2W6JwThyu0k4FEP+S4NKBvlEEmIed4ot+OwsCptlwp0ywODxfFCBHGxHEHkucKA==,iv:Y56lfYHdY6Ca0vks5PNLOzL1X/I3BatnlwM3ifWVQGU=,tag:9VACicA7F5qqcKSUK0ZlPQ==,type:str]
+        omniroute: ENC[AES256_GCM,data:YGw8WUmMotICLoG2qSS9Rfz55DZJozqsEinvtl5k90G1OSalmyV9sXJYa9ScKhcqF3BvfFkrQWZeYgPw2tViqlNbxSuBK+T96g==,iv:dDmwDcTLb9fIGmIJLnqLyVmToWXOKIgAvscuxHhSAv0=,tag:v3feEfjg9LYXSJNxFdHDgA==,type:str]
+        omniroute-1: ENC[AES256_GCM,data:2B3A3U05N6Otztnq7sUx6BN1vYddVaZ2sWmvOIfS5ZGbtJMKP3rUr4d02E/gMyywFao0W1BNkKIBHvmCNBHo6c/UrR/DBZ+Dhw==,iv:EAnGOaGvd3e7GPrlhY1f/IbDz9nxUFLqTXtdHy39g2M=,tag:j8L7uQENc0GluOTBqecQOw==,type:str]
+        omniroute-2: ENC[AES256_GCM,data:dmWcPYC3bAD33XAyOeNhvEoJAE/KCidM1d/lTAdUbhd97MGgnmg1gV8RfIacI/yuMRvkoI/l2pMM/+x2UDRXWD5qXdKecZx1Ug==,iv:ozN/nKhO8Sfw29n8Q+Zie6/+ADyUrzrhzt/5VtfqBn4=,tag:9XkD67w0/ZAO6y2wKIJ9Cg==,type:str]
+        omniroute-3: ENC[AES256_GCM,data:BbvNLNuKUi+ZmTfyU7OnxBpg046Wo2Nsfg78RPe6WQpMhILRoXyPR3hgpti4jkcoTDw1Xkjy9PUNqVnIaTCujlMtSqIMTh07kQ==,iv:dE/FLks9eFJY+479FhFN64Oz3iaIHwHfBRRigWFcP9I=,tag:VjnZx9hVaVfSuaCE3vMouA==,type:str]
+        omniroute-4: ENC[AES256_GCM,data:3JJ8Js//n5NhfydisBT5Fcn+PxELShmnBnxM+aUj/80IfZcsNUq4uFHRkmjx0Sm8+GwVlsmJcU/64hwU0auSJqI6RpeNCyBa8Q==,iv:OGsfNp0CEOn/uEslCBMYTHk4EyhAGUy1OxBUBGtuZVc=,tag:J18YrEdKhrDBKoCEs8nZvg==,type:str]
     omniroute:
-        open-webui: ENC[AES256_GCM,data:eIoU7QHndT4s7ZIA4FIlokmKi7qEip8pdsmKwER/ZGPINMc=,iv:igZhbITTaDrCuozt1kYb/6stfMWHL2BYcSRpAbctJUo=,tag:l+SwznaFnLECwSftqDERcw==,type:str]
-        claude-code: ENC[AES256_GCM,data:6n1KdhGclABB80xhMYMYV+Z1SGI+/l7kq+00XkJuNozmgJQ=,iv:rp1rYJcBup+lJ+d4PKPYh3x/HblT8grf7G8BcDpnJXA=,tag:L6C6C5DSwI5JS5ATSuL2UA==,type:str]
-        librechat: ENC[AES256_GCM,data:f2JLixDt9ZBMzeLKex3Ga7FCScpXpY4/mobaEkX9bGGDYvg=,iv:v0HpjGiyQJHHtOfy2oo2U7s206KWJNcZ25xS8q3Z7/o=,tag:IuTmxBmcdaLQeudqwm6RoA==,type:str]
-        lobehub: ENC[AES256_GCM,data:/ZchqkuXH6Pdy3zskyrUcFOzds+cC2oIEleVAPCQo4Lmccg=,iv:gle12Tm5oOL2oyxBr542pQDw1omIfmtXIUA6ox1BgEo=,tag:pW38mM4foXcuaqdjCyjioQ==,type:str]
-        hermes: ENC[AES256_GCM,data:NwhhRxFIxOlpxv8Iu7DXmV+NmpokKwbw2KxIk2XYm9r0KRU=,iv:wB47KYEUdlSuQ5bSLmkHFjL7FjCKdumPGd9OLWlSg8Q=,tag:tDffR5GCHq7/La+JkhAdTQ==,type:str]
+        open-webui: ENC[AES256_GCM,data:q81Zx1RcEnwlRD20I4YO87ox2UL572zJZUpEL5aJbFeq9II=,iv:N35+KYNzgarlTk10VFAuY8WPcGOl/Yoqfoq2ra3epNo=,tag:gTVZzNoStJ/0guHaMVgZlw==,type:str]
+        claude-code: ENC[AES256_GCM,data:Rwx3N9RAXCd6fkOs9hrA6zZuSkEdPk+cE5Ylkr81IK4f3Gk=,iv:lBER6ttadeeD0/NL4BHjA3/gRvggWYuKY26YopxsZrs=,tag:mWTuXlK1t6FWi37nMo7meA==,type:str]
+        librechat: ENC[AES256_GCM,data:Bm5qMaVfiLPNts8JI+7eDJ5obh6ge0msCRn0He18F5Q/Ekg=,iv:VKwAfmqmpqcbXGN/SDyCTopmNGh7NIDb4DSaEVhZsuU=,tag:eCPWv8HOW0HfZGOXfG+nDA==,type:str]
+        lobehub: ENC[AES256_GCM,data:SShaSia5DTYZQkFdnQtbiR0VujxDfa2sWSKHnKWCN/lwTjk=,iv:zGX6+V5Wre181qw9iwlHdWonNEm3aDQmFGyXCvwKnfw=,tag:VVKtuVYAT94gPusb8Wn9Cg==,type:str]
+        hermes: ENC[AES256_GCM,data:Ent7mwn8ro7cHA9LXtgMPE7YgiZZ8pzhuloZY7cwdqqEyOU=,iv:9gmsAa02pHL4Cwkj6dzNUlxQYE22+lRe3IiFX7g/j1g=,tag:JD543Wwkf8Q1yh8RoZ+hCA==,type:str]
     github-mcp: ENC[AES256_GCM,data:r/rEbSPypP5pNKX4Jud8XG1A5dq9Wxw38E748Am0pKW7bSoy/MwerKyxYNA4a1LB5uWIxC8mJMocwF8yTjvGsHZlHEAd3LQXqsWzl2vGjHPyOKMBtyPEVWlHii0T,iv:l8cIpLv8lvV6c/K/vBHS8kjzUJ/LhO4nfdbke7p2K+o=,tag:zdzO30/H5JiHcWuGumbeVg==,type:str]
     hermes:
         api-server: ENC[AES256_GCM,data:lXc39j/gAAMLFwE6Y7TMsxHOwOmYhw3+k19qDGjCw0a1JZ7al+U2QELaQGJ+WMEEVhdezyBBeTkRM4+o/xMz9g==,iv:pdIjs60RW0Rs0QhrKeptn/ldADH2621INxIScQcsNtU=,tag:S71C67HVGT8Kv2XC80iWMw==,type:str]
@@ -44,7 +45,7 @@ sops:
             lTnvZx4UOwXLmQSbn5mswO0oddOmymWD61zwTt9wEcgcNxEZlk6n0w==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0
-    lastmodified: "2026-10-13T12:55:35Z"
-    mac: ENC[AES256_GCM,data:LbXru5azt6BlwKFJkSH0XYRFaIBEWSpgX7VdIdW4h2+JeP58HdsRt88fpxyRJw9rfYJT8wiFrGe7Q1hsOYTz5BfYFnB2qsbYaKzBKdKJJtk0YDQrJXlhCPrgth9Fks3Z2FcNKkm/bp/AgOAVYmOpSaPhrwbQOt9KnVeaEc3USUA=,iv:XMjn7MPKdLN8+5QH911FAkqfLIBBE7SltViYVOGV6Fo=,tag:izeUgH0iZ96SnSAt0IGFAw==,type:str]
+    lastmodified: "2026-10-14T16:04:09Z"
+    mac: ENC[AES256_GCM,data:htgKSddxpZVhoPwcMsYG7tsswFLBUqgg9vfYkCIpAA3iSqpk7p8KXAxhChmEZJI+q2S/oeVstpxAzX60cVPuzSaVpfUMl0WzXoFw47g7CRgwwAh+nXfRQL3hdq4mvV5VGZ/blETK/LICSGWPSxwH/UiGDXHl4gF9xFU9L0ZnBo4=,iv:fBPMp2g/4F1LR6YiDoKLoU0II2yXQyuXAFfsk60yRiM=,tag:G1HqiL7+gRPdxqbdiFVjFg==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.3

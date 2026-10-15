@@ -26,13 +26,18 @@
   };
 
   perSystem = { inputs', config, ... }: {
-    packagesOfInputs.waybar = inputs'.waybar.packages.default;
-    ciPackages.waybar = config.packagesOfInputs.waybar;
+    packagesOfInputs = {
+      waybar = inputs'.waybar.packages.default;
+      walker = inputs'.walker.packages.default;
+      hermes = inputs'.hermes-agent.packages // {
+        full = inputs'.hermes-agent.packages.default;
+      };
+    };
 
-    packagesOfInputs.walker = inputs'.walker.packages.default;
-    ciPackages.walker = config.packagesOfInputs.walker;
-
-    packagesOfInputs.hermes = inputs'.hermes-agent.packages.default;
-    ciPackages.hermes = config.packagesOfInputs.hermes;
+    ciPackages = {
+      waybar = config.packagesOfInputs.waybar;
+      walker = config.packagesOfInputs.walker;
+      hermes = config.packagesOfInputs.hermes;
+    };
   };
 }
