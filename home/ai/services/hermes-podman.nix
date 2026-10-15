@@ -50,12 +50,14 @@ in
   sops.secrets."api-keys/hermes/api-server" = { };
   sops.secrets."ssh/hermes-deploy" = { };
   sops.secrets."api-keys/context7/hermes" = { };
+  sops.secrets."github/mcp-token" = { };
 
   sops.templates."hermes-env".content = ''
     OPENAI_API_KEY=${omnirouteKey}
     OMNIROUTE_API_KEY=${omnirouteKey}
     API_SERVER_KEY=${config.sops.placeholder."api-keys/hermes/api-server"}
     CONTEXT7_API_KEY=${config.sops.placeholder."api-keys/context7/hermes"}
+    GITHUB_MCP_TOKEN=${config.sops.placeholder."github/mcp-token"}
   '';
 
   services.hermes-podman = {
@@ -88,11 +90,19 @@ in
         url = "https://mcp.context7.com/mcp";
         headers.CONTEXT7_API_KEY = "\${CONTEXT7_API_KEY}";
       };
+
+      mcp_servers.github = {
+        url = "https://api.githubcopilot.com/mcp/";
+        headers = {
+          Authorization = "Bearer \${GITHUB_MCP_TOKEN}";
+        };
+      };
     };
 
     substituteVars = [
       "OMNIROUTE_API_KEY"
       "CONTEXT7_API_KEY"
+      "GITHUB_MCP_TOKEN"
     ];
 
     environment = {
