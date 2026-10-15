@@ -4,7 +4,8 @@ Name=Default
 # Layout
 Default Layout=us
 # Default Input Method
-DefaultIM=lotus
+# DefaultIM=lotus
+DefaultIM=bamboo
 
 [Groups/0/Items/0]
 # Name
@@ -14,7 +15,8 @@ Name=keyboard-us
 
 [Groups/0/Items/1]
 # Name
-Name=lotus
+# Name=lotus
+Name=bamboo
 # Layout
 # Layout=
 
