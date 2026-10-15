@@ -49,11 +49,13 @@ in
   sops.secrets."api-keys/omniroute/hermes" = { };
   sops.secrets."api-keys/hermes/api-server" = { };
   sops.secrets."ssh/hermes-deploy" = { };
+  sops.secrets."api-keys/context7/hermes" = { };
 
   sops.templates."hermes-env".content = ''
     OPENAI_API_KEY=${omnirouteKey}
     OMNIROUTE_API_KEY=${omnirouteKey}
     API_SERVER_KEY=${config.sops.placeholder."api-keys/hermes/api-server"}
+    CONTEXT7_API_KEY=${config.sops.placeholder."api-keys/context7/hermes"}
   '';
 
   services.hermes-podman = {
@@ -81,8 +83,17 @@ in
         url = "${omniroute.url-base}/api/mcp/stream";
         headers.Authorization = "Bearer \${OMNIROUTE_API_KEY}";
       };
+
+      mcp_servers.context7 = {
+        url = "https://mcp.context7.com/mcp";
+        headers.CONTEXT7_API_KEY = "\${CONTEXT7_API_KEY}";
+      };
     };
-    substituteVars = [ "OMNIROUTE_API_KEY" ];
+
+    substituteVars = [
+      "OMNIROUTE_API_KEY"
+      "CONTEXT7_API_KEY"
+    ];
 
     environment = {
       API_SERVER_ENABLED = "true";
@@ -140,5 +151,9 @@ in
       Persistent = true;
     };
     Install.WantedBy = [ "timers.target" ];
+  };
+
+  programs.hermes-podman = {
+    desktop.enable = true;
   };
 }

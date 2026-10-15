@@ -18,6 +18,8 @@ api-keys:
     github-mcp: ENC[AES256_GCM,data:r/rEbSPypP5pNKX4Jud8XG1A5dq9Wxw38E748Am0pKW7bSoy/MwerKyxYNA4a1LB5uWIxC8mJMocwF8yTjvGsHZlHEAd3LQXqsWzl2vGjHPyOKMBtyPEVWlHii0T,iv:l8cIpLv8lvV6c/K/vBHS8kjzUJ/LhO4nfdbke7p2K+o=,tag:zdzO30/H5JiHcWuGumbeVg==,type:str]
     hermes:
         api-server: ENC[AES256_GCM,data:lXc39j/gAAMLFwE6Y7TMsxHOwOmYhw3+k19qDGjCw0a1JZ7al+U2QELaQGJ+WMEEVhdezyBBeTkRM4+o/xMz9g==,iv:pdIjs60RW0Rs0QhrKeptn/ldADH2621INxIScQcsNtU=,tag:S71C67HVGT8Kv2XC80iWMw==,type:str]
+    context7:
+        hermes: ENC[AES256_GCM,data:eGtOAR1pONZHIFyyxWJNgGuO+eFFGYA/5YU6UmzQhfW3eXO7m56kKbXbFA==,iv:9Rbvb16FuyjtKa9lVwrg2xKU8IOXsaTsFzpEN/FXy8E=,tag:6XwUXmF9346f270ka2Ud0Q==,type:str]
 librechat:
     creds-key: ENC[AES256_GCM,data:j3cIJHxxHlBEjrqHq53jWPFbrLJvjPkeRUORyXTj4oYdw6hDqpB3QivNo25pEEseHV6O4G6yzlBB/CsGCbdtjA==,iv:kQ6kSA5xOZ8km7OVSsIf9W4XuByumGNxzGQOZJqVPfs=,tag:wO4L92Q8j8mP7DSZJgbsfQ==,type:str]
     creds-iv: ENC[AES256_GCM,data:DM/+if8qQCHw+SL6FqreAM2A9C6JhkJ0m+XDasQ7siA=,iv:w7jG9tpKlI7IgjmZflHRFSA12KIMEi1N6PNdybrmHsw=,tag:zNCqOYimvZZzryqHd+F8gw==,type:str]
@@ -45,7 +47,7 @@ sops:
             lTnvZx4UOwXLmQSbn5mswO0oddOmymWD61zwTt9wEcgcNxEZlk6n0w==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0
-    lastmodified: "2026-10-14T16:04:09Z"
-    mac: ENC[AES256_GCM,data:htgKSddxpZVhoPwcMsYG7tsswFLBUqgg9vfYkCIpAA3iSqpk7p8KXAxhChmEZJI+q2S/oeVstpxAzX60cVPuzSaVpfUMl0WzXoFw47g7CRgwwAh+nXfRQL3hdq4mvV5VGZ/blETK/LICSGWPSxwH/UiGDXHl4gF9xFU9L0ZnBo4=,iv:fBPMp2g/4F1LR6YiDoKLoU0II2yXQyuXAFfsk60yRiM=,tag:G1HqiL7+gRPdxqbdiFVjFg==,type:str]
+    lastmodified: "2026-10-15T14:01:48Z"
+    mac: ENC[AES256_GCM,data:7PfS59x0mA9phELkg++FtWt5C3jNpQ5TsDgMBulYSDXmzeQZLj8GftPmN9Dq0LCUdZBUXpMz66tqGn6B8zKMoHRBIRvcVuoxyu+IbFpRW4T0t5BzDWC9U18o2ACdqlX10JbzAwwMMe18NN8Kyi9B2OC5w3+xNhi25H8GT5Tw+JE=,iv:YbZrsnnao+mEDt/ViZgnkGLdtiMl4pZV8cqqzUwiHW8=,tag:qqj9tYfoGClkQKY4R/oFvA==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.3
