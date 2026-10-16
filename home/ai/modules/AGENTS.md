@@ -1,18 +1,3 @@
-<!--
-SPDX-License-Identifier: MIT
-
-Copyright (c) Nous Research and hermes-agent contributors
-  Original work: nix/moduleCommon.nix and nix/homeManagerModules.nix
-  https://github.com/NousResearch/hermes-agent
-
-Copyright (c) 2026 <YOUR NAME>
-  Modifications and this document: single-module podman variant for
-  Home Manager (`hermes-podman`).
-
-NOTE: confirm the licence against the LICENSE file of the upstream repository
-and keep this header in sync with it.
--->
-
 # AGENTS.md — hermes-podman
 
 Instructions for AI coding agents (and humans) working on this repository.
@@ -86,7 +71,7 @@ External dependencies (not in this repo):
    `environmentFiles` passed with `--env-file`.
 3. **Host wrappers** (`mkCli`): `podman exec` into the running gateway (or
    backend) container, with a one-shot `podman run` fallback that uses the same
-   mounts and environment. The desktop app is wrapped to use the backend URL.
+   mounts and environment. The desktop app is wrapped to use the backend URL (default port **9119**).
 
 ## Permission modes
 
@@ -124,7 +109,7 @@ External dependencies (not in this repo):
   passed to the containers.
 - `.env`, `auth.json`, `config.yaml`, documents are mode `0600`.
 - Non-loopback `backend.host` enables the dashboard auth gate. Put
-  `HERMES_DASHBOARD_SESSION_TOKEN=<token>` in `environmentFiles`.
+  `HERMES_DASHBOARD_SESSION_TOKEN=*** in `environmentFiles`.
 - Document keys must be relative paths without `..` (enforced by assertion).
 
 ## Behaviour to preserve
@@ -164,22 +149,4 @@ nix-instantiate --parse hermes-podman.nix >/dev/null      # syntax
 home-manager build --flake .#<user>                       # evaluation + build
 systemctl --user list-units 'podman-hermes*'              # after switch
 podman ps -a --format '{{.Names}}\t{{.Status}}'
-```
 
-If you change an option, check that no reference to the old name remains
-(`grep -n 'hermes-agent' hermes-podman.nix` should only show the image name,
-the licence header and upstream URLs).
-
-## Syncing with upstream
-
-1. Diff upstream `nix/moduleCommon.nix` and `nix/homeManagerModules.nix`
-   against the previous sync.
-2. Port only what applies to the podman variant. Rename every
-   `hermes-agent` option path to `hermes-podman`.
-3. Keep the copyright header, and add yourself under "Modifications".
-
-## Copyright rule
-
-Every source file carries the header from the top of this file (adapted to the
-comment syntax). Do not remove the upstream notice. Add new modifications under
-the second copyright line.

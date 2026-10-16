@@ -51,6 +51,7 @@ in
   sops.secrets."ssh/hermes-deploy" = { };
   sops.secrets."api-keys/context7/hermes" = { };
   sops.secrets."github/mcp-token" = { };
+  sops.secrets."hermes/desktop-token" = { };
 
   sops.templates."hermes-env".content = ''
     OPENAI_API_KEY=${omnirouteKey}
@@ -58,6 +59,7 @@ in
     API_SERVER_KEY=${config.sops.placeholder."api-keys/hermes/api-server"}
     CONTEXT7_API_KEY=${config.sops.placeholder."api-keys/context7/hermes"}
     GITHUB_MCP_TOKEN=${config.sops.placeholder."github/mcp-token"}
+    HERMES_DASHBOARD_SESSION_TOKEN=${config.sops.placeholder."hermes/desktop-token"}
   '';
 
   services.hermes-podman = {
@@ -164,6 +166,10 @@ in
   };
 
   programs.hermes-podman = {
-    desktop.enable = true;
+    desktop = {
+      enable = true;
+      remoteTokenFile = config.sops.secrets."hermes/desktop-token".path;
+    };
+    web.enable = true;
   };
 }

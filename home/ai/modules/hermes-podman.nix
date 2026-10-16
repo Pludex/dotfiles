@@ -1072,5 +1072,36 @@ in
         services.podman.containers.${backendName} = mkContainer backendArgs;
       })
     ]))
+
+    {
+      home.activation.hermesPodmanRestart =
+        let
+          units = [
+            "podman-hermes-gateway.service"
+            "podman-hermes-backend.service"
+          ];
+          settingsFile = pkgs.writeText "hermes-settings.json" (
+            builtins.toJSON config.services.hermes-podman.settings
+          );
+          stateFile = "${config.xdg.stateHome}/hermes-podman/fingerprint";
+          sc = "${pkgs.systemd}/bin/systemctl --user";
+        in
+        lib.hm.dag.entryAfter [ "reloadSystemd" "hermesPodmanSetup" ] ''
+          if [ -z "''${DRY_RUN:-}" ]; then
+            fp=$(
+              {
+                cat ${settingsFile}
+                ${sc} cat ${lib.escapeShellArgs units} 2>/dev/null || true
+                cat ${cfg.hermesHome}/.env 2>/dev/null || true
+              } | ${pkgs.coreutils}/bin/sha256sum | ${pkgs.coreutils}/bin/cut -d' ' -f1
+            )
+            mkdir -p "$(dirname ${stateFile})"
+            if [ -f ${stateFile} ] && [ "$(cat ${stateFile})" != "$fp" ]; then
+              ${sc} restart ${lib.escapeShellArgs units} || true
+            fi
+            echo "$fp" > ${stateFile}
+          fi
+        '';
+    }
   ];
 }
