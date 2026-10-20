@@ -47,6 +47,7 @@ in
   ];
 
   sops.secrets."api-keys/omniroute/hermes" = { };
+  sops.secrets."api-keys/omniroute/manage" = { };
   sops.secrets."api-keys/hermes/api-server" = { };
   sops.secrets."ssh/hermes-deploy" = { };
   sops.secrets."api-keys/context7/hermes" = { };
@@ -59,6 +60,7 @@ in
     API_SERVER_KEY=${config.sops.placeholder."api-keys/hermes/api-server"}
     CONTEXT7_API_KEY=${config.sops.placeholder."api-keys/context7/hermes"}
     GITHUB_MCP_TOKEN=${config.sops.placeholder."github/mcp-token"}
+    OMNIROUTE_MANAGE_KEY=${config.sops.placeholder."api-keys/omniroute/manage"}
     HERMES_DASHBOARD_SESSION_TOKEN=${config.sops.placeholder."hermes/desktop-token"}
   '';
 
@@ -71,7 +73,7 @@ in
     settings = {
       model = {
         provider = "custom:omniroute";
-        default = "auto";
+        default = "gemini";
         base_url = "";
       };
 
