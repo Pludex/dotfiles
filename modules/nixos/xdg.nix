@@ -1,20 +1,27 @@
-{ pkgs, ... }:
 {
-  xdg.portal = {
-    enable = true;
+  pkgs,
+  lib,
+  config,
+  ...
+}:
+{
+  config = lib.mkIf (!config.isContainer) {
+    xdg.portal = {
+      enable = true;
 
-    extraPortals = [
-      pkgs.xdg-desktop-portal-gtk
+      extraPortals = [
+        pkgs.xdg-desktop-portal-gtk
+      ];
+
+      config.common.default = "*";
+    };
+
+    environment.pathsToLink = [
+      "/share/applications"
+      "/share/xdg-desktop-portal"
+      "/share/gsettings-schemas"
+      "/share/icons"
+      "/share/dbus-1"
     ];
-
-    config.common.default = "*";
   };
-
-  environment.pathsToLink = [
-    "/share/applications"
-    "/share/xdg-desktop-portal"
-    "/share/gsettings-schemas"
-    "/share/icons"
-    "/share/dbus-1"
-  ];
 }

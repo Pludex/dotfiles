@@ -1,5 +1,6 @@
+{lib, config, ...}:
 {
-  services.kanata = {
+  services.kanata = lib.mkIf (!config.isContainer) {
     enable = true;
     keyboards = {
       default = {

@@ -1,11 +1,28 @@
-{ base, pkgs, ... }:
 {
-  system.stateVersion = "26.05";
+  base,
+  pkgs,
+  lib,
+  config,
+  ...
+}:
+{
+  config = {
+    system.stateVersion = "26.05";
 
-  time.timeZone = base.timeZone;
-  i18n.defaultLocale = base.locale;
+    time.timeZone = base.timeZone;
+    i18n.defaultLocale = base.locale;
 
-  environment.systemPackages = [ pkgs.mkcert ];
+    environment.systemPackages = [ pkgs.mkcert ];
+
+    boot.isContainer = config.isContainer;
+  };
+
+  options = {
+    isContainer = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+    };
+  };
 
   imports = [
     ./keyboard
