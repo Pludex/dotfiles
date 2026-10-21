@@ -11,14 +11,18 @@ let
 
   mkConfig =
     base: profile: c:
+    let
+      host = if c.host == null then null else cfg.builder.hostOf c.host;
+    in
     inputs.nixvim.lib.evalNixvim {
       extraSpecialArgs = {
-        inherit base;
+        inherit base host;
         inherit (base) inputs;
       };
       modules =
         cfg.nixvimModules
         ++ c.extraModules
+        ++ cfg.builder.hostModules host "nixvim"
         ++ config.profilesResult.${profile}.nixvim
         ++ [
           "${cfg.paths.modules}/nixvim"
@@ -62,10 +66,6 @@ let
       ln -s ${gui} $out/bin/${profile}-gui
     '';
 
-  # Every pkgs built through this flake's overlay chain (mkPkgs/mksPkgs)
-  # already carries `pkgs.myPkgs.<profile>`, baked in by the overlay
-  # below - so this is now a thin convenience wrapper, not the primary
-  # way to get a profile's package.
   mkNvimPkg =
     { profile, pkgs }:
     pkgs.myPkgs.${profile} or (throw "base.nixvim: no profile '${profile}' in myPkgs");
@@ -73,9 +73,6 @@ let
   # `final` is the overlay fixed-point, so it's safe to use as `pkgs`
   # here even though this overlay is itself part of building that same
   # pkgs set - same pattern as the `paths.libx` overlay in base.nix.
-  # This is what auto-injects every configured profile as
-  # `myPkgs.<profile>` at the top level of every pkgs built via this
-  # flake's overlay chain.
   mkMyPkgsOverlay =
     final: prev:
     let
@@ -131,9 +128,16 @@ in
     nixvim = mkOption {
       type = types.attrsOf (
         types.submodule {
-          options.extraModules = mkOption {
-            type = types.listOf types.raw;
-            default = [ ];
+          options = {
+            host = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "Key in hosts.<name> to use, null when the profile is host-independent";
+            };
+            extraModules = mkOption {
+              type = types.listOf types.raw;
+              default = [ ];
+            };
           };
         }
       );
@@ -145,18 +149,11 @@ in
     builder.mkNvimPkg = mkNvimPkg;
     builder.mkNixvimConfig = mkConfig;
 
-    # Registers the overlay that bakes myPkgs.<profile> into every
-    # pkgs built through this flake's overlay chain.
     overlays = [ mkMyPkgsOverlay ];
 
     perSystem =
       { base, ... }:
       {
-        # Kept for introspection (flake output shape
-        # nixvimConfigurations.<system>.<profile>) - note this
-        # re-evaluates nixvim configs separately from the overlay
-        # above, so it's a second evaluation, not a reuse of
-        # base.pkgs.myPkgs.
         nixvimConfigurations = lib.mapAttrs (profile: c: mkConfig base profile c) cfg.nixvim;
       };
   };

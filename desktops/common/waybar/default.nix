@@ -2,7 +2,7 @@
   pkgs,
   lib,
   config,
-  osConfig,
+  host,
   ...
 }:
 
@@ -58,7 +58,7 @@ let
     desktops.${config.desktop}
       or (throw "waybar: unsupported desktop \"${config.desktop}\", expected one of: ${lib.concatStringsSep ", " (lib.attrNames desktops)}");
 
-  gpuDrivers = osConfig.host-config.gpuDrivers;
+  inherit (host) gpus;
 
   gpuScripts = {
     nvidia = pkgs.writeShellScript "waybar-gpu-nvidia" ''
@@ -85,7 +85,7 @@ let
     '';
   };
 
-  gpuTag = name: lib.optionalString (lib.length gpuDrivers > 1) "${lib.toUpper name} ";
+  gpuTag = name: lib.optionalString (lib.length gpus > 1) "${lib.toUpper name} ";
 
   gpuModules = lib.listToAttrs (
     map (
@@ -97,10 +97,10 @@ let
         tooltip = false;
         on-click = "${term} nvtop";
       }
-    ) gpuDrivers
+    ) gpus
   );
 
-  gpuNames = map (name: "custom/gpu-${name}") gpuDrivers;
+  gpuNames = map (name: "custom/gpu-${name}") gpus;
 
   mediaScript = pkgs.writeShellScript "waybar-media" ''
     fmt='{{artist}} - {{title}}'

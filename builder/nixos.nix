@@ -8,8 +8,6 @@ let
   inherit (lib) mkOption types;
   cfg = config;
 
-  str = mkOption { type = types.str; };
-
   configOptions =
     { lib, ... }:
     let
@@ -32,28 +30,34 @@ let
   mkSystem =
     name: c:
     let
-      # Base of this config's architecture, memoized per system by flake-parts
-      base = cfg.base.forSystem c.system;
+      hostName = if c.host == null then name else c.host;
+      host = cfg.builder.hostOf hostName;
+      # Base of this host's architecture, memoized per system by flake-parts
+      base = cfg.base.forSystem host.system // {
+        inherit host;
+      };
       inherit (base) paths;
     in
     inputs.nixpkgs.lib.nixosSystem {
       specialArgs = {
-        inherit base;
+        inherit base host;
         inherit (base) inputs;
       };
       modules =
         cfg.nixosModules
         ++ c.extraModules
         ++ config.profilesResult.${c.profile}.nixos
+        ++ cfg.builder.hostModules host "nixos"
         ++ [
           "${paths.modules}/nixos"
-          (import paths.hosts { inherit (c) host; })
           (import paths.desktops { inherit (c) desktop; }).nixos
           inputs.home-manager.nixosModules.home-manager
           configOptions
           {
-            inherit (c) desktop profile host;
+            inherit (c) desktop profile;
             inherit name;
+            host = host.name;
+            networking.hostName = lib.mkDefault host.name;
           }
           # nixpkgs.config is ignored once nixpkgs.pkgs is set; overlays would be appended on top
           { nixpkgs.pkgs = base.pkgs; }
@@ -61,7 +65,7 @@ let
           (
             { config, ... }:
             {
-              home-manager = base.mkHomeNonStandalone { inherit config base; };
+              home-manager = base.mkHomeNonStandalone { inherit config base host; };
             }
           )
         ];
@@ -79,10 +83,13 @@ in
       type = types.attrsOf (
         types.submodule {
           options = {
-            host = str;
-            system = str;
-            profile = str;
-            desktop = str;
+            host = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "Key in hosts.<name> to use, defaults to the name of this configuration";
+            };
+            profile = mkOption { type = types.str; };
+            desktop = mkOption { type = types.str; };
             extraModules = mkOption {
               type = types.listOf types.raw;
               default = [ ];

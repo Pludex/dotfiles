@@ -10,7 +10,7 @@
     "${base.username}@dp7530" = {
       profile = "desktop";
       desktop = "hyprland";
-      system = "x86_64-linux";
+      host = "dp7530";
     };
   };
 
@@ -19,34 +19,35 @@
       profile = "desktop";
       desktop = "niri";
       host = "dp7530";
-      system = "x86_64-linux";
     };
 
     dp7530 = {
       profile = "desktop";
       desktop = "hyprland";
       host = "dp7530";
-      system = "x86_64-linux";
     };
 
     nixos-live = {
       profile = "live";
       desktop = "niri";
       host = "live";
-      system = "x86_64-linux";
     };
 
     ci = {
       profile = "ci";
       desktop = "tty";
       host = "ci-runner";
-      system = "x86_64-linux";
     };
   };
 
   nixvim = {
-    editor = { };
-    leetcode = { };
+    editor = {
+      host = "dp7530";
+    };
+
+    leetcode = {
+      host = "dp7530";
+    };
   };
 
   systems = [
@@ -96,6 +97,7 @@
     ./base
     ./pkgs
     ./profiles
+    ./hosts
 
     inputs.treefmt-nix.flakeModule
   ];

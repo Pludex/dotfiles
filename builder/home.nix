@@ -8,8 +8,6 @@ let
   inherit (lib) mkOption types;
   cfg = config;
 
-  str = mkOption { type = types.str; };
-
   configOptions =
     { lib, ... }:
     {
@@ -41,11 +39,13 @@ let
       name,
       profile,
       desktop,
+      host,
       extraModules ? [ ],
     }:
     cfg.homeModules
     ++ extraModules
     ++ config.profilesResult.${profile}.home
+    ++ cfg.builder.hostModules host "home"
     ++ [
       "${cfg.paths.modules}/home"
       (import cfg.paths.desktops { inherit desktop; }).home
@@ -63,28 +63,37 @@ let
   mkStandalone =
     name: c:
     let
-      # Base of this config's architecture, memoized per system by flake-parts
-      base = cfg.base.forSystem c.system;
+      hostName = if c.host == null then name else c.host;
+      host = cfg.builder.hostOf hostName;
+      # Base of this host's architecture, memoized per system by flake-parts
+      base = cfg.base.forSystem host.system // {
+        inherit host;
+      };
     in
     inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = base.pkgs;
       # specialArgs are resolved before `config`, so modules can use them
       # in `imports` (e.g. `base.inputs.sops-nix.homeManagerModules.sops`).
       extraSpecialArgs = {
-        inherit base;
+        inherit base host;
         inherit (base) inputs;
       };
 
       modules = mkModules {
-        inherit name;
+        inherit name host;
         inherit (c) profile desktop extraModules;
         standalone = true;
       };
     };
 
-  # Called from the NixOS side with that config's own base
+  # Called from the NixOS side with that config's own base and host
   mkNonStandalone =
-    { config, base, ... }:
+    {
+      config,
+      base,
+      host,
+      ...
+    }:
     {
       # pkgs (with all overlays) comes from the NixOS config, which is
       # nixpkgs.pkgs = base.pkgs, so both sides share one instance.
@@ -93,12 +102,13 @@ let
       backupFileExtension = "hm-backup";
 
       extraSpecialArgs = {
-        inherit base;
+        inherit base host;
         inherit (base) inputs;
       };
 
       users.${base.username}.imports = mkModules {
         inherit (config) name profile desktop;
+        inherit host;
         standalone = false;
       };
     };
@@ -115,9 +125,13 @@ in
       type = types.attrsOf (
         types.submodule {
           options = {
-            system = str;
-            profile = str;
-            desktop = str;
+            host = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "Key in hosts.<name> to use, defaults to the name of this configuration";
+            };
+            profile = mkOption { type = types.str; };
+            desktop = mkOption { type = types.str; };
             extraModules = mkOption {
               type = types.listOf types.raw;
               default = [ ];

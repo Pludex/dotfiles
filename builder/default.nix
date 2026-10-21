@@ -8,6 +8,7 @@
           ./base.nix
           ./nixos.nix
           ./home.nix
+          ./host.nix
           ./nixvim.nix
           ./package.nix
           ./profiles.nix

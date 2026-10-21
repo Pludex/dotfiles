@@ -1,4 +1,4 @@
-{ pkgs, config, ... }:
+{ pkgs, host, ... }:
 {
   programs.hyprland = {
     enable = true;
@@ -25,7 +25,7 @@
 
   services.xserver = {
     enable = true;
-    videoDrivers = config.host-config.gpuDrivers;
+    videoDrivers = host.gpus;
   };
 
   services.logind.settings.Login.HandlePowerKey = "ignore";
