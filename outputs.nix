@@ -77,7 +77,7 @@
     };
   };
 
-  perSystem = { base, ... }: {
+  perSystem = { ... }: {
     treefmt.config = {
       projectRootFile = "flake.nix";
       programs = {
@@ -87,8 +87,6 @@
         # ruff.enable = true;
       };
     };
-
-    devShells.default = import ./devshell.nix base;
   };
 
   flake.lib = inputs.nixpkgs.lib;
@@ -98,6 +96,7 @@
     ./pkgs
     ./profiles
     ./hosts
+    ./devshells.nix
 
     inputs.treefmt-nix.flakeModule
   ];
