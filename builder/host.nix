@@ -3,8 +3,19 @@ let
   inherit (lib) mkOption types;
   cfg = config;
 
+  # Parent modules come first so the child can override them
+  hostModules =
+    host: framework:
+    lib.optionals (host != null) (
+      lib.optionals (host.extends != null) (hostModules cfg.hosts.${host.extends} framework)
+      ++ lib.optional (host.modules ? ${framework}) host.modules.${framework}
+    );
+
   hostModule =
-    { name, ... }:
+    { name, config, ... }:
+    let
+      parent = if config.extends == null then null else cfg.hosts.${config.extends};
+    in
     {
       options = {
         name = mkOption {
@@ -14,8 +25,21 @@ let
           description = "Host name, taken from the attribute name in hosts.<name>";
         };
 
+        extends = mkOption {
+          type = types.nullOr types.str;
+          default = null;
+          description = "Host to inherit system, gpus and modules from";
+        };
+
+        withHome = mkOption {
+          type = types.bool;
+          default = true;
+          description = "Whether home-manager is enabled for this host";
+        };
+
         system = mkOption {
           type = types.str;
+          default = if parent != null then parent.system else throw "hosts.${name}.system is not set";
           example = "x86_64-linux";
           description = "System architecture of this host";
         };
@@ -28,7 +52,7 @@ let
               "nvidia"
             ]
           );
-          default = [ ];
+          default = if parent != null then parent.gpus else [ ];
           description = "GPU vendors available on this host";
         };
 
@@ -50,9 +74,6 @@ in
 
   config.builder = {
     hostOf = name: cfg.hosts.${name} or (throw "Unknown host '${name}'");
-
-    # Empty when host is null or has no module for this framework
-    hostModules =
-      host: framework: lib.optional (host != null && host.modules ? ${framework}) host.modules.${framework};
+    inherit hostModules;
   };
 }
