@@ -24,7 +24,7 @@ in
         hashedPasswordFile = config.sops.secrets."hashedPassword".path;
         inherit (base) uid;
       };
-      users.groups.users.gid = base.uid;
+
       sops.secrets."hashedPassword" = { };
     })
 
