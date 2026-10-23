@@ -27,6 +27,10 @@ let
       };
     };
 
+  # Look up nixos.<name>, with a readable error when it doesn't exist
+  nixosConfigOf =
+    name: cfg.nixos.${name} or (throw "builder: nixos.${name} is not defined");
+
   resolve =
     name: c:
     let
@@ -87,6 +91,10 @@ let
       )
     ];
 
+  # Same as above, but addressed by the config name (nixos.<name>)
+  nixosModulesOf = name: mkNixosModules name (nixosConfigOf name);
+  nixosSpecialArgsOf = name: mkNixosSpecialArgs name (nixosConfigOf name);
+
   mkSystem =
     name: c:
     inputs.nixpkgs.lib.nixosSystem {
@@ -126,8 +134,14 @@ in
 
   config = {
     flake.nixosConfigurations = lib.mapAttrs mkSystem cfg.nixos;
-    builder.mkNixos = mkSystem;
-    builder.mkNixosModules = mkNixosModules;
-    builder.mkNixosSpecialArgs = mkNixosSpecialArgs;
+
+    builder = {
+      mkNixos = mkSystem;
+      mkNixosModules = mkNixosModules;
+      mkNixosSpecialArgs = mkNixosSpecialArgs;
+
+      # By config name: builder.nixosModulesOf "laptop" -> [ module ... ]
+      inherit nixosModulesOf nixosSpecialArgsOf;
+    };
   };
 }
