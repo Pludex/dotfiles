@@ -5,22 +5,36 @@
   config,
   ...
 }:
+let
+  bot = base.botOf config.name;
+in
 {
-  config = {
-    system.stateVersion = "26.05";
+  config = lib.mkMerge [
+    {
+      system.stateVersion = "26.05";
 
-    time.timeZone = base.timeZone;
-    i18n.defaultLocale = base.locale;
+      time.timeZone = base.timeZone;
+      i18n.defaultLocale = base.locale;
 
-    environment.systemPackages = [ pkgs.mkcert ];
+      environment.systemPackages = [ pkgs.mkcert ];
 
-    boot.isContainer = config.isContainer;
-  };
+      boot.isContainer = config.isContainer;
+    }
+
+    (lib.mkIf config.isContainer {
+      inherit bot;
+    })
+  ];
 
   options = {
     isContainer = lib.mkOption {
       type = lib.types.bool;
       default = false;
+    };
+
+    bot = lib.mkOption {
+      type = lib.types.raw;
+      default = null;
     };
   };
 

@@ -32,7 +32,9 @@ let
     let
       hostName = if c.host == null then name else c.host;
       host = cfg.builder.hostOf hostName;
-      base = cfg.base.forSystem host.system // { inherit host; };
+      base = cfg.base.forSystem host.system // {
+        inherit host;
+      };
     in
     {
       inherit host base;
@@ -77,7 +79,10 @@ let
       (
         { config, ... }:
         {
-          home-manager = base.mkHomeNonStandalone { inherit config base host; };
+          home-manager = base.mkHomeNonStandalone {
+            inherit config base host;
+            username = if (!config.isContainer) then base.username else (base.botOf name).username;
+          };
         }
       )
     ];

@@ -92,6 +92,7 @@ let
       config,
       base,
       host,
+      username,
       ...
     }:
     {
@@ -106,7 +107,7 @@ let
         inherit (base) inputs;
       };
 
-      users.${base.username}.imports = mkModules {
+      users.${username}.imports = mkModules {
         inherit (config) name profile desktop;
         inherit host;
         standalone = false;

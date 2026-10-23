@@ -2,24 +2,43 @@
   base,
   lib,
   osConfig ? null,
+  config,
   ...
 }:
+let
+  bot = base.botOf config.name;
+in
 {
-  config = {
-    home.username = base.username;
-    home.homeDirectory = base.abs.home;
-    home.stateVersion = "26.05";
+  config = lib.mkMerge [
+    {
+      home.stateVersion = "26.05";
 
-    programs.man.generateCaches = false;
+      isContainer = if (osConfig == null) then lib.mkDefault false else osConfig.isContainer;
+      programs.man.generateCaches = false;
+      home.sessionVariables = base.tools.envvars;
+    }
 
-    home.sessionVariables = base.tools.envvars;
-    isContainer = if (osConfig == null) then lib.mkDefault false else osConfig.isContainer;
-  };
+    (lib.mkIf (!config.isContainer) {
+      home.username = base.username;
+      home.homeDirectory = base.abs.home;
+    })
+
+    (lib.mkIf (config.isContainer) {
+      home.username = lib.mkForce bot.username;
+      home.homeDirectory = lib.mkForce bot.abs.home;
+
+      inherit bot;
+    })
+  ];
 
   options = {
     isContainer = lib.mkOption {
       type = lib.types.bool;
       default = false;
+    };
+    bot = lib.mkOption {
+      type = lib.types.raw;
+      default = null;
     };
   };
 

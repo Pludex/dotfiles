@@ -5,15 +5,16 @@
   ...
 }:
 let
-  inherit (config) isContainer;
-  bot = base.bots.${config.name} or (throw "base.bots.${config.name} is not defined");
+  inherit (config) isContainer bot;
 in
 {
   config = lib.mkMerge [
     (lib.mkIf (!isContainer) {
       users.users.${base.username} = {
         isNormalUser = true;
+        # isSystemUser = false;
         description = base.name;
+        group = "users";
         extraGroups = [
           "wheel"
           "networkmanager"
@@ -21,8 +22,9 @@ in
         shell = base.tools.shell;
         home = base.abs.home;
         hashedPasswordFile = config.sops.secrets."hashedPassword".path;
+        inherit (base) uid;
       };
-
+      users.groups.users.gid = base.uid;
       sops.secrets."hashedPassword" = { };
     })
 
@@ -30,9 +32,9 @@ in
       users = {
         mutableUsers = false;
         allowNoPasswordLogin = true;
-
         users.${bot.username} = {
           isSystemUser = true;
+          # isNormalUser = false;
           uid = bot.uid;
           group = bot.username;
           home = bot.abs.home;
