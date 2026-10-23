@@ -17,8 +17,6 @@ in
       i18n.defaultLocale = base.locale;
 
       environment.systemPackages = [ pkgs.mkcert ];
-
-      boot.isContainer = config.isContainer;
     }
 
     (lib.mkIf config.isContainer {
