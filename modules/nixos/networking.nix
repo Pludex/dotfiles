@@ -16,7 +16,11 @@ in
 
       firewall = {
         enable = true;
-        allowedTCPPorts = [ 22 80 443 ];
+        allowedTCPPorts = [
+          22
+          80
+          443
+        ];
         allowedUDPPorts = [ 51820 ]; # WireGuard
       };
 
@@ -49,7 +53,10 @@ in
       DNSSEC = "allow-downgrade";
       DNSOverTLS = "true";
       Domains = [ "~." ];
-      FallbackDNS = [ "1.1.1.1" "8.8.8.8" ];
+      FallbackDNS = [
+        "1.1.1.1"
+        "8.8.8.8"
+      ];
     };
   };
 }

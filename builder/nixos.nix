@@ -28,8 +28,7 @@ let
     };
 
   # Look up nixos.<name>, with a readable error when it doesn't exist
-  nixosConfigOf =
-    name: cfg.nixos.${name} or (throw "builder: nixos.${name} is not defined");
+  nixosConfigOf = name: cfg.nixos.${name} or (throw "builder: nixos.${name} is not defined");
 
   resolve =
     name: c:

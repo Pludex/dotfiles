@@ -136,7 +136,7 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable  {
+  config = lib.mkIf cfg.enable {
     home.packages = [ cfg.package ];
 
     systemd.user.services.omniroute = {

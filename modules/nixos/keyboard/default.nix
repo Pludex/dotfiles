@@ -1,4 +1,4 @@
-{lib, config, ...}:
+{ lib, config, ... }:
 {
   services.kanata = lib.mkIf (!config.isContainer) {
     enable = true;

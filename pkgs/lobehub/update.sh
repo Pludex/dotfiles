@@ -8,7 +8,7 @@ cli_req="${1:-latest}"
 desktop_req="${2:-}"
 
 gh_args=(-fsSL)
-if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+if [[ -n ${GITHUB_TOKEN:-} ]]; then
   gh_args+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
 fi
 
@@ -22,7 +22,7 @@ cli_hash="$(jq -r .dist.integrity <<<"$meta")"
 
 curl -fsSL "$cli_url" | tar xz -C "$tmp"
 
-jq 'del(.devDependencies, .scripts)' "$tmp/package/package.json" > "$tmp/package.json"
+jq 'del(.devDependencies, .scripts)' "$tmp/package/package.json" >"$tmp/package.json"
 if grep -q 'workspace:' "$tmp/package.json"; then
   echo "error: workspace: references remain in package.json" >&2
   exit 1
@@ -39,16 +39,19 @@ cp "$tmp/package.json" package.json
 cp "$tmp/lock/package-lock.json" package-lock.json
 npm_deps_hash="$(prefetch-npm-deps package-lock.json)"
 
-if [[ -z "$desktop_req" ]]; then
+if [[ -z $desktop_req ]]; then
   releases="$(curl "${gh_args[@]}" "https://api.github.com/repos/lobehub/lobehub/releases?per_page=100")"
   has_appimage='any(.assets[]; .name | endswith(".AppImage"))'
 
   tag="$(jq -r "[.[] | select(.draft == false and .prerelease == false and $has_appimage)][0].tag_name // empty" <<<"$releases")"
-  if [[ -z "$tag" ]]; then
+  if [[ -z $tag ]]; then
     echo "warning: no stable release with an AppImage, falling back to a prerelease" >&2
     tag="$(jq -r "[.[] | select(.draft == false and (.tag_name | test(\"nightly\") | not) and $has_appimage)][0].tag_name // empty" <<<"$releases")"
   fi
-  [[ -n "$tag" ]] || { echo "error: no release with an AppImage found" >&2; exit 1; }
+  [[ -n $tag ]] || {
+    echo "error: no release with an AppImage found" >&2
+    exit 1
+  }
 else
   tag="v${desktop_req#v}"
 fi
@@ -77,7 +80,7 @@ jq -n \
       url: $desktopUrl,
       hash: $desktopHash
     }
-  }' > default.json.tmp
+  }' >default.json.tmp
 mv default.json.tmp default.json
 
 echo "cli ${cli_version}, desktop ${desktop_version}" >&2

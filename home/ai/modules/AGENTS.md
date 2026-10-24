@@ -150,3 +150,4 @@ home-manager build --flake .#<user>                       # evaluation + build
 systemctl --user list-units 'podman-hermes*'              # after switch
 podman ps -a --format '{{.Names}}\t{{.Status}}'
 
+```
