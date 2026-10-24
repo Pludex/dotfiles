@@ -94,6 +94,10 @@
         "win10"
       ];
 
+      containers = [
+        "hermes"
+      ];
+
       extraModules = [
       ];
 

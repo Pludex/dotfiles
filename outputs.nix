@@ -38,6 +38,12 @@
       desktop = "tty";
       host = "ci-runner";
     };
+
+    hermes = {
+      profile = "hermes";
+      desktop = "tty";
+      host = "container";
+    };
   };
 
   nixvim = {

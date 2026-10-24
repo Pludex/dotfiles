@@ -42,6 +42,8 @@ github:
     mcp-token: ENC[AES256_GCM,data:qMc77eKsl6CLc45YVnJDSJEHxBgxyF/MCMg5PWlU+xZDcrKj9qh81k1cQGe/Fy/ydkHzHSmvNYHbcuVFf46VVJTygfgajVlt05Xy2oIffB/jkOyi0ySCjG39ETqt,iv:yv93xkMrcBLKDdZOaxFmTJPSzZTLktSSlV6mwXdpLj8=,tag:S8I0ldMzAOV3iUCMC81JeA==,type:str]
 hermes:
     desktop-token: ENC[AES256_GCM,data:aH4t77yw8cG7/00HPjKowPWXVzhPdMtyhBS/oC2i3MREaEyyIl/Pd/5wUFZhA2iwFEb0uJJXij5QXmOhMcfSVg==,iv:vgCfyRU8TgZ0fcs9LcrzSyBx4tnuAEvg1wtmY82XT5E=,tag:MEiJsBlmElvKjbHnam27FA==,type:str]
+age-keys:
+    hermes: ENC[AES256_GCM,data:6OXWWkljG3Fh0Wb+RK5R98xz/gnx2vQOtdImB1Yy6z1VKe0LB+NswTtS5UgINN4YjeAoOPT6gV83dHbbJOwWpy5W39oxfZGW6sk=,iv:zE80XQ/SB31Hg8wrl25o0FJu4d6j3FtlKXNJSjicl/4=,tag:ATkORQicajrqNhscDAEgPA==,type:str]
 sops:
     age:
         - enc: |
@@ -53,7 +55,7 @@ sops:
             lTnvZx4UOwXLmQSbn5mswO0oddOmymWD61zwTt9wEcgcNxEZlk6n0w==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0
-    lastmodified: "2026-10-22T10:27:27Z"
-    mac: ENC[AES256_GCM,data:R/vTQnyB+lDUJ6r9JOQ6jJ8NhNZYkGiyWBYtkzRI/tUcLx9jVSmRGB7EW5wphYUl7AWCHxbQmLW+0jJ7HA4Wc5IR5mB11iiBjtd5qeUue147sEw3lpTGq8J5Q35B8iEbALNnazKS2KVXjXuCTOWjlrJZ5216DTyHGMxYvVOvCXM=,iv:Mec/7/BVj4Zqz6DMzydtsG417uf8mTiI/XCUlnyUu3M=,tag:hIHnlnyCRzNgzrdp8fnd9g==,type:str]
+    lastmodified: "2026-10-23T18:05:40Z"
+    mac: ENC[AES256_GCM,data:uBVjkl9Y8/2hI2ycz8r14pm5zCCr00LSccWU8NZ2lGecnNSseC9guYBIhHN1/ZIm+MDnl51cPsobXaiHEj4bNDot9YK20W0LpVtc9Qh86ih9bk4uf9OhmucIBXW9M/GGGZ/p4SaeHipiEQA3CFm+9EB61Zs8QKfRTvgZurppSTo=,iv:xYresY5xv8i9jG33pgo+V31rh0Jjt5PwHCwdVq2WubI=,tag:LCZ5WHRi0SeFhTg5bhjw6Q==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.3

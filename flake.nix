@@ -50,7 +50,6 @@
   outputs = inputs: ((import ./builder { inherit inputs; }).mkDotfiles { });
   inputs = {
     # core
-
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/61b7c44c4073f0b827768aff0049561b5110ea5a";
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -72,7 +71,6 @@
     };
 
     # system
-
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";

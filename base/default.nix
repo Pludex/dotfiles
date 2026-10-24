@@ -48,6 +48,7 @@
       services = ../nixos/services;
       virtualisation = ../nixos/virtualisation;
       apps = ../nixos/apps;
+      containers = ../nixos/containers;
     };
 
     home = {
@@ -77,6 +78,7 @@
   };
 
   imports = [
+    ./ai.nix
     ./bots.nix
     ./ignores.nix
     ./glyphs.nix

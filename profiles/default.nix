@@ -10,6 +10,7 @@ in
     ./ci.nix
     ./desktop.nix
     ./editor.nix
+    ./hermes.nix
     ./leetcode.nix
     ./live.nix
   ];
@@ -33,6 +34,7 @@ in
       services = n: np.services + "/${n}";
       virtualisation = n: np.virtualisation + "/${n}";
       apps = n: np.apps + "/${n}";
+      containers = n: np.containers + "/${n}";
     };
 
     nixvim = {

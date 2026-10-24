@@ -1,0 +1,6 @@
+{
+  profiles.hermes = {
+    nixos = { };
+    home = { };
+  };
+}
