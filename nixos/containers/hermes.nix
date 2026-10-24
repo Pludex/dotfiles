@@ -55,15 +55,15 @@ in
       cmd = [ "${toplevel}/init" ];
       volumes = [
         "/nix/store:/nix/store:ro"
-        "/nix/var/nix/daemon-socket:/nix/var "
-        "/workspaces/dotfiles:/workspaces/dotfiles"
+        "/nix/var/nix/daemon-socket:/nix/var/nix/daemon-socket"
+        "/workspaces/dotfiles:/workspaces/dotfiles-ref:ro"
         # "${base.ai.hermes-agnet.abs.data}:/app/data:U"
         "${config.sops.secrets."age-keys/hermes".path}:${bot.age.privateKeyPath}:ro,Z"
-        "/hermes"
       ];
       extraOptions = [
         "--systemd=always"
         "--security-opt=no-new-privileges"
+        "--group-add=keep-groups"
       ];
       podman.user = "hermes-host";
     };
