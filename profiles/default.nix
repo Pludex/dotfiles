@@ -30,6 +30,15 @@ in
       ides = n: hp.ides + "/${n}";
     };
 
+    homeRoot = {
+      ai = n: hp.ai + "/${n}";
+      apps = n: hp.apps + "/${n}";
+      programs = n: hp.programs + "/${n}";
+      services = n: hp.services + "/${n}";
+      develop = n: hp.develop + "/${n}";
+      ides = n: hp.ides + "/${n}";
+    };
+
     nixos = {
       services = n: np.services + "/${n}";
       virtualisation = n: np.virtualisation + "/${n}";

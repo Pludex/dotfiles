@@ -44,7 +44,7 @@ let
     }:
     cfg.homeModules
     ++ extraModules
-    ++ config.profilesResult.${profile}.home
+    ++ cfg.profilesResult.${profile}.home
     ++ cfg.builder.hostModules host "home"
     ++ [
       "${cfg.paths.modules}/home"
@@ -57,6 +57,23 @@ let
           desktop
           name
           ;
+      }
+    ];
+
+  # Root only gets the profile's rootHome modules, never the per-user home or desktop.
+  mkRootModules =
+    {
+      name,
+      profile,
+      desktop,
+    }:
+    cfg.homeModules
+    ++ (cfg.profilesResult.${profile}.rootHome or [ ])
+    ++ [
+      configOptions
+      {
+        standalone = false;
+        inherit profile desktop name;
       }
     ];
 
@@ -93,8 +110,14 @@ let
       base,
       host,
       username,
+      withRoot ? true,
       ...
     }:
+    let
+      # withRoot is checked first so hosts that disable root never touch rootHome
+      hasRoot =
+        withRoot && username != "root" && (cfg.profilesResult.${config.profile}.rootHome or [ ]) != [ ];
+    in
     {
       # pkgs (with all overlays) comes from the NixOS config, which is
       # nixpkgs.pkgs = base.pkgs, so both sides share one instance.
@@ -107,10 +130,17 @@ let
         inherit (base) inputs;
       };
 
-      users.${username}.imports = mkModules {
-        inherit (config) name profile desktop;
-        inherit host;
-        standalone = false;
+      users = {
+        ${username}.imports = mkModules {
+          inherit (config) name profile desktop;
+          inherit host;
+          standalone = false;
+        };
+      }
+      // lib.optionalAttrs hasRoot {
+        root.imports = mkRootModules {
+          inherit (config) name profile desktop;
+        };
       };
     };
 in

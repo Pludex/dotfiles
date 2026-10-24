@@ -85,6 +85,7 @@ let
         {
           home-manager = base.mkHomeNonStandalone {
             inherit config base host;
+            inherit (c) withRoot;
             username = if (!config.isContainer) then base.username else (base.botOf name).username;
           };
         }
@@ -121,6 +122,11 @@ in
             };
             profile = mkOption { type = types.str; };
             desktop = mkOption { type = types.str; };
+            withRoot = mkOption {
+              type = types.bool;
+              default = true;
+              description = "Embed the profile's rootHome modules as home-manager.users.root";
+            };
             extraModules = mkOption {
               type = types.listOf types.raw;
               default = [ ];
