@@ -1,6 +1,22 @@
 {
   profiles.hermes = {
     nixos = { };
-    home = { };
+    home = {
+      programs = [
+        "atuin"
+        "bash"
+        "bat"
+        "delta"
+        "direnv"
+        "eza"
+        "fd"
+        "fish"
+        "fzf"
+        "packages"
+        "ripgrep"
+        "starship"
+        "zoxide"
+      ];
+    };
   };
 }
