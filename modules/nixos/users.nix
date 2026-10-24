@@ -6,6 +6,8 @@
 }:
 let
   inherit (config) isContainer bot;
+  coding = base.groupOf "coding";
+  users-host = base.groupOf "users-host";
 in
 {
   config = lib.mkMerge [
@@ -16,6 +18,7 @@ in
         description = base.name;
         group = "users";
         extraGroups = [
+          "coding"
           "wheel"
           "networkmanager"
         ];
@@ -23,6 +26,15 @@ in
         home = base.abs.home;
         hashedPasswordFile = config.sops.secrets."hashedPassword".path;
         inherit (base) uid;
+      };
+
+      users.users.root = {
+        hashedPasswordFile = config.sops.secrets."hashedPassword".path;
+      };
+
+      users.groups = {
+        coding = { inherit (coding) gid; };
+        users-host = { inherit (users-host) gid; };
       };
 
       sops.secrets."hashedPassword" = { };
@@ -45,5 +57,9 @@ in
         groups.${bot.username}.gid = bot.uid;
       };
     })
+
+    {
+      # users.mutableUsers = false;
+    }
   ];
 }

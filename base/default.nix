@@ -10,6 +10,12 @@
       sub = "baochaupham4096@gmail.com";
     };
 
+    groups = {
+      coding.gid = 1200;
+      users-host.gid = 1002;
+    };
+    groupOf = name: config.base.groups.${name};
+
     age = {
       publicKey = "age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0";
       # privateKeyPath = "${config.paths.abs.home}/.config/sops/age/keys.txt";
