@@ -7,7 +7,7 @@
   ...
 }:
 let
-  inherit (config) isContainer;
+  isContainer = config.boot.isContainer;
 in
 {
   nix = lib.mkMerge [
@@ -20,13 +20,11 @@ in
           "nix-command"
           "flakes"
         ];
-
         trusted-substituters = lib.mkForce [
           "https://pludex.cachix.org"
           "https://cache.nixos.org"
           "https://nix-community.cachix.org"
         ];
-
         trusted-public-keys = lib.mkForce [
           "pludex.cachix.org-1:iZbrMY/10HM5BQPXeIIHkGoDc4boLuSZYiZuPhIn9P8="
           "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
@@ -42,13 +40,6 @@ in
         randomizedDelaySec = "45min";
       };
 
-      firewall = {
-        enable = true;
-        allowLoopback = true;
-        allowNonTCPUDP = false;
-        allowPrivateNetworks = false;
-      };
-
       registry.nixpkgs = lib.mkDefault {
         to = {
           type = "flake";
@@ -59,16 +50,20 @@ in
 
     (lib.mkIf isContainer {
       enable = false;
-      firewall.enable = false;
     })
   ];
 
+  networking.firewall.enable = lib.mkIf isContainer false;
+
   environment = lib.mkIf isContainer {
     systemPackages = [ pkgs.nix ];
-    sessionVariables.NIX_REMOTE = "daemon";
     etc."nix/nix.conf".text = ''
       experimental-features = nix-command flakes
       accept-flake-config = true
     '';
+  };
+
+  systemd.globalEnvironment = lib.mkIf isContainer {
+    NIX_REMOTE = "daemon";
   };
 }

@@ -16,7 +16,12 @@ in
       time.timeZone = base.timeZone;
       i18n.defaultLocale = base.locale;
 
-      environment.systemPackages = [ pkgs.mkcert ];
+      environment.systemPackages = [
+        pkgs.mkcert
+        pkgs.nix
+      ];
+
+      documentation.man.cache.enable = false;
     }
 
     (lib.mkIf config.isContainer {
