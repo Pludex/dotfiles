@@ -4,6 +4,7 @@
     name = "Pludex";
     username = "pludex";
     uid = 1001;
+    gid = 100;
 
     email = {
       main = "pbc210.dev@gmail.com";

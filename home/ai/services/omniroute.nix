@@ -3,6 +3,7 @@
   lib,
   pkgs,
   inputs,
+  base,
   ...
 }:
 let
@@ -60,13 +61,15 @@ in
         image = "localhost/omniroute:web";
         autoStart = false;
         network = "host";
+        userNS = "keep-id";
+        extraPodmanArgs = [ "--user=${toString base.uid}:${toString base.gid}" ];
         environment = {
           PORT = toString cfg.port;
           HOSTNAME = "127.0.0.1";
           DATA_DIR = "/app/data";
         };
         environmentFile = [ config.sops.templates."omniroute.env".path ];
-        volumes = [ "/workspaces/omniroute:/app/data:U" ];
+        volumes = [ "/workspaces/omniroute:/app/data" ];
         extraConfig = {
           Unit = {
             After = [ "sops-nix.service" ];
