@@ -4,7 +4,7 @@ let
   cfg = config;
 
   # Handler can be either:
-  #   - function: name: <bare path/string>  (as before)
+  #   - function: name: <bare path/string>
   #   - path: treated as a base dir, equivalent to name: dir + "/${name}"
   normalizeHandler = h: if builtins.isFunction h then h else (name: h + "/${name}");
 
@@ -53,7 +53,33 @@ let
     in
     extraModules ++ lib.concatLists (lib.mapAttrsToList (resolveSubkey category) subkeys);
 
-  resolveProfile = _profileName: lib.mapAttrs resolveCategory;
+  resolveProfile =
+    profileName: profileCfg:
+    let
+      names = lib.unique profileCfg.modules;
+
+      registered = map (
+        n:
+        cfg.modules.${n} or (throw ''
+          profiles.${profileName}.modules: unknown module "${n}".
+          Defined modules: ${lib.concatStringsSep ", " (lib.attrNames cfg.modules)}
+        '')
+      ) names;
+
+      # category -> concatenated module list across all referenced modules
+      registeredByCategory = lib.zipAttrsWith (_: lib.concatLists) registered;
+
+      categories = removeAttrs profileCfg [ "modules" ];
+      allCategories = lib.unique (lib.attrNames categories ++ lib.attrNames registeredByCategory);
+    in
+    lib.genAttrs allCategories (
+      category:
+      (registeredByCategory.${category} or [ ])
+      ++ resolveCategory category (categories.${category} or { extraModules = [ ]; })
+    );
+
+  # Accepts a single module or a list of modules
+  moduleList = types.coercedTo types.raw lib.toList (types.listOf types.raw);
 
   categorySubmodule = types.submodule {
     freeformType = types.attrsOf (types.listOf types.str);
@@ -67,11 +93,45 @@ let
       '';
     };
   };
+
+  profileSubmodule = types.submodule {
+    freeformType = types.attrsOf categorySubmodule;
+    options.modules = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      example = [ "hermes" ];
+      description = ''
+        Names of entries in the top-level `modules` option. For each name,
+        every category defined there (nixos, home, ...) is added to this
+        profile's result for that category.
+        Note: "modules" is reserved and cannot be used as a category name.
+      '';
+    };
+  };
 in
 {
   options = {
+    modules = mkOption {
+      type = types.attrsOf (types.attrsOf moduleList);
+      default = { };
+      example = lib.literalExpression ''
+        {
+          hermes = {
+            nixos = ./hermes/nixos.nix;
+            home = [ ./hermes/home.nix ./hermes/extra.nix ];
+          };
+        }
+      '';
+      description = ''
+        Reusable modules grouped as modules.<name>.<category>, where category
+        is a target framework (nixos, home, nixvim, darwin, ...). Each value
+        is a module or a list of modules. A profile pulls them in with
+        profiles.<profile>.modules = [ "<name>" ].
+      '';
+    };
+
     profiles = mkOption {
-      type = types.attrsOf (types.attrsOf categorySubmodule);
+      type = types.attrsOf profileSubmodule;
       default = { };
       description = ''
         Named bundles of entries, grouped by target category (home,
@@ -81,6 +141,9 @@ in
 
         Each category also accepts `extraModules`: a list of concrete
         modules appended as-is, bypassing the handler.
+
+        `modules` lists names from the top-level `modules` option, which
+        are injected into the result per category.
       '';
     };
 
@@ -100,9 +163,9 @@ in
       type = types.attrsOf (types.attrsOf (types.listOf types.raw));
       readOnly = true;
       description = ''
-        `profiles`, resolved: subkeys and extraModules flattened into
-        one module list per category, ready to hand to that category's
-        `imports` (home-manager, nixos, nixvim, darwin, ...).
+        `profiles`, resolved: registered modules, subkeys and extraModules
+        flattened into one module list per category, ready to hand to that
+        category's `imports` (home-manager, nixos, nixvim, darwin, ...).
       '';
     };
   };
