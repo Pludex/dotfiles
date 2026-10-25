@@ -3,10 +3,13 @@
   pkgs,
   lib,
   config,
+  meta,
   ...
 }:
 let
-  bot = base.botOf config.name;
+  inherit (base) libx;
+  bot = libx.tryOr (base.botOf meta.name) null;
+
 in
 {
   config = lib.mkMerge [
@@ -25,7 +28,6 @@ in
     }
 
     (lib.mkIf config.isContainer {
-      inherit bot;
     })
   ];
 
@@ -37,7 +39,8 @@ in
 
     bot = lib.mkOption {
       type = lib.types.raw;
-      default = null;
+      readOnly = true;
+      default = bot;
     };
   };
 
@@ -52,5 +55,6 @@ in
     ./sops.nix
     ./users.nix
     ./xdg.nix
+    bot.modules.nixos or { }
   ];
 }
