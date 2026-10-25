@@ -1,9 +1,6 @@
 {
   profiles.hermes = {
     nixos = {
-      services = [
-        "hermes"
-      ];
     };
     home = {
       programs = [

@@ -12,6 +12,17 @@
           privateKeyPath = "/private/hermes.age-key.txt";
           defaultFile = "${config.base.paths.data}/hermes.enc.yaml";
         };
+
+        modules.nixos =
+          let
+            inherit (config) base;
+            coding = base.groupOf "coding";
+          in
+          {
+            users.groups.coding.gid = coding.gid;
+            users.users.hermes.extraGroups = [ "coding" ];
+            users.users.root.extraGroups = [ "coding" ];
+          };
       };
     };
 
