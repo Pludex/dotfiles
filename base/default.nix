@@ -14,6 +14,7 @@
     groups = {
       coding.gid = 1200;
       users-host.gid = 1002;
+      data.gid = 1201;
     };
     groupOf = name: config.base.groups.${name};
 

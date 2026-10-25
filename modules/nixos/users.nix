@@ -8,6 +8,7 @@ let
   inherit (config) isContainer bot;
   coding = base.groupOf "coding";
   users-host = base.groupOf "users-host";
+  data = base.groupOf "data";
 in
 {
   config = lib.mkMerge [
@@ -21,6 +22,7 @@ in
           "coding"
           "wheel"
           "networkmanager"
+          "data"
         ];
         shell = base.tools.shell;
         home = base.abs.home;
@@ -35,6 +37,7 @@ in
       users.groups = {
         coding = { inherit (coding) gid; };
         users-host = { inherit (users-host) gid; };
+        data = { inherit (data) gid; };
       };
 
       sops.secrets."hashedPassword" = { };

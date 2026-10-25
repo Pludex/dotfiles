@@ -11,6 +11,7 @@ let
   src = inputs.omniroute;
   podman = config.services.podman.package;
   srcId = builtins.substring 0 12 (baseNameOf (toString src));
+  data = base.groupOf "data";
 
   bootstrap = pkgs.writeShellScript "omniroute-bootstrap" ''
     set -euo pipefail
@@ -62,7 +63,7 @@ in
         autoStart = false;
         network = "host";
         userNS = "keep-id";
-        extraPodmanArgs = [ "--user=${toString base.uid}:${toString base.gid}" ];
+        extraPodmanArgs = [ "--user=${toString base.uid}:${toString data.gid}" ];
         environment = {
           PORT = toString cfg.port;
           HOSTNAME = "127.0.0.1";

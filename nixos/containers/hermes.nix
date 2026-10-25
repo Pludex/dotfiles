@@ -3,12 +3,14 @@
   pkgs,
   base,
   config,
+  lib,
   ...
 }:
 let
   guest = inputs.self.nixosConfigurations.hermes;
   toplevel = guest.config.system.build.toplevel;
   bot = base.botOf "hermes";
+  coding = base.groupOf "coding";
 in
 {
   virtualisation.podman.enable = true;
@@ -25,11 +27,28 @@ in
     linger = true;
     home = "/var/lib/hermes-host";
     createHome = true;
-    autoSubUidGidRange = true;
     group = "users-host";
     extraGroups = [
       "keys" # of sops-nix
       "coding"
+    ];
+
+    autoSubUidGidRange = false;
+    subUidRanges = [
+      {
+        startUid = 200000;
+        count = 65536;
+      }
+    ];
+    subGidRanges = [
+      {
+        startGid = coding.gid;
+        count = 1;
+      } # intermediate gid 1 -> host coding
+      {
+        startGid = 200000;
+        count = 65536;
+      } # intermediate gid 2..65537
     ];
   };
 
@@ -48,8 +67,8 @@ in
         ];
         runAsRoot = ''
           mkdir -p /private /workspaces
-          touch /private/hermes.age-key.txt
-          chown ${toString bot.uid} -R /private /workspaces
+          touch ${bot.age.privateKeyPath}
+          chown ${toString bot.uid} -R /workspaces
         '';
       };
       cmd = [ "${toplevel}/init" ];
@@ -60,10 +79,16 @@ in
         # "${base.ai.hermes-agnet.abs.data}:/app/data:U"
         "${config.sops.secrets."age-keys/hermes".path}:${bot.age.privateKeyPath}:ro,Z"
       ];
+
       extraOptions = [
         "--systemd=always"
         "--security-opt=no-new-privileges"
-        "--group-add=keep-groups"
+        "--uidmap=0:0:1"
+        "--uidmap=1:1:65536"
+        "--gidmap=0:0:1"
+        "--gidmap=1:2:${toString (coding.gid - 1)}"
+        "--gidmap=${toString coding.gid}:1:1"
+        "--gidmap=${toString (coding.gid + 1)}:${toString (coding.gid + 1)}:${toString (65537 - coding.gid)}"
       ];
       podman.user = "hermes-host";
     };
@@ -76,4 +101,11 @@ in
       config.sops.secrets."age-keys/hermes".path
     ];
   };
+
+  environment.systemPackages = [
+    (pkgs.writeShellScriptBin "login-hermes-container" ''
+      exec sudo ${pkgs.systemd}/bin/machinectl shell hermes-host@ \
+        ${pkgs.podman}/bin/podman exec -it --user ${bot.username} hermes ${lib.getExe base.tools.shell} "$@"
+    '')
+  ];
 }
