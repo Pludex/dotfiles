@@ -26,6 +26,11 @@ let
         description = "Desktop name currently in use";
       };
 
+      options.host = lib.mkOption {
+        type = lib.types.str;
+        description = "Host name currently in use";
+      };
+
       options.name = lib.mkOption {
         type = lib.types.str;
         description = "Config name currently in use";
@@ -35,46 +40,29 @@ let
   # Shared by both modes so they always evaluate the same module list.
   mkModules =
     {
-      standalone,
-      name,
-      profile,
-      desktop,
+      meta,
       host,
       extraModules ? [ ],
     }:
     cfg.homeModules
     ++ extraModules
-    ++ cfg.profilesResult.${profile}.home
+    ++ cfg.profilesResult.${meta.profile}.home
     ++ cfg.builder.hostModules host "home"
     ++ [
       "${cfg.paths.modules}/home"
-      (import cfg.paths.desktops { inherit desktop; }).home
+      (import cfg.paths.desktops { inherit (meta) desktop; }).home
       configOptions
-      {
-        inherit
-          standalone
-          profile
-          desktop
-          name
-          ;
-      }
+      meta
     ];
 
   # Root only gets the profile's rootHome modules, never the per-user home or desktop.
   mkRootModules =
-    {
-      name,
-      profile,
-      desktop,
-    }:
+    { meta }:
     cfg.homeModules
-    ++ (cfg.profilesResult.${profile}.rootHome or [ ])
+    ++ (cfg.profilesResult.${meta.profile}.rootHome or [ ])
     ++ [
       configOptions
-      {
-        standalone = false;
-        inherit profile desktop name;
-      }
+      meta
     ];
 
   mkStandalone =
@@ -86,27 +74,32 @@ let
       base = cfg.base.forSystem host.system // {
         inherit host;
       };
+      meta = {
+        inherit name;
+        inherit (c) profile desktop;
+        host = host.name;
+        standalone = true;
+      };
     in
     inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = base.pkgs;
       # specialArgs are resolved before `config`, so modules can use them
       # in `imports` (e.g. `base.inputs.sops-nix.homeManagerModules.sops`).
       extraSpecialArgs = {
-        inherit base host;
+        inherit base host meta;
         inherit (base) inputs;
       };
 
       modules = mkModules {
-        inherit name host;
-        inherit (c) profile desktop extraModules;
-        standalone = true;
+        inherit meta host;
+        inherit (c) extraModules;
       };
     };
 
-  # Called from the NixOS side with that config's own base and host
+  # Called from the NixOS side with that config's own base, host and meta
   mkNonStandalone =
     {
-      config,
+      meta,
       base,
       host,
       username,
@@ -114,9 +107,12 @@ let
       ...
     }:
     let
+      homeMeta = meta // {
+        standalone = false;
+      };
       # withRoot is checked first so hosts that disable root never touch rootHome
       hasRoot =
-        withRoot && username != "root" && (cfg.profilesResult.${config.profile}.rootHome or [ ]) != [ ];
+        withRoot && username != "root" && (cfg.profilesResult.${meta.profile}.rootHome or [ ]) != [ ];
     in
     {
       # pkgs (with all overlays) comes from the NixOS config, which is
@@ -127,20 +123,18 @@ let
 
       extraSpecialArgs = {
         inherit base host;
+        meta = homeMeta;
         inherit (base) inputs;
       };
 
       users = {
         ${username}.imports = mkModules {
-          inherit (config) name profile desktop;
+          meta = homeMeta;
           inherit host;
-          standalone = false;
         };
       }
       // lib.optionalAttrs hasRoot {
-        root.imports = mkRootModules {
-          inherit (config) name profile desktop;
-        };
+        root.imports = mkRootModules { meta = homeMeta; };
       };
     };
 in

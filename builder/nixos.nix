@@ -27,7 +27,6 @@ let
       };
     };
 
-  # Look up nixos.<name>, with a readable error when it doesn't exist
   nixosConfigOf = name: cfg.nixos.${name} or (throw "builder: nixos.${name} is not defined");
 
   resolve =
@@ -38,26 +37,30 @@ let
       base = cfg.base.forSystem host.system // {
         inherit host;
       };
+      meta = {
+        inherit name;
+        inherit (c) desktop profile;
+        host = host.name;
+      };
     in
     {
-      inherit host base;
+      inherit host base meta;
     };
 
   mkNixosSpecialArgs =
     name: c:
     let
-      inherit (resolve name c) host base;
+      inherit (resolve name c) host base meta;
     in
     {
-      inherit base host;
+      inherit base host meta;
       inherit (base) inputs;
     };
 
-  # Plain module list, usable in nixosSystem or containers.<name>.config.imports
   mkNixosModules =
     name: c:
     let
-      inherit (resolve name c) host base;
+      inherit (resolve name c) host base meta;
       inherit (base) paths;
     in
     cfg.nixosModules
@@ -68,13 +71,7 @@ let
       "${paths.modules}/nixos"
       (import paths.desktops { inherit (c) desktop; }).nixos
       configOptions
-      {
-        inherit (c) desktop profile;
-        inherit name;
-        host = host.name;
-        networking.hostName = lib.mkDefault host.name;
-      }
-      # nixpkgs.config is ignored once nixpkgs.pkgs is set; overlays would be appended on top
+      (meta // { networking.hostName = lib.mkDefault host.name; })
       { nixpkgs.pkgs = base.pkgs; }
     ]
     ++ lib.optionals host.withHome [
@@ -83,7 +80,12 @@ let
         { config, ... }:
         {
           home-manager = base.mkHomeNonStandalone {
-            inherit config base host;
+            inherit
+              config
+              base
+              host
+              meta
+              ;
             inherit (c) withRoot;
             username = if (!config.isContainer) then base.username else (base.botOf name).username;
           };
@@ -91,7 +93,6 @@ let
       )
     ];
 
-  # Same as above, but addressed by the config name (nixos.<name>)
   nixosModulesOf = name: mkNixosModules name (nixosConfigOf name);
   nixosSpecialArgsOf = name: mkNixosSpecialArgs name (nixosConfigOf name);
 
@@ -104,7 +105,6 @@ let
 in
 {
   options = {
-    # Modules added to every NixOS configuration
     nixosModules = mkOption {
       type = types.listOf types.raw;
       default = [ ];
@@ -144,8 +144,6 @@ in
       mkNixos = mkSystem;
       mkNixosModules = mkNixosModules;
       mkNixosSpecialArgs = mkNixosSpecialArgs;
-
-      # By config name: builder.nixosModulesOf "laptop" -> [ module ... ]
       inherit nixosModulesOf nixosSpecialArgsOf;
     };
   };
