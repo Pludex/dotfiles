@@ -1,4 +1,9 @@
-{ config, inputs, ... }:
+{
+  config,
+  inputs,
+  base,
+  ...
+}:
 {
   extraBase = {
     name = "Pludex";
@@ -85,6 +90,10 @@
     };
   };
 
+  extraArgs = {
+    inherit (base) inputs libx;
+  };
+
   imports = [
     ./apps.nix
     ./bots.nix
@@ -92,4 +101,5 @@
     ./glyphs.nix
     ./tools.nix
   ];
+
 }

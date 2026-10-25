@@ -245,6 +245,11 @@ in
       default = { };
     };
 
+    extraArgs = mkOption {
+      type = types.lazyAttrsOf types.raw;
+      default = {};
+    };
+
     # Same purpose as `extraBase`, but for extras that need the
     # already-built `pkgs` (with all overlays applied) to compute
     # their value - e.g. `pkgs: { tools.alias.less = "${pkgs.less}/bin/less"; }`.
@@ -296,6 +301,7 @@ in
   config = {
     base = topLevelBase;
     _module.args.base = cfg.base;
+    extraBase.extraArgs = cfg.extraArgs;
 
     perSystem =
       { system, config, ... }:

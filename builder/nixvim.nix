@@ -17,8 +17,7 @@ let
     inputs.nixvim.lib.evalNixvim {
       extraSpecialArgs = {
         inherit base host;
-        inherit (base) inputs;
-      };
+      } // base.extraArgs;
       modules =
         cfg.nixvimModules
         ++ c.extraModules

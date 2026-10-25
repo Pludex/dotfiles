@@ -87,8 +87,7 @@ let
       # in `imports` (e.g. `base.inputs.sops-nix.homeManagerModules.sops`).
       extraSpecialArgs = {
         inherit base host meta;
-        inherit (base) inputs;
-      };
+      } // base.extraArgs;
 
       modules = mkModules {
         inherit meta host;

@@ -54,8 +54,7 @@ let
     in
     {
       inherit base host meta;
-      inherit (base) inputs;
-    };
+    } // base.extraArgs;
 
   mkNixosModules =
     name: c:
