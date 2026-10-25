@@ -43,7 +43,6 @@ in
 
   imports = [
     ./keyboard
-    ./options
     ./audio.nix
     ./bluetooth.nix
     ./networking.nix
