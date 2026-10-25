@@ -11,6 +11,7 @@ let
   toplevel = guest.config.system.build.toplevel;
   bot = base.botOf "hermes";
   coding = base.groupOf "coding";
+  app = base.appOf "hermes-agent";
 in
 {
   virtualisation.podman.enable = true;
@@ -76,7 +77,7 @@ in
         "/nix/store:/nix/store:ro"
         "/nix/var/nix/daemon-socket:/nix/var/nix/daemon-socket"
         "/workspaces/dotfiles:/workspaces/dotfiles-ref:ro"
-        # "${base.ai.hermes-agnet.abs.data}:/app/data:U"
+        # "${app.abs.data}:/app/data:U"
         "${config.sops.secrets."age-keys/hermes".path}:${bot.age.privateKeyPath}:ro,Z"
       ];
 

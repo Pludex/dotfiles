@@ -2,11 +2,12 @@
   config,
   lib,
   pkgs,
+  base,
   ...
 }:
 let
   omnirouteKey = config.sops.placeholder."api-keys/omniroute/hermes";
-  omniroute = config.ai.omniroute;
+  omniroute = base.appOf "omniroute";
   hermesHome = "/workspaces/hermes";
 
   syncBody = pkgs.writeShellScript "hermes-git-sync-body" ''
@@ -78,7 +79,7 @@ in
       };
 
       providers.omniroute = {
-        api = "${omniroute.url-base}/v1";
+        api = "${omniroute.urlBase}/v1";
         api_key = "\${OMNIROUTE_API_KEY}";
         transport = "openai_chat";
         discover_models = false;
@@ -86,7 +87,7 @@ in
       };
 
       mcp_servers.omniroute = {
-        url = "${omniroute.url-base}/api/mcp/stream";
+        url = "${omniroute.urlBase}/api/mcp/stream";
         headers.Authorization = "Bearer \${OMNIROUTE_API_KEY}";
       };
 

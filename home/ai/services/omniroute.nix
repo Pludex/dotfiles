@@ -7,7 +7,6 @@
   ...
 }:
 let
-  cfg = config.ai.omniroute;
   src = inputs.omniroute;
   podman = config.services.podman.package;
   srcId = builtins.substring 0 12 (baseNameOf (toString src));
@@ -33,21 +32,10 @@ let
       systemctl --user start --no-block podman-omniroute.service
     fi
   '';
+
+  app = base.appOf "omniroute";
 in
 {
-  options.ai.omniroute = {
-    port = lib.mkOption {
-      type = lib.types.port;
-      default = 20128;
-      description = "Port used by OmniRoute (dashboard and API share it).";
-    };
-    url-base = lib.mkOption {
-      type = lib.types.str;
-      default = "http://127.0.0.1:${toString cfg.port}";
-      description = "Base URL other services use to reach OmniRoute.";
-    };
-  };
-
   config = {
     sops.secrets."api-keys/openrouter/omniroute" = { };
 
@@ -65,12 +53,12 @@ in
         userNS = "keep-id";
         extraPodmanArgs = [ "--user=${toString base.uid}:${toString data.gid}" ];
         environment = {
-          PORT = toString cfg.port;
-          HOSTNAME = "127.0.0.1";
+          PORT = toString app.port;
+          HOSTNAME = "localhost";
           DATA_DIR = "/app/data";
         };
         environmentFile = [ config.sops.templates."omniroute.env".path ];
-        volumes = [ "/workspaces/omniroute:/app/data" ];
+        volumes = [ "${app.abs.data}:/app/data" ];
         extraConfig = {
           Unit = {
             After = [ "sops-nix.service" ];

@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  base,
   ...
 }:
 let
@@ -11,6 +12,7 @@ let
     ps.pytesseract
     ps.pillow
   ]);
+  omniroute = base.appOf "omniroute";
 
   script = pkgs.writeText "quiz-bot.py" ''
     import argparse
@@ -839,8 +841,8 @@ in
 
     omnirouteUrl = lib.mkOption {
       type = lib.types.str;
-      default = config.ai.omniroute.url-base;
-      defaultText = lib.literalExpression "config.ai.omniroute.url-base";
+      default = omniroute.urlBase;
+      defaultText = lib.literalExpression "(base.appOf \"omniroute\").urlBase";
       description = "Base URL of the OmniRoute instance.";
     };
 

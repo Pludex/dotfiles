@@ -86,7 +86,7 @@
   };
 
   imports = [
-    ./ai.nix
+    ./apps.nix
     ./bots.nix
     ./ignores.nix
     ./glyphs.nix
