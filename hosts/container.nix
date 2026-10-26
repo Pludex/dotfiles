@@ -10,7 +10,7 @@
   hosts.container = {
     system = "x86_64-linux";
     modules.nixos =
-      { lib, ... }:
+      { lib, pkgs, ... }:
       {
         isContainer = true;
         boot.isContainer = true;
@@ -43,6 +43,11 @@
 
         # Lets `podman exec` find binaries without full paths
         environment.variables.PATH = "/run/current-system/sw/bin:/bin";
+
+        systemd.tmpfiles.rules = [
+          "d /run/wrappers/bin 0755 root root -"
+          "L+ /run/wrappers/bin/unix_chkpwd - - - - ${pkgs.pam}/bin/unix_chkpwd"
+        ];
       };
   };
 }

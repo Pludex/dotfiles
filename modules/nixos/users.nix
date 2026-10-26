@@ -54,6 +54,7 @@ in
           group = bot.username;
           home = bot.abs.home;
           createHome = true;
+          linger = true;
           shell = base.tools.shell;
         };
 

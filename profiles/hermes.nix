@@ -18,6 +18,12 @@
         "starship"
         "zoxide"
       ];
+
+      services = [
+        "hermes"
+      ];
     };
+
+    # modules = [ "sops-os" ];
   };
 }

@@ -17,9 +17,9 @@ in
   virtualisation.podman.enable = true;
 
   sops.secrets."age-keys/hermes" = {
-    owner = "hermes-host";
+    owner = null;
+    uid = 200000 + bot.uid - 1;
     mode = "0400";
-    # Restart the container when the key content changes
     restartUnits = [ "podman-hermes.service" ];
   };
 
@@ -67,9 +67,10 @@ in
           "PATH=/run/current-system/sw/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
         ];
         runAsRoot = ''
-          mkdir -p /private /workspaces
+          mkdir -p /private /workspaces /app/data
           touch ${bot.age.privateKeyPath}
-          chown ${toString bot.uid} -R /workspaces
+          chown ${toString bot.uid}:${toString coding.gid} -R /workspaces
+          chown ${toString bot.uid}:${toString coding.gid} -R /app
         '';
       };
       cmd = [ "${toplevel}/init" ];
@@ -77,11 +78,11 @@ in
         "/nix/store:/nix/store:ro"
         "/nix/var/nix/daemon-socket:/nix/var/nix/daemon-socket"
         "/workspaces/dotfiles:/workspaces/dotfiles-ref:ro"
-        # "${app.abs.data}:/app/data:U"
+        "${app.abs.data}:/app/data"
         "${config.sops.secrets."age-keys/hermes".path}:${bot.age.privateKeyPath}:ro,Z"
       ];
-
       extraOptions = [
+        "--network=host"
         "--systemd=always"
         "--security-opt=no-new-privileges"
         "--uidmap=0:0:1"

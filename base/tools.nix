@@ -23,7 +23,7 @@
           cat = "bat";
           less = lib.getExe pager;
           nano = lib.getExe editor;
-          grep = "rg";
+          grep = "grep";
           find = "fd";
           tree = "eza -T";
         };

@@ -51,4 +51,34 @@ in
       root = n: vp.root + "/${n}";
     };
   };
+
+  modules.sops-os = {
+    home =
+      { lib, ... }:
+      {
+        options.os-sops = {
+          secrets = lib.mkOption {
+            type = lib.types.attrsOf lib.types.raw;
+            default = { };
+            description = "Passthrough to NixOS sops.secrets";
+          };
+          templates = lib.mkOption {
+            type = lib.types.attrsOf lib.types.raw;
+            default = { };
+            description = "Passthrough to NixOS sops.templates";
+          };
+        };
+      };
+
+    nixos =
+      { config, lib, ... }:
+      let
+        users = config.home-manager.users;
+        collect = attr: lib.mkMerge (lib.mapAttrsToList (_: u: u.os-sops.${attr} or { }) users);
+      in
+      {
+        sops.secrets = collect "secrets";
+        sops.templates = collect "templates";
+      };
+  };
 }

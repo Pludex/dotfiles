@@ -6,7 +6,7 @@
       # Official and community
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"
-      "https://nyx-cache.chaotic.cx"
+      # "https://nyx-cache.chaotic.cx"
 
       # Personal
       "https://pludex.cachix.org"
@@ -26,7 +26,7 @@
       # Official and community
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
+      # "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
 
       # Personal
       "pludex.cachix.org-1:CHPuiCwe8ATtUbq20FRCTt9mCuo5ieTwqSLcpODkL/Q="

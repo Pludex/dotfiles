@@ -1,6 +1,6 @@
 keys:
   - &main age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0
-  - &hermes age1sa0pkf0whq7r2agrdzckec0w02c6tsremlvl7zha99h0thqmkvyst43n25
+  - &hermes age158va6e0syfx3cm2rwj7un2yu7p8zwqnxdqtedk5tkwk3g7nuxflspzs0em
 
 creation_rules:
   - path_regex: data/hermes\.enc\.yaml$
