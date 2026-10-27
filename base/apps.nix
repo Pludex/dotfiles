@@ -1,23 +1,44 @@
-{ config, ... }:
+{ config, inputs, ... }:
 {
-  extraBase = {
+  extraBase = rec {
     apps = {
       hermes-agent = rec {
         port = 8642;
         urlBase = "http://127.0.0.1:${toString port}";
-        abs = {
-          data = "/workspaces/hermes";
+        data = "/workspaces/hermes";
+
+        username = "hermes";
+        uid = 2000;
+        home = "/home/hermes";
+
+        age = {
+          publicKey = "age158va6e0syfx3cm2rwj7un2yu7p8zwqnxdqtedk5tkwk3g7nuxflspzs0em";
+          privateKeyPath = "/private/hermes.age-key.txt";
+          defaultFile = "${config.paths.data}/hermes.enc.yaml";
         };
+
+        nixosConfigs = {
+          container = inputs.self.nixosConfigurations.hermes-agent;
+        };
+
+        modules.nixos =
+          let
+            coding = config.base.group "coding";
+          in
+          {
+            users.groups.coding.gid = coding.gid;
+            users.users.${username}.extraGroups = [ "coding" ];
+            users.users.root.extraGroups = [ "coding" ];
+          };
       };
 
       omniroute = rec {
         port = 20128;
         urlBase = "http://127.0.0.1:${toString port}";
-        abs = {
-          data = "/workspaces/omniroute";
-        };
+        data = "/workspaces/omniroute";
       };
     };
-    appOf = name: config.base.apps.${name};
+
+    app = name: apps.${name} or (throw "app: '${name}' is not defined");
   };
 }

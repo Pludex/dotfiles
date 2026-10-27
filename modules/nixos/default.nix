@@ -8,8 +8,7 @@
 }:
 let
   inherit (base) libx;
-  bot = libx.tryOr (base.botOf meta.name) null;
-
+  app = libx.tryOr (base.app meta.name) null;
 in
 {
   config = lib.mkMerge [
@@ -37,10 +36,10 @@ in
       default = false;
     };
 
-    bot = lib.mkOption {
+    app = lib.mkOption {
       type = lib.types.raw;
       readOnly = true;
-      default = bot;
+      default = app;
     };
   };
 
@@ -55,6 +54,6 @@ in
     ./sops.nix
     ./users.nix
     ./xdg.nix
-    bot.modules.nixos or { }
+    app.modules.nixos or { }
   ];
 }

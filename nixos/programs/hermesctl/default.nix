@@ -5,8 +5,8 @@
   ...
 }:
 let
-  bot = base.botOf "hermes";
-  coding = base.groupOf "coding";
+  app = base.app "hermes-agent";
+  coding = base.group "coding";
 
   mountRoot = "/run/hermes-mounts";
   mountIn = "/mnt/host";
@@ -15,15 +15,15 @@ let
     mount_root = mountRoot;
     mount_in = mountIn;
     container = "hermes";
-    bot_user = bot.username;
-    bot_host_uid = toString (200000 + bot.uid - 1);
+    bot_user = app.username;
+    bot_host_uid = toString (200000 + app.uid - 1);
     coding_gid = toString coding.gid;
     hermes_home = "/app/data";
     default_workdir = "/workspaces";
     hermes_bin = "hermes";
     container_path = lib.concatStringsSep ":" [
-      "/etc/profiles/per-user/${bot.username}/bin"
-      "/home/${bot.username}/.nix-profile/bin"
+      "/etc/profiles/per-user/${app.username}/bin"
+      "/home/${app.username}/.nix-profile/bin"
       "/run/current-system/sw/bin"
     ];
     shell = lib.getExe base.tools.shell;

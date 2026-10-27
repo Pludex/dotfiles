@@ -6,21 +6,21 @@
   ...
 }:
 let
-  inherit (config) isContainer bot;
+  inherit (config) isContainer app;
 in
 {
   config = lib.mkMerge [
     (lib.mkIf (!isContainer) {
       sops = {
-        defaultSopsFile = "${base.paths.data}/main.enc.yaml";
+        defaultSopsFile = base.age.defaultFile;
         age.keyFile = base.age.privateKeyPath;
       };
     })
 
     (lib.mkIf isContainer {
       sops = {
-        defaultSopsFile = bot.age.defaultFile;
-        age.keyFile = bot.age.privateKeyPath;
+        defaultSopsFile = app.age.defaultFile;
+        age.keyFile = app.age.privateKeyPath;
       };
     })
   ];

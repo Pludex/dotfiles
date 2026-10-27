@@ -33,7 +33,7 @@ let
     name: c:
     let
       hostName = if c.host == null then name else c.host;
-      host = cfg.builder.hostOf hostName;
+      host = cfg.builder.host hostName;
       base = cfg.base.forSystem host.system // {
         inherit host;
       };
@@ -86,7 +86,7 @@ let
               meta
               ;
             inherit (c) withRoot;
-            username = if (!config.isContainer) then base.username else (base.botOf name).username;
+            username = if (!config.isContainer) then base.username else (base.app name).username;
           };
         }
       )

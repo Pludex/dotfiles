@@ -21,12 +21,13 @@
       users-host.gid = 1002;
       data.gid = 1201;
     };
-    groupOf = name: config.base.groups.${name};
+    group = name: config.base.groups.${name};
 
     age = {
       publicKey = "age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0";
       # privateKeyPath = "${config.paths.abs.home}/.config/sops/age/keys.txt";
       privateKeyPath = "${config.paths.abs.dataPrivate}/age.dotfiles.keys.txt";
+      defaultFile = "${config.paths.data}/main.enc.yaml";
     };
 
     ssh = {
@@ -97,7 +98,6 @@
 
   imports = [
     ./apps.nix
-    ./bots.nix
     ./ignores.nix
     ./glyphs.nix
     ./tools.nix

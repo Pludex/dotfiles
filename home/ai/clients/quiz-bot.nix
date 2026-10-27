@@ -12,7 +12,7 @@ let
     ps.pytesseract
     ps.pillow
   ]);
-  omniroute = base.appOf "omniroute";
+  omniroute = base.app "omniroute";
 
   script = pkgs.writeText "quiz-bot.py" ''
     import argparse

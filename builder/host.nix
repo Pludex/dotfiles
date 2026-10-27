@@ -73,7 +73,7 @@ in
   };
 
   config.builder = {
-    hostOf = name: cfg.hosts.${name} or (throw "Unknown host '${name}'");
+    host = name: cfg.hosts.${name} or (throw "Unknown host '${name}'");
     inherit hostModules;
   };
 }

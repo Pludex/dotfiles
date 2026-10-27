@@ -1,5 +1,4 @@
 {
-  inputs,
   pkgs,
   base,
   config,
@@ -7,18 +6,17 @@
   ...
 }:
 let
-  guest = inputs.self.nixosConfigurations.hermes;
+  app = base.app "hermes-agent";
+  guest = app.nixosConfigs.container;
   toplevel = guest.config.system.build.toplevel;
-  bot = base.botOf "hermes";
-  coding = base.groupOf "coding";
-  app = base.appOf "hermes-agent";
+  coding = base.group "coding";
 in
 {
   virtualisation.podman.enable = true;
 
   sops.secrets."age-keys/hermes" = {
     owner = null;
-    uid = 200000 + bot.uid - 1;
+    uid = 200000 + app.uid - 1;
     mode = "0400";
     restartUnits = [ "podman-hermes.service" ];
   };
@@ -68,9 +66,9 @@ in
         ];
         runAsRoot = ''
           mkdir -p /private /workspaces /app/data
-          touch ${bot.age.privateKeyPath}
-          chown ${toString bot.uid}:${toString coding.gid} -R /workspaces
-          chown ${toString bot.uid}:${toString coding.gid} -R /app
+          touch ${app.age.privateKeyPath}
+          chown ${toString app.uid}:${toString coding.gid} -R /workspaces
+          chown ${toString app.uid}:${toString coding.gid} -R /app
         '';
       };
       cmd = [ "${toplevel}/init" ];
@@ -78,8 +76,8 @@ in
         "/nix/store:/nix/store:ro"
         "/nix/var/nix/daemon-socket:/nix/var/nix/daemon-socket"
         "/workspaces/dotfiles:/workspaces/dotfiles-ref:ro"
-        "${app.abs.data}:/app/data"
-        "${config.sops.secrets."age-keys/hermes".path}:${bot.age.privateKeyPath}:ro,Z"
+        "${app.data}:/app/data"
+        "${config.sops.secrets."age-keys/hermes".path}:${app.age.privateKeyPath}:ro,Z"
       ];
       extraOptions = [
         "--network=host"
@@ -107,7 +105,7 @@ in
   environment.systemPackages = [
     (pkgs.writeShellScriptBin "login-hermes-container" ''
       exec sudo ${pkgs.systemd}/bin/machinectl shell hermes-host@ \
-        ${pkgs.podman}/bin/podman exec -it --user ${bot.username} hermes ${lib.getExe base.tools.shell} "$@"
+        ${pkgs.podman}/bin/podman exec -it --user ${app.username} hermes ${lib.getExe base.tools.shell} "$@"
     '')
   ];
 }

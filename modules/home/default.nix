@@ -3,10 +3,12 @@
   lib,
   osConfig ? null,
   config,
+  meta,
   ...
 }:
 let
-  bot = base.botOf config.name;
+  inherit (base) libx;
+  app = libx.tryOr (base.app meta.name) null;
 in
 {
   config = lib.mkMerge [
@@ -24,10 +26,10 @@ in
     })
 
     (lib.mkIf (config.isContainer) {
-      home.username = lib.mkForce bot.username;
-      home.homeDirectory = lib.mkForce bot.abs.home;
+      home.username = lib.mkForce app.username;
+      home.homeDirectory = lib.mkForce app.home;
 
-      inherit bot;
+      inherit app;
     })
   ];
 
@@ -36,9 +38,9 @@ in
       type = lib.types.bool;
       default = false;
     };
-    bot = lib.mkOption {
+    app = lib.mkOption {
       type = lib.types.raw;
-      default = null;
+      default = app;
     };
   };
 

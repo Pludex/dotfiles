@@ -10,7 +10,8 @@ let
   src = inputs.omniroute;
   podman = config.services.podman.package;
   srcId = builtins.substring 0 12 (baseNameOf (toString src));
-  data = base.groupOf "data";
+  data = base.group "data";
+  app = base.app "omniroute";
 
   bootstrap = pkgs.writeShellScript "omniroute-bootstrap" ''
     set -euo pipefail
@@ -33,7 +34,6 @@ let
     fi
   '';
 
-  app = base.appOf "omniroute";
 in
 {
   config = {
@@ -58,7 +58,7 @@ in
           DATA_DIR = "/app/data";
         };
         environmentFile = [ config.sops.templates."omniroute.env".path ];
-        volumes = [ "${app.abs.data}:/app/data" ];
+        volumes = [ "${app.data}:/app/data" ];
         extraConfig = {
           Unit = {
             After = [ "sops-nix.service" ];

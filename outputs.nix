@@ -39,7 +39,7 @@
       host = "ci-runner";
     };
 
-    hermes = {
+    hermes-agent = {
       profile = "hermes";
       desktop = "tty";
       host = "container";

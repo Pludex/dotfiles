@@ -12,7 +12,7 @@ let
   mkConfig =
     base: profile: c:
     let
-      host = if c.host == null then null else cfg.builder.hostOf c.host;
+      host = if c.host == null then null else cfg.builder.host c.host;
     in
     inputs.nixvim.lib.evalNixvim {
       extraSpecialArgs = {

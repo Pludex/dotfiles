@@ -5,10 +5,10 @@
   ...
 }:
 let
-  inherit (config) isContainer bot;
-  coding = base.groupOf "coding";
-  users-host = base.groupOf "users-host";
-  data = base.groupOf "data";
+  inherit (config) isContainer app;
+  coding = base.group "coding";
+  users-host = base.group "users-host";
+  data = base.group "data";
 in
 {
   config = lib.mkMerge [
@@ -47,18 +47,18 @@ in
       users = {
         mutableUsers = false;
         allowNoPasswordLogin = true;
-        users.${bot.username} = {
+        users.${app.username} = {
           isSystemUser = true;
           # isNormalUser = false;
-          uid = bot.uid;
-          group = bot.username;
-          home = bot.abs.home;
+          uid = app.uid;
+          group = app.username;
+          home = app.home;
           createHome = true;
           linger = true;
           shell = base.tools.shell;
         };
 
-        groups.${bot.username}.gid = bot.uid;
+        groups.${app.username}.gid = app.uid;
       };
     })
 

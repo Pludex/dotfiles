@@ -7,10 +7,10 @@
   ...
 }:
 let
-  hermes = base.appOf "hermes-agent";
-  omniroute = base.appOf "omniroute";
+  hermes-agent = base.app "hermes-agent";
+  omniroute = base.app "omniroute";
   hermesHome = "/app/data";
-  inherit (config) bot;
+  inherit (config) app;
 
   ph = config.sops.placeholder;
   secretPath = name: config.sops.secrets.${name}.path;
@@ -142,7 +142,7 @@ in
     environment = {
       API_SERVER_ENABLED = "true";
       API_SERVER_HOST = "127.0.0.1";
-      API_SERVER_PORT = toString hermes.port;
+      API_SERVER_PORT = toString hermes-agent.port;
     };
     environmentFiles = [ (templatePath "hermes-env") ];
   };
@@ -209,8 +209,8 @@ in
   };
 
   home.sessionVariables = {
-    XDG_RUNTIME_DIR = "/run/user/${toString bot.uid}";
-    DBUS_SESSION_BUS_ADDRESS = "unix:path=/run/user/${toString bot.uid}/bus";
+    XDG_RUNTIME_DIR = "/run/user/${toString app.uid}";
+    DBUS_SESSION_BUS_ADDRESS = "unix:path=/run/user/${toString app.uid}/bus";
   };
 
   systemd.user.services.hermes-env-merge = {

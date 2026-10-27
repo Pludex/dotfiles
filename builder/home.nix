@@ -69,7 +69,7 @@ let
     name: c:
     let
       hostName = if c.host == null then name else c.host;
-      host = cfg.builder.hostOf hostName;
+      host = cfg.builder.host hostName;
       # Base of this host's architecture, memoized per system by flake-parts
       base = cfg.base.forSystem host.system // {
         inherit host;

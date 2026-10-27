@@ -12,7 +12,7 @@ in
   config = lib.mkMerge [
     (lib.mkIf (!isContainer) {
       sops = {
-        defaultSopsFile = "${base.paths.data}/main.enc.yaml";
+        defaultSopsFile = base.age.defaultFile;
         age.keyFile = base.age.privateKeyPath;
         useSystemdActivation = true;
       };
