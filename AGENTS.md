@@ -84,46 +84,105 @@ In other words, the flake-parts builder is the architecture: base infrastructure
 ├── flake.nix / flake.lock     # Flake inputs, lockfile, and top-level entry point
 ├── outputs.nix                # Named outputs, systems, overlays, nixpkgs policy, treefmt
 ├── default.nix                # Compatibility entry point using flake-compat
-├── devshell.nix               # Development shell with SOPS/Age tooling
+├── devshells.nix              # Development shell with SOPS/Age tooling
 ├── base/                      # Shared options, paths, tools, glyphs, and base configuration
+│   ├── apps.nix
+│   ├── default.nix
+│   ├── glyphs.nix
+│   ├── ignores.nix
+│   └── tools.nix
 ├── builder/                   # Flake Parts assembly for base, NixOS, Home Manager, Nixvim, packages, profiles
-├── profiles/                  # High-level compositions such as desktop, live, and development profiles
-├── hosts/                     # Host-specific NixOS configuration
-├── nixos/                     # System services and virtualization configuration
-├── home/                      # Home Manager modules: apps, programs, services, development, IDEs, and AI tools
-│   ├── ai/                    # AI tooling: Claude Code CLI/OpenRouter setup, Claude Desktop launcher, and other AI helpers
-│   │   ├── claude-code.nix    # Shell wrapper for Claude Code via OpenRouter
-│   │   ├── claude-desktop.nix # Home Manager module to install claude-desktop package
-│   │   └── aider.nix          # Aider AI pairing tool configuration
-│   ├── apps/                  # GUI applications
-│   ├── develop/               # Development tools and environments
-│   ├── flatpak/               # Flatpak application management
-│   ├── ides/                  # IDE configurations and extensions
-│   ├── programs/              # CLI programs and utilities
-│   └── services/              # System services and daemons
-├── desktops/                  # Desktop/window-manager compositions and desktop-specific Home Manager setup
-│   ├── common/                # Shared desktop utilities
-│   ├── niri/                  # Niri configuration
-│   └── MangoWM/               # MangoWM configuration
-├── modules/                   # Reusable modules
-│   ├── flake/                 # Flake-level modules
-│   ├── home/                  # Reusable Home Manager modules
-│   ├── nixos/                 # Reusable NixOS modules
-│   └── nixvim/                # Reusable Nixvim modules
-├── nixvim/                    # Nixvim language and editor-specific configuration
-├── emacs/                     # Emacs configuration and package setup
-├── overlays/                  # Nixpkgs overlays
-├── pkgs/                      # Custom packages and project-local tools
-│   ├── audio-manager/         — Python MPRIS/audio-management daemon.
-│   ├── vaultwarden-sync/      — Python backup and synchronization utility.
-│   ├── vivaldi-sync/          — Nushell browser-profile synchronization utility.
-│   ├── claude-desktop/        — Package for Claude Desktop
-│   └── patchy-cnb/            — Rust/NAPI-RS package for input, window, and monitor operations.
-├── data/                      # Encrypted secrets and static data; handle as sensitive
+│   ├── base.nix
+│   ├── default.nix
+│   ├── home.nix
+│   ├── host.nix
+│   ├── nixos.nix
+│   ├── nixvim.nix
+│   ├── package.nix
+│   └── profiles.nix
+├── profiles/                  # High-level compositions (desktop, editor, hermes, leetcode, live, ci)
+│   ├── ci.nix
+│   ├── default.nix
+│   ├── desktop.nix
+│   ├── editor.nix
+│   ├── hermes.nix
+│   ├── leetcode.nix
+│   └── live.nix
+├── hosts/                     # Host-specific NixOS configuration (dp7530, container, live)
+│   ├── dp7530/                # Host configuration and hardware-configuration.nix
+│   ├── ci-runner.nix
+│   ├── container.nix
+│   ├── default.nix
+│   └── live.nix
+├── nixos/                     # System services, containers, virtualisation, and programs
+│   ├── apps/
+│   ├── containers/
+│   ├── programs/
+│   ├── services/              # Caddy, envfs, flatpak, nginx, ngrok, vaultwarden
+│   └── virtualisation/
+├── home/                      # Home Manager modules (ai, apps, develop, flatpak, ides, programs, services)
+│   ├── ai/
+│   ├── apps/
+│   ├── develop/
+│   ├── flatpak/
+│   ├── ides/
+│   ├── programs/
+│   └── services/
+├── desktops/                  # Desktop and window-manager compositions (niri, plasma6, mango, river, hyprland, tty, common)
+│   ├── common/
+│   ├── hyprland/
+│   ├── mango/
+│   ├── niri/
+│   ├── plasma6/
+│   ├── river/
+│   ├── tty/
+│   └── default.nix
+├── modules/                   # Reusable modules (flake, home, nixos, nixvim)
+│   ├── flake/
+│   ├── home/
+│   ├── nixos/
+│   └── nixvim/
+├── nixvim/                    # Declarative Neovim configuration and language modules
+│   ├── languages/
+│   ├── obsidian/
+│   ├── default.nix
+│   ├── direnv.nix
+│   └── leetcode.nix
+├── emacs/                     # Emacs configuration, UI themes, and setup
+│   ├── ui/
+│   ├── config.el
+│   ├── default.nix
+│   ├── init.el
+│   └── packages.el
+├── overlays/                  # Nixpkgs overlays (dotnet, hyprland, neovide, nushell)
+│   ├── default.nix
+│   ├── dotnet.nix
+│   ├── hyprland.nix
+│   ├── neovide.nix
+│   └── nushell.nix
+├── pkgs/                      # Custom packages and project-local tools (audio-manager, patchy-cnb, vivaldi-sync, vaultwarden-sync, etc.)
+│   ├── assets/
+│   ├── audio-manager/
+│   ├── brightness-control/
+│   ├── claude-desktop/
+│   ├── lobehub/
+│   ├── msbuild-ls/
+│   ├── patchy-cnb/
+│   ├── schemes/
+│   ├── skills/
+│   ├── treesitter-kanata/
+│   ├── vaultwarden-sync/
+│   ├── vivaldi-sync/
+│   ├── volume-control/
+│   ├── warp/
+│   ├── wps/
+│   └── zalo-for-linux/
+├── data/                      # Encrypted secrets and static data (SOPS/Age)
 ├── lib/                       # Local Nix library functions and helpers
-├── .github/                   # GitHub configuration and automation
-├── .sops.yaml                 # SOPS/Age encryption rules
-└── .envrc                     # direnv integration
+│   ├── make/
+│   └── default.nix
+├── patches/                   # Patches for upstream projects (e.g. hyprsession-ignore.patch)
+└── LICENSE                    # Repository license
 ```
 
 ### Custom package areas
