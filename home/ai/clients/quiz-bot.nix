@@ -841,8 +841,8 @@ in
 
     omnirouteUrl = lib.mkOption {
       type = lib.types.str;
-      default = omniroute.urlBase;
-      defaultText = lib.literalExpression "(base.appOf \"omniroute\").urlBase";
+      default = omniroute.baseUrl;
+      defaultText = lib.literalExpression "(base.appOf \"omniroute\").baseUrl";
       description = "Base URL of the OmniRoute instance.";
     };
 

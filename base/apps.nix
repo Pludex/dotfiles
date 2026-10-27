@@ -4,7 +4,7 @@
     apps = {
       hermes-agent = rec {
         port = 8642;
-        urlBase = "http://127.0.0.1:${toString port}";
+        baseUrl = "http://127.0.0.1:${toString port}";
         data = "/workspaces/hermes";
 
         username = "hermes";
@@ -42,7 +42,7 @@
 
       omniroute = rec {
         port = 20128;
-        urlBase = "http://127.0.0.1:${toString port}";
+        baseUrl = "http://127.0.0.1:${toString port}";
         data = "/workspaces/omniroute";
       };
     };

@@ -129,7 +129,7 @@ let
 
     if curl -fsS --max-time 10 \
          -H "Authorization: Bearer $OMNIROUTE_API_KEY" \
-         "${omniroute.urlBase}/v1/models" \
+         "${omniroute.baseUrl}/v1/models" \
        | jq '{
            schema_version: "model_provider_routes/v1",
            models: (
@@ -208,11 +208,11 @@ in
       model = {
         provider = "custom:omniroute";
         default = "gemini";
-        base_url = "${omniroute.urlBase}/v1";
+        base_url = "${omniroute.baseUrl}/v1";
       };
 
       providers.omniroute = {
-        api = "${omniroute.urlBase}/v1";
+        api = "${omniroute.baseUrl}/v1";
         api_key = "\${OMNIROUTE_API_KEY}";
         transport = "openai_chat";
         discover_models = true;
@@ -224,7 +224,7 @@ in
 
     mcpServers = {
       omniroute = {
-        url = "${omniroute.urlBase}/api/mcp/stream";
+        url = "${omniroute.baseUrl}/api/mcp/stream";
         headers.Authorization = "Bearer \${OMNIROUTE_API_KEY}";
       };
       context7 = {
