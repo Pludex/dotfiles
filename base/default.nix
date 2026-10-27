@@ -62,6 +62,7 @@
       virtualisation = ../nixos/virtualisation;
       apps = ../nixos/apps;
       containers = ../nixos/containers;
+      programs = ../nixos/programs;
     };
 
     home = {

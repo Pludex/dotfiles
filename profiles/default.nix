@@ -44,6 +44,7 @@ in
       virtualisation = n: np.virtualisation + "/${n}";
       apps = n: np.apps + "/${n}";
       containers = n: np.containers + "/${n}";
+      programs = n: np.programs + "/${n}";
     };
 
     nixvim = {

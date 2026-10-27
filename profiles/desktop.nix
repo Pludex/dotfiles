@@ -104,6 +104,9 @@
       apps = [
         "steam"
       ];
+      programs = [
+        "hermesctl"
+      ];
     };
   };
 }
