@@ -4,10 +4,10 @@
   inputs,
   python3Packages,
   nodejs,
-  git,
-  src ? inputs.oh-my-hermes,
+  git
 }:
 let
+  src =  inputs.oh-my-hermes;
   pyproject = lib.importTOML "${src}/pyproject.toml";
 in
 python3Packages.buildPythonApplication {

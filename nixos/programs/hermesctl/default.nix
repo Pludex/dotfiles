@@ -15,12 +15,14 @@ let
     mount_root = mountRoot;
     mount_in = mountIn;
     container = "hermes";
+    unit = "podman-hermes.service";
     bot_user = app.username;
     bot_host_uid = toString (200000 + app.uid - 1);
     coding_gid = toString coding.gid;
     hermes_home = "/app/data";
     default_workdir = "/workspaces";
     hermes_bin = "hermes";
+    omh_bin = "omh";
     container_path = lib.concatStringsSep ":" [
       "/etc/profiles/per-user/${app.username}/bin"
       "/home/${app.username}/.nix-profile/bin"
@@ -29,6 +31,8 @@ let
     shell = lib.getExe base.tools.shell;
     podman = "${pkgs.podman}/bin/podman";
     machinectl = "${pkgs.systemd}/bin/machinectl";
+    systemctl = "${pkgs.systemd}/bin/systemctl";
+    journalctl = "${pkgs.systemd}/bin/journalctl";
     bindfs = "${pkgs.bindfs}/bin/bindfs";
     umount = "${pkgs.util-linux}/bin/umount";
   };
@@ -51,7 +55,6 @@ in
     script = ''
       mkdir -p ${mountRoot}
       mountpoint -q ${mountRoot} || mount --bind ${mountRoot} ${mountRoot}
-      mount --make-private ${mountRoot}
       mount --make-rshared ${mountRoot}
     '';
     preStop = "umount -R ${mountRoot} || true";

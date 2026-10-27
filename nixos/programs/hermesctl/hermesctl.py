@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(CFG["mount_root"])
 MOUNT_IN = CFG["mount_in"]
 BOT = CFG["bot_user"]
+UNIT = CFG["unit"]
 LOCKDIR = Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / "hermesctl"
 
 USAGE = """\
@@ -17,11 +18,24 @@ hermesctl [--rw|-W] [--yes] [DIR...] [hermes args...]
   DIR       leading path (., .., or anything containing a slash) to mount into the container
   --rw, -W  mount DIR writable (default: read-only)
   --yes     do not ask before mounting
-  No args, or only flags: runs `hermes --tui`. A subcommand is passed through as is.
-hermesctl mounts
-hermesctl umount --all | DIR...
-hermesctl shell [cmd...]
-hermesctl -- args...    pass everything to hermes untouched
+  No args, or only flags: runs `hermes --tui` (the omh plugin loads from HERMES_HOME).
+  A subcommand is passed through to hermes as is.
+
+hermesctl [--rw|-W] [--yes] [DIR...] omh [omh args...]
+  Runs oh-my-hermes inside the container with --hermes-home set.
+  Bare `omh` opens Hermes with the OMH identity. Examples:
+    hermesctl omh setup | doctor | model
+    hermesctl --rw . omh          (omh writes .omh/ in the project: needs --rw)
+
+hermesctl shell [cmd...]          shell (or command) in the container
+hermesctl mounts                  list active mounts ([in use] = held by a session)
+hermesctl umount --all | DIR...   force unmount
+hermesctl host up|down|restart    start / stop / restart the container service
+hermesctl host status             service state, mount root, mounts
+hermesctl host logs [args]        journalctl of the service (default: last 200 lines)
+hermesctl host doctor             host checks + `hermes doctor` + `omh doctor`
+hermesctl host prune              unmount every mount no session is using
+hermesctl -- args...              pass everything to hermes untouched
 """
 
 
@@ -45,6 +59,14 @@ def is_mounted(path):
     return any(target == str(path) for target, _, _ in mountinfo())
 
 
+def root_shared():
+    for line in Path("/proc/self/mountinfo").read_text().splitlines():
+        f = line.partition(" - ")[0].split()
+        if f[4] == str(ROOT):
+            return any(x.startswith("shared:") for x in f[6:])
+    return False
+
+
 def name_for(src, mode):
     base = re.sub(r"[^A-Za-z0-9._-]", "_", Path(src).name)
     digest = hashlib.sha1(str(src).encode()).hexdigest()[:6]
@@ -57,6 +79,23 @@ def confirm(question, yes):
     if not sys.stdin.isatty():
         die("mounting needs confirmation, pass --yes")
     return input(f"{question} [y/N] ").strip().lower().startswith("y")
+
+
+def unit_active():
+    return subprocess.run(
+        [CFG["systemctl"], "is-active", "--quiet", UNIT],
+        stderr=subprocess.DEVNULL,
+    ).returncode == 0
+
+
+def require_up():
+    if not unit_active():
+        die(f"{UNIT} is not running (hermesctl host up)")
+
+
+def omh_cmd(args):
+    # --hermes-home is a global flag: it must come before the subcommand
+    return [CFG["omh_bin"], "--hermes-home", CFG["hermes_home"], *args]
 
 
 def run_in(workdir, cmd):
@@ -87,8 +126,19 @@ def force_umount(target):
     sudo("rmdir", str(target), quiet=True)
 
 
+def in_use(name):
+    LOCKDIR.mkdir(parents=True, exist_ok=True)
+    with open(LOCKDIR / f"{name}.lock", "a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return True
+    return False
+
+
 def try_release(name):
     target = ROOT / name
+    LOCKDIR.mkdir(parents=True, exist_ok=True)
     with open(LOCKDIR / f"{name}.lock", "w") as lock:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -100,6 +150,13 @@ def try_release(name):
             sudo("rmdir", str(target), quiet=True)
         else:
             print(f"hermesctl: {target} is still busy, left mounted (hermesctl umount --all)", file=sys.stderr)
+
+
+def list_mounts():
+    for target, opts, source in mountinfo():
+        if target.startswith(f"{ROOT}/"):
+            flag = "  [in use]" if in_use(Path(target).name) else ""
+            print(target, source, opts + flag)
 
 
 class Mounts:
@@ -142,6 +199,55 @@ class Mounts:
             try_release(name)
 
 
+def doctor():
+    bad = 0
+
+    def check(label, ok, hint=""):
+        nonlocal bad
+        print(f"[{'ok' if ok else 'FAIL'}] {label}" + ("" if ok else f"  ({hint})"))
+        if not ok:
+            bad += 1
+
+    up = unit_active()
+    check(f"{UNIT} is active", up, "hermesctl host up")
+    check(f"{ROOT} is a shared mount", is_mounted(ROOT) and root_shared(),
+          "systemctl status hermes-mount-root")
+    for key in ("podman", "machinectl", "bindfs", "umount", "systemctl", "journalctl"):
+        check(f"{key} present", Path(CFG[key]).exists(), CFG[key])
+    if up:
+        for label, cmd in (
+            ("hermes doctor", [CFG["hermes_bin"], "doctor"]),
+            ("omh doctor", omh_cmd(["doctor"])),
+        ):
+            print(f"\n== {label} ==", flush=True)
+            if run_in(CFG["default_workdir"], cmd) != 0:
+                bad += 1
+    return 1 if bad else 0
+
+
+def host(argv):
+    verb, rest = (argv[0] if argv else ""), argv[1:]
+    if verb in ("up", "down", "restart"):
+        action = {"up": "start", "down": "stop", "restart": "restart"}[verb]
+        return sudo(CFG["systemctl"], action, UNIT).returncode
+    if verb == "status":
+        print(f"{UNIT}: {'active' if unit_active() else 'inactive'}")
+        print(f"{ROOT}: {'shared mount' if is_mounted(ROOT) and root_shared() else 'NOT a shared mount'}")
+        list_mounts()
+        return 0
+    if verb == "logs":
+        return sudo(CFG["journalctl"], "-u", UNIT, *(rest or ["-n", "200", "--no-pager"])).returncode
+    if verb == "doctor":
+        return doctor()
+    if verb == "prune":
+        if ROOT.is_dir():
+            for p in sorted(ROOT.iterdir()):
+                if p.is_dir():
+                    try_release(p.name)
+        return 0
+    die("usage: hermesctl host up|down|restart|status|logs|doctor|prune")
+
+
 def parse(argv):
     rw = yes = False
     dirs = []
@@ -168,9 +274,7 @@ def main():
         print(USAGE, end="")
         return 0
     if head == "mounts":
-        for target, opts, source in mountinfo():
-            if target.startswith(f"{ROOT}/"):
-                print(target, source, opts)
+        list_mounts()
         return 0
     if head == "umount":
         targets = argv[1:]
@@ -183,22 +287,35 @@ def main():
         for name in names:
             force_umount(ROOT / name)
         return 0
+    if head == "host":
+        return host(argv[1:])
     if head == "shell":
+        require_up()
         return run_in(CFG["default_workdir"], argv[1:] or [CFG["shell"]])
 
+    tool = "hermes"
     if head == "--":
         rw, yes, dirs, args = False, False, [], argv[1:]
+        cmd = [CFG["hermes_bin"], *args]
     else:
         rw, yes, dirs, args = parse(argv)
+        if args and args[0] == "omh":
+            tool, args = "omh", args[1:]
+            cmd = omh_cmd(args)
+        else:
+            inject = not any(a in ("--tui", "-h", "--help", "-V", "--version") for a in args)
+            if args and not args[0].startswith("-"):
+                inject = False
+            if inject:
+                args = ["--tui", *args]
+            cmd = [CFG["hermes_bin"], *args]
     if rw and not dirs:
         print("hermesctl: --rw has no effect without a directory", file=sys.stderr)
+    if tool == "omh" and dirs and not rw:
+        print("hermesctl: note: mounted read-only, omh cannot write .omh/ "
+              "(project memory, handoffs) in the project; use --rw", file=sys.stderr)
 
-    inject = not any(a in ("--tui", "-h", "--help", "-V", "--version") for a in args)
-    if args and not args[0].startswith("-"):
-        inject = False
-    if inject:
-        args = ["--tui", *args]
-
+    require_up()
     mode = "rw" if rw else "ro"
     mounts = Mounts()
     workdir = CFG["default_workdir"]
@@ -212,7 +329,7 @@ def main():
             path = mounts.acquire(src, mode, yes)
             if n == 0:
                 workdir = path
-        return run_in(workdir, [CFG["hermes_bin"], *args])
+        return run_in(workdir, cmd)
     finally:
         mounts.release_all()
 
