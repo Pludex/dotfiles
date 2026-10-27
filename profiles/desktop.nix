@@ -43,6 +43,7 @@
         "fzf"
         "gh"
         "ghostty"
+        "hermes-desktop"
         "kitty"
         "lazygit"
         "mpv"

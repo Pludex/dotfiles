@@ -156,9 +156,7 @@ let
     fi
   '';
 
-  hermesPkg = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
-    version = "0.22.5";
-  };
+  hermesPkg = pkgs.hermes.full;
 in
 {
   imports = [

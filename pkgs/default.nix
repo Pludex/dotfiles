@@ -30,9 +30,22 @@
     packagesOfInputs = {
       waybar = inputs'.waybar.packages.default;
       walker = inputs'.walker.packages.default;
-      hermes = inputs'.hermes-agent.packages // {
-        full = inputs'.hermes-agent.packages.default;
-      };
+      hermes =
+        let
+          hermesPkgs = inputs'.hermes-agent.packages;
+          hermesFull = hermesPkgs.default.override {
+            version = "0.22.5";
+          };
+        in
+        inputs'.hermes-agent.packages
+        // {
+          full = hermesFull;
+          default = hermesFull;
+          desktop = hermesFull.hermesDesktop;
+          tui = hermesFull.hermesTui;
+          web = hermesFull.hermesWeb;
+          webapp = hermesFull.hermesWebapp;
+        };
     };
 
     ciPackages = {
