@@ -287,5 +287,10 @@
       url = "github:lobehub/lobehub";
       flake = false;
     };
+
+    oh-my-hermes = {
+      url = "github:rlaope/oh-my-hermes";
+      flake = false;
+    };
   };
 }

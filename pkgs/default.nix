@@ -17,6 +17,7 @@
     zalo-for-linux.path = ./zalo-for-linux;
 
     icons.path = ./icons.nix;
+    oh-my-hermes.path = ./oh-my-hermes.nix;
     openleetcode.path = ./openleetcode.nix;
     screenshot.path = ./screenshot.nix;
     sklauncher.path = ./sklauncher.nix;

@@ -20,7 +20,7 @@
       ];
 
       services = [
-        "hermes"
+        "hermes-agent"
       ];
     };
 

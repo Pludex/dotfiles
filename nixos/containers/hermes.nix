@@ -10,6 +10,7 @@ let
   guest = app.nixosConfigs.container;
   toplevel = guest.config.system.build.toplevel;
   coding = base.group "coding";
+  hostuser = app.user "host";
 in
 {
   virtualisation.podman.enable = true;
@@ -21,10 +22,10 @@ in
     restartUnits = [ "podman-hermes.service" ];
   };
 
-  users.users.hermes-host = {
+  users.users.${hostuser.username} = {
+    inherit (hostuser) uid home;
     isSystemUser = true;
     linger = true;
-    home = "/var/lib/hermes-host";
     createHome = true;
     group = "users-host";
     extraGroups = [
@@ -90,7 +91,7 @@ in
         "--gidmap=${toString coding.gid}:1:1"
         "--gidmap=${toString (coding.gid + 1)}:${toString (coding.gid + 1)}:${toString (65537 - coding.gid)}"
       ];
-      podman.user = "hermes-host";
+      podman.user = hostuser.username;
     };
   };
 
@@ -104,7 +105,7 @@ in
 
   environment.systemPackages = [
     (pkgs.writeShellScriptBin "login-hermes-container" ''
-      exec sudo ${pkgs.systemd}/bin/machinectl shell hermes-host@ \
+      exec sudo ${pkgs.systemd}/bin/machinectl shell ${hostuser.username}@ \
         ${pkgs.podman}/bin/podman exec -it --user ${app.username} hermes ${lib.getExe base.tools.shell} "$@"
     '')
   ];

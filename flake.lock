@@ -1641,6 +1641,22 @@
         "type": "github"
       }
     },
+    "oh-my-hermes": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793090778,
+        "narHash": "sha256-tQ+IIHpiKzxJ9nMhk55XjFlaBUKXmMs5DZanU6uFY8g=",
+        "owner": "rlaope",
+        "repo": "oh-my-hermes",
+        "rev": "6096be32a94db4c33dc9ff88e8fed935e717d2cc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rlaope",
+        "repo": "oh-my-hermes",
+        "type": "github"
+      }
+    },
     "omniroute": {
       "flake": false,
       "locked": {
@@ -1825,6 +1841,7 @@
         "nur": "nur",
         "nushell-highlight": "nushell-highlight",
         "obsidian-extensions": "obsidian-extensions",
+        "oh-my-hermes": "oh-my-hermes",
         "omniroute": "omniroute",
         "openleetcode": "openleetcode",
         "plasma-manager": "plasma-manager",

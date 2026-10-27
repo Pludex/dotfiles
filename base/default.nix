@@ -93,7 +93,7 @@
   };
 
   extraArgs = {
-    inherit (base) inputs libx;
+    inherit (base) inputs;
   };
 
   imports = [

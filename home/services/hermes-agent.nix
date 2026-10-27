@@ -7,6 +7,7 @@
   ...
 }:
 let
+  inherit (base) myPkgs;
   hermes-agent = base.app "hermes-agent";
   omniroute = base.app "omniroute";
   hermesHome = "/app/data";
@@ -63,6 +64,101 @@ let
     install -m 600 "$tmp" "$dst"
     rm -f "$tmp"
   '';
+
+  omhPkg = myPkgs.oh-my-hermes;
+  omhHome = "${hermesHome}/omh";
+
+  # Combos that the routing chains below refer to. Used only as:
+  #   1. fallback when omniroute /v1/models is unreachable
+  #   2. sanity check (warn if a chain target is missing from the live list)
+  combos = [
+    "chat-fast"
+    "code-std"
+    "code-pro"
+    "agent-pro"
+  ];
+  chain = model: effort: [
+    {
+      inherit model;
+      reasoning_effort = effort;
+    }
+  ];
+
+  chainsFile = pkgs.writeText "model-chains.json" (
+    builtins.toJSON {
+      schema_version = "mixture_chain_overrides/v1";
+      categories = {
+        quick = chain "chat-fast" "low";
+        visual-engineering = chain "code-std" "medium";
+        deep = chain "code-pro" "high";
+        ultrabrain = chain "agent-pro" "high";
+      };
+    }
+  );
+
+  # Static fallback, only used when /v1/models cannot be fetched
+  # and no previous model-providers.json exists yet.
+  routesFile = pkgs.writeText "model-providers.json" (
+    builtins.toJSON {
+      schema_version = "model_provider_routes/v1";
+      models = lib.genAttrs combos (model: {
+        provider = "custom:omniroute";
+        inherit model;
+      });
+    }
+  );
+
+  omhSync = pkgs.writeShellScript "omh-sync" ''
+    set -euo pipefail
+    export HERMES_HOME=${hermesHome} OMH_HOME=${omhHome}
+    mkdir -p "$OMH_HOME/routing"
+
+    if [ "$(cat "$OMH_HOME/.nix-store-path" 2>/dev/null || true)" != "${omhPkg}" ]; then
+      omh setup --no-interactive --json
+      printf '%s' "${omhPkg}" > "$OMH_HOME/.nix-store-path"
+    fi
+
+    install -m 0644 ${chainsFile} "$OMH_HOME/routing/model-chains.json"
+
+    # model-providers.json: generated from omniroute's /v1/models at runtime.
+    # To only expose combos, add a select(...) before map(...) in the jq filter
+    # (check `curl .../v1/models | jq` for a field such as owned_by).
+    dst="$OMH_HOME/routing/model-providers.json"
+    tmp=$(mktemp)
+    trap 'rm -f "$tmp"' EXIT
+
+    if curl -fsS --max-time 10 \
+         -H "Authorization: Bearer $OMNIROUTE_API_KEY" \
+         "${omniroute.urlBase}/v1/models" \
+       | jq '{
+           schema_version: "model_provider_routes/v1",
+           models: (
+             .data
+             | map({
+                 key: .id,
+                 value: { provider: "custom:omniroute", model: .id }
+               })
+             | from_entries
+           )
+         }' > "$tmp" \
+       && [ "$(jq '.models | length' "$tmp")" -gt 0 ]; then
+      install -m 0644 "$tmp" "$dst"
+
+      # warn when a model referenced by model-chains.json is not served
+      jq -r --argjson want '${builtins.toJSON combos}' \
+        '($want - (.models | keys))[]' "$dst" \
+        | while read -r m; do
+            echo "warning: chain model '$m' not found in omniroute /v1/models" >&2
+          done
+    else
+      echo "omniroute /v1/models unavailable, keeping existing routes or using fallback" >&2
+      [ -f "$dst" ] || install -m 0644 ${routesFile} "$dst"
+    fi
+  '';
+
+  hermesPkg = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
+    version = "0.22.5";
+  };
 in
 {
   imports = [
@@ -100,6 +196,7 @@ in
 
   services.hermes-agent = {
     enable = true;
+    package = hermesPkg;
     inherit hermesHome;
     gateway.enable = true;
     restart = "on-failure";
@@ -122,6 +219,9 @@ in
         transport = "openai_chat";
         discover_models = true;
       };
+
+      plugins.entries.omh.settings.omh_home = omhHome;
+      skills.external_dirs = [ "${omhHome}/skills" ];
     };
 
     mcpServers = {
@@ -143,7 +243,9 @@ in
       API_SERVER_ENABLED = "true";
       API_SERVER_HOST = "127.0.0.1";
       API_SERVER_PORT = toString hermes-agent.port;
+      OMH_HOME = omhHome;
     };
+
     environmentFiles = [ (templatePath "hermes-env") ];
   };
 
@@ -152,17 +254,20 @@ in
       "sops-nix.service"
       "podman-omniroute.service"
       "hermes-env-merge.service"
+      "omh-sync.service"
     ];
     Wants = [
       "sops-nix.service"
       "omniroute-bootstrap.service"
       "hermes-env-merge.service"
+      "omh-sync.service"
     ];
   };
 
   programs.hermes-agent = {
     enable = true;
-    desktop.enable = true;
+    package = hermesPkg;
+    desktop.enable = false;
   };
 
   systemd.user.services.hermes-git-sync = {
@@ -237,5 +342,50 @@ in
       ];
     };
     Install.WantedBy = [ "default.target" ];
+  };
+
+  home.packages = [ omhPkg ];
+
+  systemd.user.services.omh-sync = {
+    Unit = {
+      Description = "Sync oh-my-hermes into the hermes home";
+      After = [
+        "sops-nix.service"
+        "podman-omniroute.service"
+        "omniroute-bootstrap.service"
+        "hermes-env-merge.service"
+      ];
+      Wants = [
+        "sops-nix.service"
+        "hermes-env-merge.service"
+      ];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${omhSync}";
+      # provides OMNIROUTE_API_KEY for the /v1/models request
+      EnvironmentFile = [ (templatePath "hermes-env") ];
+      Environment = [
+        "PATH=${
+          lib.makeBinPath [
+            pkgs.coreutils
+            pkgs.curl
+            pkgs.jq
+            omhPkg
+          ]
+        }:${config.home.profileDirectory}/bin"
+      ];
+    };
+  };
+
+  # Refresh the model list periodically so new omniroute combos show up
+  # without a rebuild.
+  systemd.user.timers.omh-sync = {
+    Unit.Description = "Periodic oh-my-hermes / omniroute model sync";
+    Timer = {
+      OnBootSec = "1min";
+      OnUnitActiveSec = "1h";
+    };
+    Install.WantedBy = [ "timers.target" ];
   };
 }

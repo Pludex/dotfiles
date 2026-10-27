@@ -21,6 +21,12 @@
           container = inputs.self.nixosConfigurations.hermes-agent;
         };
 
+        users.host = {
+          username = "hermes-host";
+          home = "/var/lib/hermes-host";
+          uid = 1002;
+        };
+
         modules.nixos =
           let
             coding = config.base.group "coding";
@@ -30,6 +36,8 @@
             users.users.${username}.extraGroups = [ "coding" ];
             users.users.root.extraGroups = [ "coding" ];
           };
+
+        user = name: (app "hermes-agent").users.${name};
       };
 
       omniroute = rec {
