@@ -5,6 +5,9 @@
       hermes-agent = rec {
         port = 8642;
         baseUrl = "http://127.0.0.1:${toString port}";
+        dashboardPort = 9119;
+        dashboardUrl = "http://127.0.0.1:${toString dashboardPort}";
+
         data = "/workspaces/hermes";
 
         username = "hermes";

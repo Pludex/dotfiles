@@ -2,10 +2,6 @@
 {
   profiles.desktop = {
     home = {
-      ai = [
-        "default"
-      ];
-
       apps = [
         "bitwarden"
         "discord"
@@ -23,6 +19,7 @@
         # "firefox"
         # "floorp"
         "nushell"
+        "quiz-bot"
         "statix"
         "warp"
         "wezterm"
@@ -34,6 +31,8 @@
         "btop"
         "carapace"
         "cava"
+        # "claude-code"
+        # "claude-desktop"
         "delta"
         "direnv"
         "emacs"
@@ -63,6 +62,7 @@
 
       services = [
         "audio-manager"
+        "omniroute"
         # "espanso"
       ];
 

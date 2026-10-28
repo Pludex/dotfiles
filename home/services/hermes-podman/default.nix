@@ -44,7 +44,7 @@ let
 in
 {
   imports = [
-    ../modules/hermes-podman.nix
+    ./hermes-podman.module.nix
   ];
 
   sops.secrets."api-keys/omniroute/hermes" = { };

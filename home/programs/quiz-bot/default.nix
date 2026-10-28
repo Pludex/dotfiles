@@ -1,12 +1,4 @@
 {
-  imports = [
-    ./claude-code.nix
-    ./librechat.nix
-    ./lobehub.nix
-    ./quiz-bot.nix
-
-  ];
-
   programs.quiz-bot = {
     enable = true;
     reasoningEffort = "low";
@@ -16,4 +8,8 @@
     maxAttempts = 2;
     hedgeSeconds = 8.0;
   };
+
+  imports = [
+    ./quiz-bot.module.nix
+  ];
 }

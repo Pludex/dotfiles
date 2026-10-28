@@ -22,7 +22,6 @@ in
   # freely without the handler needing to know which is which.
   profilesImportHandlers = {
     home = {
-      ai = n: hp.ai + "/${n}";
       apps = n: hp.apps + "/${n}";
       programs = n: hp.programs + "/${n}";
       services = n: hp.services + "/${n}";
@@ -31,7 +30,6 @@ in
     };
 
     homeRoot = {
-      ai = n: hp.ai + "/${n}";
       apps = n: hp.apps + "/${n}";
       programs = n: hp.programs + "/${n}";
       services = n: hp.services + "/${n}";
