@@ -53,23 +53,41 @@ let
     in
     extraModules ++ lib.concatLists (lib.mapAttrsToList (resolveSubkey category) subkeys);
 
+  # Keys of a profile that are not categories
+  reservedProfileKeys = [
+    "modules"
+    "features"
+  ];
+
   resolveProfile =
     profileName: profileCfg:
     let
-      names = lib.unique profileCfg.modules;
+      moduleNames = lib.unique profileCfg.modules;
+      featureNames = lib.unique profileCfg.features;
 
-      registered = map (
+      registeredModules = map (
         n:
         cfg.modules.${n} or (throw ''
           profiles.${profileName}.modules: unknown module "${n}".
           Defined modules: ${lib.concatStringsSep ", " (lib.attrNames cfg.modules)}
         '')
-      ) names;
+      ) moduleNames;
 
-      # category -> concatenated module list across all referenced modules
-      registeredByCategory = lib.zipAttrsWith (_: lib.concatLists) registered;
+      registeredFeatures = map (
+        n:
+        (cfg.features.${n} or (throw ''
+          profiles.${profileName}.features: unknown feature "${n}".
+          Defined features: ${lib.concatStringsSep ", " (lib.attrNames cfg.features)}
+        '')
+        ).modules
+      ) featureNames;
 
-      categories = removeAttrs profileCfg [ "modules" ];
+      # category -> concatenated module list across all referenced modules and features
+      registeredByCategory = lib.zipAttrsWith (_: lib.concatLists) (
+        registeredModules ++ registeredFeatures
+      );
+
+      categories = removeAttrs profileCfg reservedProfileKeys;
       allCategories = lib.unique (lib.attrNames categories ++ lib.attrNames registeredByCategory);
     in
     lib.genAttrs allCategories (
@@ -94,17 +112,45 @@ let
     };
   };
 
+  featureSubmodule = types.submodule {
+    options.modules = mkOption {
+      type = types.attrsOf moduleList;
+      default = { };
+      example = lib.literalExpression ''
+        {
+          nixos = ./hermes/nixos.nix;
+          home = [ ./hermes/home.nix ./hermes/skills.nix ];
+        }
+      '';
+      description = ''
+        Modules of this feature grouped by category (nixos, home, ...).
+        Each value is a module or a list of modules.
+      '';
+    };
+  };
+
   profileSubmodule = types.submodule {
     freeformType = types.attrsOf categorySubmodule;
     options.modules = mkOption {
       type = types.listOf types.str;
       default = [ ];
-      example = [ "hermes" ];
+      example = [ "sops-os" ];
       description = ''
         Names of entries in the top-level `modules` option. For each name,
         every category defined there (nixos, home, ...) is added to this
         profile's result for that category.
-        Note: "modules" is reserved and cannot be used as a category name.
+        Note: "modules" and "features" are reserved and cannot be used as
+        category names.
+      '';
+    };
+    options.features = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      example = [ "hermes" ];
+      description = ''
+        Names of entries in the top-level `features` option. Each feature's
+        `modules.<category>` is added to this profile's result for that
+        category, the same way as `modules`.
       '';
     };
   };
@@ -116,17 +162,36 @@ in
       default = { };
       example = lib.literalExpression ''
         {
-          hermes = {
-            nixos = ./hermes/nixos.nix;
-            home = [ ./hermes/home.nix ./hermes/extra.nix ];
+          sops-os = {
+            nixos = ./sops-os/nixos.nix;
+            home = ./sops-os/home.nix;
           };
         }
       '';
       description = ''
-        Reusable modules grouped as modules.<name>.<category>, where category
-        is a target framework (nixos, home, nixvim, darwin, ...). Each value
-        is a module or a list of modules. A profile pulls them in with
-        profiles.<profile>.modules = [ "<name>" ].
+        Small reusable modules grouped as modules.<name>.<category>, where
+        category is a target framework (nixos, home, nixvim, darwin, ...).
+        Meant for glue that keeps several frameworks in sync. A profile pulls
+        them in with profiles.<profile>.modules = [ "<name>" ].
+      '';
+    };
+
+    features = mkOption {
+      type = types.attrsOf featureSubmodule;
+      default = { };
+      example = lib.literalExpression ''
+        {
+          hermes.modules = {
+            nixos = ./hermes/nixos.nix;
+            home = ./hermes/home.nix;
+          };
+        }
+      '';
+      description = ''
+        Large, self-contained concepts spanning several frameworks, defined
+        as features.<name>.modules.<category>. Kept separate from `modules`
+        so a feature can later grow new sibling options. A profile pulls them
+        in with profiles.<profile>.features = [ "<name>" ].
       '';
     };
 
@@ -142,8 +207,8 @@ in
         Each category also accepts `extraModules`: a list of concrete
         modules appended as-is, bypassing the handler.
 
-        `modules` lists names from the top-level `modules` option, which
-        are injected into the result per category.
+        `modules` and `features` list names from the top-level options of
+        the same name, which are injected into the result per category.
       '';
     };
 
@@ -163,9 +228,10 @@ in
       type = types.attrsOf (types.attrsOf (types.listOf types.raw));
       readOnly = true;
       description = ''
-        `profiles`, resolved: registered modules, subkeys and extraModules
-        flattened into one module list per category, ready to hand to that
-        category's `imports` (home-manager, nixos, nixvim, darwin, ...).
+        `profiles`, resolved: registered modules, features, subkeys and
+        extraModules flattened into one module list per category, ready to
+        hand to that category's `imports` (home-manager, nixos, nixvim,
+        darwin, ...).
       '';
     };
   };
