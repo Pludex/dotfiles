@@ -18,7 +18,7 @@ in
       postBuild = ''
         for bin in "$out"/bin/*; do
           wrapProgram "$bin" \
-            --set HERMES_DESKTOP_REMOTE_URL ${hermes-agent.baseUrl} \
+            --set HERMES_DESKTOP_REMOTE_URL ${hermes-agent.dashboardUrl} \
             --run 'export HERMES_HOME="$HOME/.hermes"' \
             --run 'mkdir -p "$HERMES_HOME/desktop-plugins"' \
             --run ${pkgs.lib.escapeShellArg tokenSnippet}
