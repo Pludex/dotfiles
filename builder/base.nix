@@ -12,6 +12,38 @@ let
 
   defaultSystem = builtins.head cfg.systems;
 
+  # Never walked into: non-attrsets, derivations, option types (_type),
+  # evalModules/nixosSystem results
+  defaultIsLeaf =
+    v:
+    !(builtins.isAttrs v)
+    || lib.isDerivation v
+    || v ? outPath
+    || v ? _type
+    || (v ? config && v ? options);
+
+  mkTree =
+    isLeaf:
+    let
+      t = lib.mkOptionType {
+        name = "tree";
+        description = "leaf value or nested attribute set";
+        descriptionClass = "noun";
+        check = _: true;
+        merge =
+          loc: defs:
+          if lib.any (d: isLeaf d.value) defs then
+            lib.mergeOneOption loc defs
+          else
+            (types.lazyAttrsOf t).merge loc defs;
+      };
+    in
+    t;
+
+  # Local copy used to declare `libx` itself (bootstrap); everything else
+  # uses cfg.libx.types.tree
+  tree = mkTree defaultIsLeaf;
+
   disjoint =
     what: a: b:
     let
@@ -27,12 +59,7 @@ let
     sources = inputs;
   };
 
-  # builder is safe to carry here as long as its functions take
-  # base/pkgs as an argument (or read it via `final` inside an overlay)
-  # instead of closing over the `pkgs` defined later in `build` - only
-  # `pkgs` itself must never appear here, since overlays and paths.pkgs
-  # are built from `core`:
-  # pkgs -> overlays -> base(core).pkgs -> pkgs would recurse forever
+  # `core` must never depend on `pkgs`: pkgs -> overlays -> core -> pkgs would recurse
   core =
     assert disjoint "builder" cfg.builder (fixed // { base = null; });
     assert disjoint "extraBase" cfg.extraBase (fixed // cfg.builder // { base = null; });
@@ -48,42 +75,21 @@ let
     in
     self;
 
-  # Reconstructs `core` with a caller-supplied pkgs. Safe to call from
-  # inside an overlay (pass `final`), since `core` never depends on
-  # `pkgs` - that's the whole point of keeping it separate from `own`
-  # in `build` below.
-  #
-  # This is NOT a full `base`: everything that lives in `own` (pkgs,
-  # sPkgs, myPkgs, libx, mkBase, mkPkgs, mksPkgs, forSystem, the
-  # builder overrides that wrap those, and the base = full self-ref)
-  # is unavailable here on purpose - all of it only exists *after*
-  # pkgs has finished building, which is exactly the stage an overlay
-  # runs before. Needing any of that inside an overlay is a sign the
-  # logic belongs in `perSystem` instead, where `base` is already
-  # complete.
+  # Not a full `base`: safe to call from overlays (pass `final`)
   mkCoreBase = { pkgs }: core // { inherit pkgs; };
 
-  # packagesOfInputs comes from flake inputs' `packages.${system}.*`
-  # output, so it's per-system; read it lazily from the perSystem
-  # config of the system being built, rather than as a single
-  # top-level value.
   overlays =
     system:
-    cfg.overlaysOfInputs # overlays of flakes input
+    cfg.overlaysOfInputs
     ++ [
       (final: prev: prev // (getSystem system).packagesOfInputs)
       (final: prev: { base = core; })
-      (
-        final: prev:
-        import cfg.paths.libx {
-          pkgs = final;
-          base = mkCoreBase { pkgs = final; };
-        }
-        # Only what callPackage needs to auto-fill in paths.pkgs
-        // {
-          inherit (core) inputs sources;
-        }
-      )
+      (final: prev: {
+        # Only what callPackage needs to auto-fill
+        inherit (core) inputs sources;
+        # Top-level helpers (no pkgs) merged with per-system helpers (use pkgs)
+        libx = lib.recursiveUpdate cfg.libx (getSystem system).libx;
+      })
     ]
     ++ cfg.overlays
     ++ (import "${cfg.paths.overlays}" core);
@@ -130,22 +136,8 @@ let
     let
       pkgs = mkPkgs { inherit system; };
 
-      # `extraBaseWithPkgs` is a TOP-LEVEL option (function of pkgs),
-      # not a perSystem one. This matters: a perSystem consumer module
-      # that only *sets* this option never needs to destructure `pkgs`
-      # or `base` as a module-argument to do so - it just hands over a
-      # plain lambda as data. That's what breaks the circularity that
-      # a perSystem-scoped `extraBase` would invite: any perSystem
-      # module written as `{ pkgs, ... }: { perSystem.extraBase = ...; }`
-      # forced Nix to resolve `_module.args.pkgs` (= `config.base.pkgs`)
-      # just to evaluate the module - but `config.base.pkgs` itself
-      # depends on `extraBase` being fully evaluated first => infinite
-      # recursion. Reading `cfg.extraBaseWithPkgs` here instead is a
-      # plain top-level config lookup; it doesn't touch `_module.args`
-      # at all, so no such cycle is possible from *this* mechanism.
-      # (A consumer module can still shoot itself in the foot by
-      # destructuring `pkgs`/`base` at its own signature for unrelated
-      # reasons - that's on the consumer, not this module.)
+      # Top-level option (function of pkgs), so consumers don't need
+      # `pkgs`/`base` as module args, which would cause infinite recursion
       extraFromPerSystem = cfg.extraBaseWithPkgs pkgs;
 
       own = {
@@ -168,7 +160,6 @@ let
             mkCoreBase
             ;
         };
-        # base.base.base... all resolve to the same set
         base = full;
       };
 
@@ -180,10 +171,6 @@ let
     in
     full;
 
-  # Builds a fresh, fully-resolved base for one system (includes `pkgs`,
-  # `sPkgs`, `myPkgs`, `libx`, ...). This is the only way to get a
-  # concrete `pkgs` out of this module - always explicit about which
-  # `system` you're asking for.
   mkBase =
     {
       system ? defaultSystem,
@@ -194,16 +181,8 @@ let
   # Memoized per system by flake-parts
   forSystem = system: (getSystem system).base;
 
-  # The top-level `base` (exposed as the `base` option / `_module.args.base`
-  # for non-perSystem modules) is intentionally `pkgs`-free, same as `core`.
-  # It's easy to assume this is "the" base the way `perSystem`'s `base` is,
-  # but unlike that one it isn't recomputed per system - so if it carried a
-  # concrete `pkgs` it would silently be `pkgs` for `defaultSystem` only,
-  # even when called from a context building for another system. That bug
-  # stays invisible as long as `cfg.systems` has one entry and only surfaces
-  # once a second system is added - exactly the kind of thing that's hard to
-  # track down later. Keeping `pkgs`/`sPkgs`/`myPkgs`/`libx` out entirely
-  # forces every caller through `forSystem`/`mkBase` explicitly instead.
+  # pkgs-free on purpose: a concrete `pkgs` here would silently be the one
+  # for `defaultSystem` only. Go through `forSystem`/`mkBase` instead.
   topLevelBase = core // {
     inherit mkBase forSystem;
     builder = cfg.builder // {
@@ -240,36 +219,32 @@ in
       default = { };
     };
 
+    # Pure helpers (no pkgs), e.g. `libx.foo = ...;`. Also holds the shared
+    # types: libx.types.tree / libx.types.treeWith
+    libx = mkOption {
+      type = tree;
+      default = { };
+    };
+
     extraBase = mkOption {
-      type = types.lazyAttrsOf types.raw;
+      type = cfg.libx.types.tree;
       default = { };
     };
 
     extraArgs = mkOption {
       type = types.lazyAttrsOf types.raw;
-      default = {};
+      default = { };
     };
 
-    # Same purpose as `extraBase`, but for extras that need the
-    # already-built `pkgs` (with all overlays applied) to compute
-    # their value - e.g. `pkgs: { tools.alias.less = "${pkgs.less}/bin/less"; }`.
-    # TOP-LEVEL (not per-system) on purpose: a single function is
-    # reused for every system, called with that system's own `pkgs`
-    # inside `build`. Consumer modules that set this option never need
-    # `pkgs`/`base` as a module-argument to do so, which avoids the
-    # circularity that a perSystem-scoped version of this option would
-    # invite (see the comment on `extraFromPerSystem` above). Merged
-    # into `base` after `pkgs`, alongside `own`, so it can see `pkgs`
-    # but must not redefine any of base's built-in keys (pkgs, myPkgs,
-    # builder, mkBase, ...).
+    # Like `extraBase`, but a function of the built `pkgs`,
+    # e.g. `pkgs: { tools.alias.less = "${pkgs.less}/bin/less"; }`.
+    # Must not redefine built-in base keys (pkgs, myPkgs, builder, ...).
     extraBaseWithPkgs = mkOption {
       type = types.functionTo (types.lazyAttrsOf types.raw);
       default = _pkgs: { };
     };
 
-    # pkgs-free base: `core` plus `mkBase`/`forSystem` (and a `builder`
-    # extended with them). Get a concrete, per-system `pkgs` via
-    # `base.forSystem system` or `base.mkBase { inherit system; }`.
+    # pkgs-free base; get a per-system one via `base.forSystem` / `base.mkBase`
     base = mkOption {
       type = types.raw;
       readOnly = true;
@@ -279,18 +254,21 @@ in
       { ... }:
       {
         options = {
-          # Full base for this system: everything in the top-level `base`
-          # plus `pkgs`, `sPkgs`, `myPkgs`, `libx`.
+          # Full base for this system (includes pkgs, sPkgs, myPkgs, libx)
           base = mkOption {
             type = types.raw;
             readOnly = true;
           };
 
-          # Packages sourced from flake inputs' `packages.${system}.*`
-          # output. Per-system by nature, so it lives here rather than
-          # at the top level.
+          # Helpers that need pkgs: perSystem = { pkgs, ... }: { libx.foo = ...; };
+          libx = mkOption {
+            type = cfg.libx.types.tree;
+            default = { };
+          };
+
+          # Packages from flake inputs' `packages.${system}.*`
           packagesOfInputs = mkOption {
-            type = types.raw;
+            type = cfg.libx.types.tree;
             default = { };
           };
         };
@@ -299,6 +277,11 @@ in
   };
 
   config = {
+    libx.types = {
+      inherit tree;
+      treeWith = mkTree;
+    };
+
     base = topLevelBase;
     _module.args.base = cfg.base;
     extraBase.extraArgs = cfg.extraArgs;

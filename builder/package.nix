@@ -114,7 +114,7 @@ in
     (flake-parts-lib.mkTransposedPerSystemModule {
       name = "ciPackages";
       option = mkOption {
-        type = types.lazyAttrsOf types.raw;
+        type = config.libx.types.tree;
         default = { };
         description = ''
           Packages registered by any module to be built by CI for this

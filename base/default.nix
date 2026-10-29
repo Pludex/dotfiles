@@ -2,6 +2,7 @@
   config,
   inputs,
   base,
+  lib,
   ...
 }:
 {
@@ -41,6 +42,7 @@
     locale = "en_US.UTF-8";
 
     inherit (config.paths) abs;
+    app = name: base.apps.${name} or (throw "app: '${name}' is not defined");
   };
 
   paths = {
