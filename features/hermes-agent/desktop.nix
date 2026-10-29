@@ -2,6 +2,7 @@
   pkgs,
   base,
   config,
+  inputs,
   ...
 }:
 let
@@ -39,4 +40,7 @@ in
     mode = "0400";
     sopsFile = hermes-agent.age.defaultFile;
   };
+
+  home.file.".hermes/desktop-plugins/theme-switcher/plugin.js".source =
+    "${inputs.hermes-desktop-theme-pack}/desktop-plugin/theme-switcher/plugin.js";
 }

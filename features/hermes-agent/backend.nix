@@ -21,11 +21,18 @@ let
 
   omhPkg = myPkgs.oh-my-hermes;
   omhHome = "${hermesHome}/omh";
+  themePack = inputs.hermes-desktop-theme-pack;
 
   # Shared by the main instance and every profile.
   omhSettings = {
-    plugins.entries.omh.settings.omh_home = omhHome;
     skills.external_dirs = [ "${omhHome}/skills" ];
+    plugins = {
+      enabled = [
+        "omh"
+        "theme-switcher"
+      ];
+      entries.omh.settings.omh_home = omhHome;
+    };
   };
 
   mkMergeEnv =
@@ -73,9 +80,10 @@ let
   };
 
   profileDir = name: "${hermesHome}/profiles/${name}";
+  profileUnits = map (n: "hermes-profile-${n}.service") (lib.attrNames profiles);
 
-  # Every HERMES_HOME that needs `omh setup`: the main one plus each profile.
-  omhTargets = [ hermesHome ] ++ map profileDir (lib.attrNames profiles);
+  # Every HERMES_HOME that gets omh and the theme pack: the main one plus each profile.
+  hermesHomes = [ hermesHome ] ++ map profileDir (lib.attrNames profiles);
 
   mkProfileConfig =
     name: p:
@@ -118,6 +126,7 @@ let
           "hermes-agent.service"
           "hermes-backend.service"
           "omh-sync.service"
+          "hermes-theme-pack.service"
         ];
       };
       Service = {
@@ -182,7 +191,7 @@ let
     mkdir -p "$OMH_HOME/routing"
 
     # OMH_HOME is shared, but the plugin is installed per HERMES_HOME.
-    for target in ${lib.escapeShellArgs omhTargets}; do
+    for target in ${lib.escapeShellArgs hermesHomes}; do
       mkdir -p "$target"
       if [ "$(cat "$target/.omh-nix-store-path" 2>/dev/null || true)" != "${omhPkg}" ]; then
         HERMES_HOME="$target" omh setup --no-interactive --json
@@ -226,6 +235,25 @@ let
       echo "omniroute /v1/models unavailable, keeping existing routes or using fallback" >&2
       [ -f "$dst" ] || install -m 0644 ${routesFile} "$dst"
     fi
+  '';
+
+  themeSync = pkgs.writeShellScript "hermes-theme-pack" ''
+    set -euo pipefail
+
+    for target in ${lib.escapeShellArgs hermesHomes}; do
+      mkdir -p "$target/skins" "$target/plugins"
+
+      # Overwrite the pack's skins, keep any skin the user added by hand.
+      install -m 0644 ${themePack}/themes/*.yaml "$target/skins/"
+
+      # Backend half of Theme Switcher (API routes + dashboard tab).
+      # Replaced wholesale so updates and removals propagate.
+      rm -rf "$target/plugins/theme-switcher"
+      cp -R --no-preserve=mode,ownership \
+        ${themePack}/plugins/theme-switcher "$target/plugins/theme-switcher"
+
+      HERMES_HOME="$target" hermes plugins enable theme-switcher
+    done
   '';
 
   hermesPkg = pkgs.hermes.full;
@@ -330,18 +358,18 @@ in
       "sops-nix.service"
       "podman-omniroute.service"
       "hermes-env-merge.service"
-      "hermes-profile-coding.service"
-      "hermes-profile-study.service"
+      "hermes-theme-pack.service"
       "omh-sync.service"
-    ];
+    ]
+    ++ profileUnits;
     Wants = [
       "sops-nix.service"
       "omniroute-bootstrap.service"
       "hermes-env-merge.service"
-      "hermes-profile-coding.service"
-      "hermes-profile-study.service"
+      "hermes-theme-pack.service"
       "omh-sync.service"
-    ];
+    ]
+    ++ profileUnits;
   };
 
   programs.hermes-agent = {
@@ -396,6 +424,39 @@ in
   systemd.user.services.hermes-profile-coding = mkProfileService "coding" profiles.coding;
   systemd.user.services.hermes-profile-study = mkProfileService "study" profiles.study;
 
+  # Re-runs whenever a profile is re-provisioned (PartOf), since that
+  # overwrites config.yaml and drops the plugin enablement.
+  systemd.user.services.hermes-theme-pack = {
+    Unit = {
+      Description = "Install Hermes theme pack skins and Theme Switcher plugin";
+      After = [
+        "sops-nix.service"
+        "hermes-env-merge.service"
+      ]
+      ++ profileUnits;
+      Wants = profileUnits;
+      PartOf = profileUnits;
+      Before = [
+        "hermes-agent.service"
+        "hermes-backend.service"
+      ];
+    };
+    Service = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${themeSync}";
+      Environment = [
+        "PATH=${
+          lib.makeBinPath [
+            pkgs.coreutils
+            hermesPkg
+          ]
+        }"
+      ];
+    };
+    Install.WantedBy = [ "default.target" ];
+  };
+
   home.packages = [ omhPkg ];
 
   systemd.user.services.omh-sync = {
@@ -406,15 +467,16 @@ in
         "podman-omniroute.service"
         "omniroute-bootstrap.service"
         "hermes-env-merge.service"
-        "hermes-profile-coding.service"
-        "hermes-profile-study.service"
-      ];
+        "hermes-theme-pack.service"
+      ]
+      ++ profileUnits;
       Wants = [
         "sops-nix.service"
         "hermes-env-merge.service"
-        "hermes-profile-coding.service"
-        "hermes-profile-study.service"
-      ];
+        "hermes-theme-pack.service"
+      ]
+      ++ profileUnits;
+      PartOf = profileUnits;
     };
     Service = {
       Type = "oneshot";

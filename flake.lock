@@ -735,6 +735,23 @@
         "type": "github"
       }
     },
+    "hermes-desktop-theme-pack": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1786541785,
+        "narHash": "sha256-K1bsJPCCCO9ssV19OVbRbgThXyfBrLhBYFTmDrqUukk=",
+        "owner": "CliffWade",
+        "repo": "hermes-desktop-theme-pack",
+        "rev": "8055616ee69c3f4835eb3222f48543f6866858dc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "CliffWade",
+        "ref": "v1.3.0",
+        "repo": "hermes-desktop-theme-pack",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -1819,6 +1836,7 @@
         "flake-parts": "flake-parts_2",
         "ghostty-cursor": "ghostty-cursor",
         "hermes-agent": "hermes-agent",
+        "hermes-desktop-theme-pack": "hermes-desktop-theme-pack",
         "home-manager": "home-manager",
         "hyprdrover": "hyprdrover",
         "hyprexpo": "hyprexpo",

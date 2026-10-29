@@ -292,5 +292,10 @@
       url = "github:rlaope/oh-my-hermes";
       flake = false;
     };
+
+    hermes-desktop-theme-pack = {
+      url = "github:CliffWade/hermes-desktop-theme-pack/v1.3.0";
+      flake = false;
+    };
   };
 }
