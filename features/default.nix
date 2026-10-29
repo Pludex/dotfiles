@@ -1,5 +1,6 @@
 {
   imports = [
     ./hermes-agent
+    ./omniroute
   ];
 }

@@ -61,7 +61,6 @@
 
       services = [
         "audio-manager"
-        "omniroute"
         # "espanso"
       ];
 
@@ -104,6 +103,7 @@
 
     features = [
       "hermes-agent"
+      "omniroute"
     ];
   };
 }
