@@ -67,8 +67,11 @@
     baseUrl = "http://127.0.0.1:${toString port}";
     dashboardPort = 9119;
     dashboardUrl = "http://127.0.0.1:${toString dashboardPort}";
-    name = "hermes-agent-pludex[bot]";
+    name = "Hermes-Agent-Pludex[bot]";
     email = "349787113+hermes-agent-pludex[bot]@users.noreply.github.com";
+
+    githubAppId = 5526907;
+    githubClientId = "Iv23liV3f0Mwh6ersI3Z";
 
     data = "/workspaces/hermes";
 

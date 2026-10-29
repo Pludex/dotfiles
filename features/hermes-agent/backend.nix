@@ -17,38 +17,6 @@ let
   secretPath = name: config.sops.secrets.${name}.path;
   templatePath = name: config.sops.templates.${name}.path;
 
-  syncBody = pkgs.writeShellScript "hermes-git-sync-body" ''
-    set -euo pipefail
-    cd ${hermesHome}
-
-    if [ ! -f .gitignore ]; then
-      cat > .gitignore << 'EOF'
-    /*
-    !/.gitignore
-    !/SOUL.md
-    !/memories/
-    !/skills/
-    !/hooks/
-    !/plugins/
-
-    *.db
-    *.db-*
-    *.sqlite*
-    *.lock
-    *.log
-    __pycache__/
-    *.pyc
-    .env
-    *.env
-    EOF
-    fi
-
-    git add -A
-    git diff --cached --quiet && exit 0
-    git commit -m "sync $(date -Is)"
-    git push -u origin main
-  '';
-
   mergeEnv = pkgs.writeShellScript "hermes-merge-env" ''
     set -euo pipefail
     src=${templatePath "hermes-env"}
@@ -170,7 +138,6 @@ in
       "api-keys/api-server"
       "api-keys/context7"
       "github/mcp-token"
-      "ssh/deploy"
       "desktop-token"
     ] (_: { });
 
@@ -181,14 +148,6 @@ in
       CONTEXT7_API_KEY=${ph."api-keys/context7"}
       GITHUB_MCP_TOKEN=${ph."github/mcp-token"}
       OMNIROUTE_MANAGE_KEY=${ph."api-keys/omniroute/manage"}
-    '';
-
-    templates."hermes-git-sync-env".content = ''
-      GIT_SSH_COMMAND="ssh -F /dev/null -i ${secretPath "ssh/deploy"} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
-      GIT_AUTHOR_NAME=hermes-sync
-      GIT_AUTHOR_EMAIL=hermes-sync@localhost
-      GIT_COMMITTER_NAME=hermes-sync
-      GIT_COMMITTER_EMAIL=hermes-sync@localhost
     '';
   };
 
@@ -266,37 +225,6 @@ in
     enable = true;
     package = hermesPkg;
     desktop.enable = false;
-  };
-
-  systemd.user.services.hermes-git-sync = {
-    Unit = {
-      Description = "Commit and push Hermes data";
-      After = [ "sops-nix.service" ];
-      Wants = [ "sops-nix.service" ];
-    };
-    Service = {
-      Type = "oneshot";
-      ExecStart = "${syncBody}";
-      Environment = [
-        "PATH=${
-          lib.makeBinPath [
-            pkgs.git
-            pkgs.openssh
-            pkgs.coreutils
-          ]
-        }:/run/wrappers/bin"
-      ];
-      EnvironmentFile = [ (templatePath "hermes-git-sync-env") ];
-    };
-  };
-
-  systemd.user.timers.hermes-git-sync = {
-    Unit.Description = "Periodic Hermes data sync";
-    Timer = {
-      OnCalendar = "hourly";
-      Persistent = true;
-    };
-    Install.WantedBy = [ "timers.target" ];
   };
 
   systemd.user.services.hermes-agent.Service.EnvironmentFile = [
