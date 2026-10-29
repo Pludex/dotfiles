@@ -1,4 +1,3 @@
-# pkgs/oh-my-hermes.nix
 {
   lib,
   inputs,

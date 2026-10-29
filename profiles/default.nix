@@ -10,7 +10,6 @@ in
     ./ci.nix
     ./desktop.nix
     ./editor.nix
-    ./hermes.nix
     ./leetcode.nix
     ./live.nix
   ];

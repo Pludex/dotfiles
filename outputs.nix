@@ -38,12 +38,6 @@
       desktop = "tty";
       host = "ci-runner";
     };
-
-    hermes-agent = {
-      profile = "hermes";
-      desktop = "tty";
-      host = "container";
-    };
   };
 
   nixvim = {
@@ -102,6 +96,8 @@
     ./pkgs
     ./profiles
     ./hosts
+    ./features
+    ./lib
     ./devshells.nix
 
     inputs.treefmt-nix.flakeModule

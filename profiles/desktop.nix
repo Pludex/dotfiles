@@ -42,7 +42,6 @@
         "fzf"
         "gh"
         "ghostty"
-        "hermes-desktop"
         "kitty"
         "lazygit"
         "mpv"
@@ -95,19 +94,16 @@
         "win10"
       ];
 
-      containers = [
-        "hermes"
-      ];
-
       extraModules = [
       ];
 
       apps = [
         "steam"
       ];
-      programs = [
-        "hermesctl"
-      ];
     };
+
+    features = [
+      "hermes-agent"
+    ];
   };
 }

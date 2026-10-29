@@ -17,7 +17,6 @@
     zalo-for-linux.path = ./zalo-for-linux;
 
     icons.path = ./icons.nix;
-    oh-my-hermes.path = ./oh-my-hermes.nix;
     openleetcode.path = ./openleetcode.nix;
     screenshot.path = ./screenshot.nix;
     sklauncher.path = ./sklauncher.nix;
@@ -26,32 +25,16 @@
     waycal.path = ./waycal.nix;
   };
 
-  perSystem = { inputs', config, ... }: {
-    packagesOfInputs = {
-      waybar = inputs'.waybar.packages.default;
-      walker = inputs'.walker.packages.default;
-      hermes =
-        let
-          hermesPkgs = inputs'.hermes-agent.packages;
-          hermesFull = hermesPkgs.default.override {
-            version = "0.22.5";
-          };
-        in
-        inputs'.hermes-agent.packages
-        // {
-          full = hermesFull;
-          default = hermesFull;
-          desktop = hermesFull.hermesDesktop;
-          tui = hermesFull.hermesTui;
-          web = hermesFull.hermesWeb;
-          webapp = hermesFull.hermesWebapp;
-        };
-    };
+  perSystem =
+    { inputs', config, ... }:
+    {
+      packagesOfInputs = {
+        waybar = inputs'.waybar.packages.default;
+        walker = inputs'.walker.packages.default;
+      };
 
-    ciPackages = {
-      waybar = config.packagesOfInputs.waybar;
-      walker = config.packagesOfInputs.walker;
-      hermes = config.packagesOfInputs.hermes;
+      ciPackages = {
+        inherit (config.packageOfInputs) waybar walker;
+      };
     };
-  };
 }
