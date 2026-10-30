@@ -65,4 +65,8 @@ in
   sops.secrets."github-app/pem" = {
     mode = "0400";
   };
+
+  home.packages = [
+    pkgs.markitdown
+  ];
 }
