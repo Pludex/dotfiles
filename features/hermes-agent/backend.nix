@@ -57,12 +57,18 @@ let
 
   profiles = {
     coding = {
-      model = "code-std";
+      model = "hermes-coding";
+      discord = {
+        home = "1565713912106844252";
+        name = "coding";
+        freeChannels = [ "1565713912106844252" ];
+      };
       settings.mcp_servers = {
         omniroute = {
           url = "${omniroute.baseUrl}/api/mcp/stream";
-          headers.Authorization = "Bearer \${OMNIROUTE_API_KEY}";
+          headers.Authorization = "Bearer \${OMNIROUTE_MANAGE_KEY}";
         };
+
         # context7 = {
         #   url = "https://mcp.context7.com/mcp";
         #   headers.CONTEXT7_API_KEY = "\${CONTEXT7_API_KEY}";
@@ -74,7 +80,12 @@ let
       };
     };
     study = {
-      model = "chat-pro";
+      model = "hermes-study";
+      discord = {
+        home = "1565713936043483287";
+        name = "study";
+        freeChannels = [ "1565713936043483287" ];
+      };
       settings = { };
     };
   };
@@ -84,6 +95,12 @@ let
 
   # Every HERMES_HOME that gets omh and the theme pack: the main one plus each profile.
   hermesHomes = [ hermesHome ] ++ map profileDir (lib.attrNames profiles);
+
+  discordEnv = p: ''
+    DISCORD_HOME_CHANNEL=${p.discord.home}
+    DISCORD_HOME_CHANNEL_NAME=${p.discord.name}
+    DISCORD_FREE_RESPONSE_CHANNELS=${lib.concatStringsSep "," p.discord.freeChannels}
+  '';
 
   mkProfileConfig =
     name: p:
@@ -273,6 +290,10 @@ in
       "api-keys/context7"
       "github/mcp-token"
       "desktop-token"
+      "discord/token"
+      "discord/coding-token"
+      "discord/study-token"
+      "discord/user-id"
     ] (_: { });
 
     templates = {
@@ -283,19 +304,28 @@ in
         API_SERVER_KEY=${ph."api-keys/api-server"}
         CONTEXT7_API_KEY=${ph."api-keys/context7"}
         GITHUB_MCP_TOKEN=${ph."github/mcp-token"}
+        DISCORD_BOT_TOKEN=${ph."discord/token"}
+        DISCORD_ALLOWED_USERS=${ph."discord/user-id"}
       '';
 
       "hermes-env-coding".content = ''
         OPENAI_API_KEY=${ph."api-keys/omniroute/coding"}
         OMNIROUTE_API_KEY=${ph."api-keys/omniroute/coding"}
+        OMNIROUTE_MANAGE_KEY=${ph."api-keys/omniroute/manage"}
         CONTEXT7_API_KEY=${ph."api-keys/context7"}
         GITHUB_MCP_TOKEN=${ph."github/mcp-token"}
+        DISCORD_BOT_TOKEN=${ph."discord/coding-token"}
+        DISCORD_ALLOWED_USERS=${ph."discord/user-id"}
+        ${discordEnv profiles.coding}
         OMH_HOME=${omhHome}
       '';
 
       "hermes-env-study".content = ''
         OPENAI_API_KEY=${ph."api-keys/omniroute/study"}
         OMNIROUTE_API_KEY=${ph."api-keys/omniroute/study"}
+        DISCORD_BOT_TOKEN=${ph."discord/study-token"}
+        DISCORD_ALLOWED_USERS=${ph."discord/user-id"}
+        ${discordEnv profiles.study}
         OMH_HOME=${omhHome}
       '';
     };
@@ -316,7 +346,7 @@ in
     settings = lib.recursiveUpdate {
       model = {
         provider = "custom:omniroute";
-        default = "gemini";
+        default = "hermes";
         base_url = "${omniroute.baseUrl}/v1";
       };
 
@@ -331,7 +361,7 @@ in
     mcpServers = {
       omniroute = {
         url = "${omniroute.baseUrl}/api/mcp/stream";
-        headers.Authorization = "Bearer \${OMNIROUTE_API_KEY}";
+        headers.Authorization = "Bearer \${OMNIROUTE_MANAGE_KEY}";
       };
       context7 = {
         url = "https://mcp.context7.com/mcp";
@@ -348,11 +378,15 @@ in
       API_SERVER_HOST = "127.0.0.1";
       API_SERVER_PORT = toString hermes-agent.port;
       OMH_HOME = omhHome;
+      DISCORD_HOME_CHANNEL = "1565701591942561912";
+      DISCORD_HOME_CHANNEL_NAME = "main";
+      DISCORD_FREE_RESPONSE_CHANNELS = "1565701591942561912";
     };
 
     environmentFiles = [ (templatePath "hermes-env") ];
   };
 
+  # The single host gateway serves every profile, so it restarts with them.
   systemd.user.services.hermes-agent.Unit = {
     After = [
       "sops-nix.service"
@@ -370,6 +404,7 @@ in
       "omh-sync.service"
     ]
     ++ profileUnits;
+    PartOf = profileUnits;
   };
 
   programs.hermes-agent = {
