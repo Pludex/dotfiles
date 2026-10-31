@@ -55,6 +55,22 @@
         "type": "github"
       }
     },
+    "android-remote-control-mcp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793227082,
+        "narHash": "sha256-d11y6ZRE0HgdaMy+Tknhkel6lUKzmCn/azO287SjQcA=",
+        "owner": "danielealbano",
+        "repo": "android-remote-control-mcp",
+        "rev": "0c9120583edaa7bc6a611a74c5d42e47693b2f6f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "danielealbano",
+        "repo": "android-remote-control-mcp",
+        "type": "github"
+      }
+    },
     "aquamarine": {
       "inputs": {
         "hyprutils": [
@@ -1826,6 +1842,7 @@
     "root": {
       "inputs": {
         "MangoWM": "MangoWM",
+        "android-remote-control-mcp": "android-remote-control-mcp",
         "catppuccin": "catppuccin",
         "chaotic": "chaotic",
         "doom-emacs": "doom-emacs",

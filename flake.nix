@@ -297,5 +297,10 @@
       url = "github:CliffWade/hermes-desktop-theme-pack/v1.3.0";
       flake = false;
     };
+
+    android-remote-control-mcp = {
+      url = "github:danielealbano/android-remote-control-mcp";
+      flake = false;
+    };
   };
 }

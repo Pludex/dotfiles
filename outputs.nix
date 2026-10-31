@@ -66,6 +66,7 @@
   nixpkgsConfig = {
     allowUnfree = true;
     allowBroken = true;
+    android_sdk.accept_license = true;
 
     permittedInsecurePackages = [
       "electron-39.8.10"
