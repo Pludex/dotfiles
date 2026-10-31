@@ -47,7 +47,7 @@
       ];
 
       extraModules = [
-        ./backend.nix
+        ./backend
         ./tools.nix
       ];
     };
