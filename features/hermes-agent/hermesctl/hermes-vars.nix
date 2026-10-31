@@ -2,14 +2,16 @@
   pkgs,
   lib,
   base,
-  ...
 }:
 let
   app = base.app "hermes-agent";
   coding = base.group "coding";
 
   mountRoot = "/run/hermes-mounts";
-  mountIn = "/mnt/host";
+  mountIn = "/workspaces";
+in
+{
+  inherit mountRoot mountIn;
 
   vars = {
     mount_root = mountRoot;
@@ -35,34 +37,12 @@ let
     journalctl = "${pkgs.systemd}/bin/journalctl";
     bindfs = "${pkgs.bindfs}/bin/bindfs";
     umount = "${pkgs.util-linux}/bin/umount";
-  };
-in
-{
-  virtualisation.oci-containers.containers.hermes.volumes = [
-    "${mountRoot}:${mountIn}:rslave"
-  ];
 
-  systemd.services.hermes-mount-root = {
-    description = "Shared mount root for hermesctl";
-    wantedBy = [ "multi-user.target" ];
-    before = [ "podman-hermes.service" ];
-    requiredBy = [ "podman-hermes.service" ];
-    path = [ pkgs.util-linux ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
+    refs = {
+      dotfiles-ref = {
+        src = "/workspaces/dotfiles";
+        mode = "ro";
+      };
     };
-    script = ''
-      mkdir -p ${mountRoot}
-      mountpoint -q ${mountRoot} || mount --bind ${mountRoot} ${mountRoot}
-      mount --make-rshared ${mountRoot}
-    '';
-    preStop = "umount -R ${mountRoot} || true";
   };
-
-  environment.systemPackages = [
-    (pkgs.writers.writePython3Bin "hermesctl" { doCheck = false; } (
-      "CFG = ${builtins.toJSON vars}\n" + builtins.readFile ./hermesctl.py
-    ))
-  ];
 }

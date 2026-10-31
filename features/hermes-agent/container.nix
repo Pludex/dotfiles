@@ -76,7 +76,7 @@ in
       volumes = [
         "/nix/store:/nix/store:ro"
         "/nix/var/nix/daemon-socket:/nix/var/nix/daemon-socket"
-        "/workspaces/dotfiles:/workspaces/dotfiles-ref:ro"
+        # "/workspaces/dotfiles:/workspaces/dotfiles-ref:ro"
         "${app.data}:/app/data"
         "${config.sops.secrets."age-keys/hermes".path}:${app.age.privateKeyPath}:ro,Z"
       ];

@@ -9,12 +9,12 @@
     hermes-agent = {
       modules = {
         nixos = [
-          ./hermesctl
+          ./hermesctl/default.nixos.nix
           ./container.nix
         ];
 
         home = [
-          ./desktop.nix
+          ./hermesctl/default.hm.nix
         ];
       };
     };
