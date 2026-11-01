@@ -1,11 +1,21 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   inherit (config) app;
   pemPath = config.sops.secrets."github-app/pem".path;
 
   githubAppCredential = pkgs.writeShellApplication {
     name = "git-credential-github-app";
-    runtimeInputs = with pkgs; [ openssl curl jq coreutils ];
+    runtimeInputs = with pkgs; [
+      openssl
+      curl
+      jq
+      coreutils
+    ];
     text = ''
       [ "''${1:-}" = "get" ] || exit 0
 
@@ -66,7 +76,9 @@ in
     mode = "0400";
   };
 
-  home.packages = [
-    pkgs.markitdown
+  home.packages = with pkgs; [
+    markitdown
+    python3
+    ripgrep
   ];
 }
