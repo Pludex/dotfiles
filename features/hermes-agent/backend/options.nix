@@ -113,7 +113,7 @@ in
       };
       port = mkOption {
         type = types.port;
-        default = (base.app "hermes-agent").port;
+        default = (base.app "hermes-agent").ports.api;
       };
     };
 

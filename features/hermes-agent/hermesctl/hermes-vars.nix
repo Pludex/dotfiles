@@ -7,8 +7,8 @@ let
   app = base.app "hermes-agent";
   coding = base.group "coding";
 
-  mountRoot = "/run/hermes-mounts";
-  mountIn = "/workspaces";
+  mountRoot = "/run/${app.username}-mounts";
+  mountIn = app.container.workspaces;
 in
 {
   inherit mountRoot mountIn;
@@ -16,18 +16,18 @@ in
   vars = {
     mount_root = mountRoot;
     mount_in = mountIn;
-    container = "hermes";
-    unit = "podman-hermes.service";
+    container = app.container.name;
+    unit = app.container.unit;
     bot_user = app.username;
-    bot_host_uid = toString (200000 + app.uid - 1);
+    bot_host_uid = toString app.users.container.uid;
     coding_gid = toString coding.gid;
-    hermes_home = "/app/data";
-    default_workdir = "/workspaces";
+    hermes_home = app.container.data;
+    default_workdir = app.container.workspaces;
     hermes_bin = "hermes";
     omh_bin = "omh";
     container_path = lib.concatStringsSep ":" [
       "/etc/profiles/per-user/${app.username}/bin"
-      "/home/${app.username}/.nix-profile/bin"
+      "${app.home}/.nix-profile/bin"
       "/run/current-system/sw/bin"
     ];
     shell = lib.getExe base.tools.shell;

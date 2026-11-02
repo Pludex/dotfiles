@@ -61,7 +61,7 @@ let
     trap 'rm -f "$tmp"' EXIT
 
     if curl -fsS --max-time 10 \
-         -H "Authorization: Bearer $OMNIROUTE_API_KEY" \
+         -H "Authorization: Bearer $OMNIROUTE_API_KEY" \\
          "${cfg.omniroute.baseUrl}/v1/models" \
        | jq '{
            schema_version: "model_provider_routes/v1",

@@ -31,7 +31,7 @@ let
       now=$(date +%s)
       header=$(printf '{"alg":"RS256","typ":"JWT"}' | b64url)
       payload=$(printf '{"iat":%d,"exp":%d,"iss":"%s"}' \
-        $((now - 60)) $((now + 540)) "${toString app.githubAppId}" | b64url)
+        $((now - 60)) $((now + 540)) "${toString app.github.appId}" | b64url)
       signature=$(printf '%s.%s' "$header" "$payload" \
         | openssl dgst -sha256 -sign "${pemPath}" -binary | b64url)
       jwt="$header.$payload.$signature"

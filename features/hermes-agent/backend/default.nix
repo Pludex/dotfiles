@@ -1,6 +1,13 @@
-{ inputs, config, ... }:
+{
+  inputs,
+  config,
+  base,
+  ...
+}:
 let
   cfg = config.services.hermes-agent-backend;
+  app = base.app "hermes-agent";
+  omniroute = base.app "omniroute";
 in
 {
   imports = [
@@ -15,7 +22,12 @@ in
     enable = true;
     sessionTokenSecret = "desktop-token";
     allowedUsersSecret = "discord/user-id";
-    apiServer.enable = true;
+    apiServer = {
+      enable = true;
+      host = app.network.bindAddress;
+      port = app.ports.api;
+    };
+    omniroute.baseUrl = omniroute.urlFrom app.network.hostAddress;
 
     omh = {
       enable = true;
