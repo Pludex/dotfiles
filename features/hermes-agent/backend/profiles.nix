@@ -2,11 +2,19 @@
   config,
   lib,
   pkgs,
+  base,
   ...
 }:
 let
-  h = import ./lib.nix { inherit config lib pkgs; };
-  inherit (h) cfg syncUnits;
+  h = import ./lib.nix {
+    inherit
+      config
+      lib
+      pkgs
+      base
+      ;
+  };
+  inherit (h) cfg syncUnits coreUnits;
 
   yamlFormat = pkgs.formats.yaml { };
 
@@ -38,18 +46,19 @@ let
         Description = "Provision Hermes profile ${name}";
         After = [ "sops-nix.service" ];
         Wants = [ "sops-nix.service" ];
-        Before = [
-          "hermes-agent.service"
-          "hermes-backend.service"
-        ]
-        ++ syncUnits;
+        Before = coreUnits ++ syncUnits;
       };
       Service = {
         Type = "oneshot";
         RemainAfterExit = true;
         ExecStart = "${setup}";
         Environment = [
-          "PATH=${lib.makeBinPath [ pkgs.coreutils pkgs.gnugrep ]}"
+          "PATH=${
+            lib.makeBinPath [
+              pkgs.coreutils
+              pkgs.gnugrep
+            ]
+          }"
         ];
       };
       Install.WantedBy = [ "default.target" ];

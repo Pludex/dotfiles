@@ -79,27 +79,30 @@
         dashboard = 9119;
       };
 
+      # Loopback-only dashboard backend inside the guest; not published,
+      # reached through a proxy listening on ports.dashboard
+      dashboardBackendPort = 9120;
+
+      # Host side: ports are published on the host loopback
       urls = {
         api = "http://${loopback}:${toString ports.api}";
         dashboard = "http://${loopback}:${toString ports.dashboard}";
       };
 
-      network = rec {
-        mode = "host"; # "host" | "bridge" | "pasta"
-        name = "hermes";
-        subnet = "10.89.200.0/24";
-        gateway = "10.89.200.1";
-        ip = "10.89.200.2";
-        # IP inside pasta namespace that maps to host 127.0.0.1 (--map-host-loopback).
-        # Choose any RFC-5737 / link-local address not in use on the host.
-        pastaHostLoopback = "169.254.1.1";
-        # How the guest reaches host services (e.g. OmniRoute)
-        hostAddress =
-          if mode == "host" then loopback
-          else if mode == "pasta" then pastaHostLoopback
-          else "host.containers.internal";
-        # Address the guest's servers must bind to for published ports to work
-        bindAddress = if mode == "host" then loopback else "0.0.0.0";
+      network = {
+        # Servers inside the container must bind here for published ports to work
+        bindAddress = "0.0.0.0";
+        # The dashboard refuses non-loopback binds unless an auth provider is configured
+        dashboardBindAddress = loopback;
+        # Address inside the pasta netns that maps to the host's 127.0.0.1
+        # (--map-host-loopback). Must not be in use on the host.
+        hostLoopback = "169.254.1.1";
+      };
+
+      # Guest systemd user units (without the .service suffix)
+      units = {
+        agent = "hermes-agent";
+        dashboard = "hermes-dashboard";
       };
 
       # GitHub bot identity
@@ -128,7 +131,7 @@
 
       # Container
       container = rec {
-        name = "hermes";
+        name = "hermes-agent";
         serviceName = "podman-${name}";
         unit = "${serviceName}.service";
         nixosConfig = inputs.self.nixosConfigurations.hermes-agent;
@@ -209,6 +212,7 @@
         users.groups.coding.gid = coding.gid;
         users.users.${username}.extraGroups = [ "coding" ];
         users.users.root.extraGroups = [ "coding" ];
+        networking.hosts.${network.hostLoopback} = [ (base.app "omniroute").hostname ];
       };
 
       user = name: (base.app "hermes-agent").users.${name};

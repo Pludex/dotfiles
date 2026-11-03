@@ -8,6 +8,7 @@
 let
   inherit (lib) mkOption mkEnableOption types;
 
+  app = base.app "hermes-agent";
   yamlFormat = pkgs.formats.yaml { };
 
   mcpServerModule = {
@@ -95,7 +96,7 @@ in
     };
     omniroute.baseUrl = mkOption {
       type = types.str;
-      default = (base.app "omniroute").baseUrl;
+      default = (base.app "omniroute").internalUrl;
     };
 
     sessionTokenSecret = mkOption { type = types.str; };
@@ -109,11 +110,33 @@ in
       enable = mkEnableOption "hermes API server on the main instance";
       host = mkOption {
         type = types.str;
-        default = "127.0.0.1";
+        default = app.network.bindAddress;
       };
       port = mkOption {
         type = types.port;
-        default = (base.app "hermes-agent").ports.api;
+        default = app.ports.api;
+      };
+    };
+
+    dashboard = {
+      # Loopback-only: the auth gate engages on non-loopback binds
+      host = mkOption {
+        type = types.str;
+        default = app.network.dashboardBindAddress;
+      };
+      port = mkOption {
+        type = types.port;
+        default = app.dashboardBackendPort;
+      };
+      proxy = {
+        host = mkOption {
+          type = types.str;
+          default = app.network.bindAddress;
+        };
+        port = mkOption {
+          type = types.port;
+          default = app.ports.dashboard;
+        };
       };
     };
 

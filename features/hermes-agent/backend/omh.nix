@@ -2,15 +2,17 @@
   config,
   lib,
   pkgs,
+  base,
   ...
 }:
 let
-  h = import ./lib.nix { inherit config lib pkgs; };
+  h = import ./lib.nix { inherit config lib pkgs base; };
   inherit (h)
     cfg
     omhHome
     hermesHomes
     profileUnits
+    coreUnits
     ;
   omhPkg = cfg.omh.package;
 
@@ -61,7 +63,7 @@ let
     trap 'rm -f "$tmp"' EXIT
 
     if curl -fsS --max-time 10 \
-         -H "Authorization: Bearer $OMNIROUTE_API_KEY" \\
+         -H "Authorization: Bearer $OMNIROUTE_API_KEY" \
          "${cfg.omniroute.baseUrl}/v1/models" \
        | jq '{
            schema_version: "model_provider_routes/v1",
@@ -173,10 +175,7 @@ in
             ++ profileUnits;
             Wants = profileUnits;
             PartOf = profileUnits;
-            Before = [
-              "hermes-agent.service"
-              "hermes-backend.service"
-            ];
+            Before = coreUnits;
           };
           Service = {
             Type = "oneshot";

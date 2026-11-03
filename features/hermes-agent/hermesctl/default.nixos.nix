@@ -5,18 +5,20 @@
   ...
 }:
 let
+  app = base.app "hermes-agent";
+  inherit (app) container;
   inherit (import ./hermes-vars.nix { inherit pkgs lib base; }) mountRoot mountIn;
 in
 {
-  virtualisation.oci-containers.containers.hermes.volumes = [
+  virtualisation.oci-containers.containers.${container.name}.volumes = [
     "${mountRoot}:${mountIn}:rslave"
   ];
 
   systemd.services.hermes-mount-root = {
     description = "Shared mount root for hermesctl";
     wantedBy = [ "multi-user.target" ];
-    before = [ "podman-hermes.service" ];
-    requiredBy = [ "podman-hermes.service" ];
+    before = [ container.unit ];
+    requiredBy = [ container.unit ];
     path = [ pkgs.util-linux ];
     serviceConfig = {
       Type = "oneshot";

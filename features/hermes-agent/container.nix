@@ -7,6 +7,7 @@
 }:
 let
   app = base.app "hermes-agent";
+  omniroute = base.app "omniroute";
   guest = app.container.nixosConfig;
   toplevel = guest.config.system.build.toplevel;
   coding = base.group "coding";
@@ -17,13 +18,6 @@ let
     age
     network
     ;
-
-  isBridge = network.mode == "bridge";
-  isPasta = network.mode == "pasta";
-  isUserNs = isBridge || isPasta; # modes that need port publishing
-  hostRuntimeDir = "/run/user/${toString hostuser.uid}";
-  hostUserUnit = "user@${toString hostuser.uid}.service";
-  networkUnit = "podman-network-${network.name}.service";
 
   mapArg = flag: seg: "--${flag}=${toString seg.inner}:${toString seg.outer}:${toString seg.count}";
   keyPath = config.sops.secrets.${age.sopsSecret}.path;
@@ -94,24 +88,14 @@ in
         "${app.data}:${container.data}"
         "${keyPath}:${age.privateKeyPath}:ro,Z"
       ];
-      ports = lib.optionals isUserNs (
-        lib.mapAttrsToList (_: p: "${app.loopback}:${toString p}:${toString p}") app.ports
-      );
+      ports = lib.mapAttrsToList (_: p: "${app.loopback}:${toString p}:${toString p}") app.ports;
       extraOptions = [
         "--systemd=always"
         "--security-opt=no-new-privileges"
+        "--network=pasta:--map-host-loopback=${network.hostLoopback}"
+        # Podman owns the container's /etc/hosts, so NixOS' networking.hosts cannot set this
+        "--add-host=${omniroute.hostname}:${network.hostLoopback}"
       ]
-      ++ (
-        if isBridge then
-          [
-            "--network=${network.name}"
-            "--ip=${network.ip}"
-          ]
-        else if isPasta then
-          [ "--network=pasta:--map-host-loopback=${network.pastaHostLoopback}" ]
-        else
-          [ "--network=host" ]
-      )
       ++ lib.mapAttrsToList (_: mapArg "uidmap") idmap.uid
       ++ lib.mapAttrsToList (_: mapArg "gidmap") idmap.gid;
       podman.user = hostuser.username;
@@ -124,25 +108,6 @@ in
       toplevel
       keyPath
     ];
-    requires = lib.optional isBridge networkUnit;
-    after = lib.optional isBridge networkUnit;
-  };
-
-  systemd.services."podman-network-${network.name}" = lib.mkIf isBridge {
-    wantedBy = [ "multi-user.target" ];
-    requires = [ hostUserUnit ];
-    after = [ hostUserUnit ];
-    path = [ pkgs.podman ];
-    environment.XDG_RUNTIME_DIR = hostRuntimeDir;
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      User = hostuser.username;
-    };
-    script = ''
-      podman network exists ${network.name} \
-        || podman network create --subnet ${network.subnet} --gateway ${network.gateway} ${network.name}
-    '';
   };
 
   environment.systemPackages = [

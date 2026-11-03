@@ -2,9 +2,11 @@
   config,
   lib,
   pkgs,
+  base,
 }:
 let
   cfg = config.services.hermes-agent-backend;
+  app = base.app "hermes-agent";
   ph = config.sops.placeholder;
 
   profiles = lib.filterAttrs (_: p: p.enable) cfg.profiles;
@@ -14,13 +16,15 @@ let
   profileUnits = map (n: "hermes-profile-${n}.service") (lib.attrNames profiles);
   hermesHomes = [ cfg.hermesHome ] ++ map profileDir (lib.attrNames profiles);
 
+  inherit (app) units;
+  coreUnits = map (n: "${n}.service") (lib.attrValues units);
+
   syncUnits =
     lib.optional cfg.omh.enable "omh-sync.service"
     ++ lib.optional cfg.themePack.enable "hermes-theme-pack.service";
 
   effectiveMcp =
-    inst:
-    lib.filterAttrs (n: s: s.enable && !(lib.elem n inst.excludeMcp)) (cfg.mcp // inst.mcp);
+    inst: lib.filterAttrs (n: s: s.enable && !(lib.elem n inst.excludeMcp)) (cfg.mcp // inst.mcp);
 
   mcpToYaml = lib.mapAttrs (
     _: s: { inherit (s) url; } // lib.optionalAttrs (s.headers != { }) { inherit (s) headers; }
@@ -123,6 +127,8 @@ in
     profileDir
     profileUnits
     hermesHomes
+    units
+    coreUnits
     syncUnits
     effectiveMcp
     mcpToYaml

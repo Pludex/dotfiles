@@ -2,14 +2,42 @@
   config,
   lib,
   pkgs,
+  base,
   ...
 }:
 let
-  h = import ./lib.nix { inherit config lib pkgs; };
-  inherit (h) cfg profileUnits syncUnits;
+  h = import ./lib.nix { inherit config lib pkgs base; };
+  inherit (h)
+    cfg
+    profileUnits
+    syncUnits
+    coreUnits
+    units
+    ;
   inherit (config) app;
 
   mergeEnv = h.mkMergeEnv (h.templatePath "hermes-env") "${cfg.hermesHome}/.env";
+
+  # The token must not appear on a command line, so it goes through the environment.
+  dashboardLaunch = pkgs.writeShellScript "hermes-dashboard-launch" ''
+    set -euo pipefail
+
+    token_file=${h.secretPath cfg.sessionTokenSecret}
+    if [ ! -r "$token_file" ]; then
+      echo "hermes-dashboard: cannot read the session token file '$token_file'" >&2
+      exit 1
+    fi
+
+    HERMES_DASHBOARD_SESSION_TOKEN="$(${pkgs.coreutils}/bin/tr -d '\r\n' < "$token_file")"
+    if [ -z "$HERMES_DASHBOARD_SESSION_TOKEN" ]; then
+      echo "hermes-dashboard: the session token file '$token_file' is empty" >&2
+      exit 1
+    fi
+    export HERMES_DASHBOARD_SESSION_TOKEN
+
+    exec ${lib.getExe' cfg.package "hermes"} dashboard \
+      --host ${cfg.dashboard.host} --port ${toString cfg.dashboard.port} --no-open
+  '';
 in
 {
   config = lib.mkIf cfg.enable {
@@ -46,7 +74,7 @@ in
     };
 
     # The single host gateway serves every profile, so it restarts with them.
-    systemd.user.services.hermes-agent = {
+    systemd.user.services.${units.agent} = {
       Unit = {
         After = [
           "sops-nix.service"
@@ -67,23 +95,67 @@ in
       Service.EnvironmentFile = [ (h.templatePath "hermes-env") ];
     };
 
-    systemd.user.services.hermes-backend = {
+    # Replaces upstream's hermes-backend: that unit hardcodes the bind address.
+    systemd.user.services.${units.dashboard} = {
       Unit = {
-        After = [ "sops-nix.service" ];
-        Wants = [ "sops-nix.service" ];
+        Description = "Hermes web dashboard and desktop backend";
+        After = [
+          "sops-nix.service"
+          "hermes-env-merge.service"
+        ];
+        Wants = [
+          "sops-nix.service"
+          "hermes-env-merge.service"
+        ];
       };
-      Service.EnvironmentFile = [ (h.templatePath "hermes-env") ];
+      Service = {
+        ExecStart = "${dashboardLaunch}";
+        Environment = [
+          "HERMES_HOME=${cfg.hermesHome}"
+          "HERMES_MANAGED=home-manager"
+          "PATH=${
+            lib.makeBinPath [
+              cfg.package
+              pkgs.bash
+              pkgs.coreutils
+              pkgs.git
+            ]
+          }"
+        ];
+        EnvironmentFile = [ (h.templatePath "hermes-env") ];
+        WorkingDirectory = config.home.homeDirectory;
+        NoNewPrivileges = true;
+        PrivateTmp = true;
+        UMask = "0077";
+        Restart = "on-failure";
+        RestartSec = 5;
+      };
+      Install.WantedBy = [ "default.target" ];
     };
+
+    # Published ports do not reach a loopback-only listener inside the guest.
+    systemd.user.services."${units.dashboard}-proxy" = {
+      Unit = {
+        Description = "Expose the Hermes dashboard on the container interface";
+        After = [ "${units.dashboard}.service" ];
+        PartOf = [ "${units.dashboard}.service" ];
+      };
+      Service = {
+        ExecStart = "${lib.getExe pkgs.socat} TCP-LISTEN:${toString cfg.dashboard.proxy.port},bind=${cfg.dashboard.proxy.host},fork,reuseaddr TCP:${cfg.dashboard.host}:${toString cfg.dashboard.port}";
+        Restart = "on-failure";
+      };
+      Install.WantedBy = [ "default.target" ];
+    };
+
+    # Upstream's own dashboard unit would bind the same port
+    systemd.user.services.hermes-backend.Install.WantedBy = lib.mkForce [ ];
 
     systemd.user.services.hermes-env-merge = {
       Unit = {
         Description = "Merge sops-rendered secrets into Hermes .env";
         After = [ "sops-nix.service" ];
         Wants = [ "sops-nix.service" ];
-        Before = [
-          "hermes-agent.service"
-          "hermes-backend.service"
-        ];
+        Before = coreUnits;
       };
       Service = {
         Type = "oneshot";
