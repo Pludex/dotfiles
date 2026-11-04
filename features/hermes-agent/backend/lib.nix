@@ -53,6 +53,10 @@ let
       d = inst.discord;
     in
     inst.env
+    // {
+      # Without the /v1 suffix: the MCP endpoint and /v1/models are both built from this root
+      OMNIROUTE_BASE_URL = cfg.omniroute.baseUrl;
+    }
     // lib.optionalAttrs cfg.omh.enable { OMH_HOME = omhHome; }
     // lib.optionalAttrs (d.homeChannel != null) {
       DISCORD_HOME_CHANNEL = d.homeChannel;

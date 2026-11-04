@@ -17,6 +17,7 @@ let
     idmap
     age
     network
+    dataGroup
     ;
 
   mapArg = flag: seg: "--${flag}=${toString seg.inner}:${toString seg.outer}:${toString seg.count}";
@@ -31,6 +32,11 @@ in
     mode = "0400";
     restartUnits = [ container.unit ];
   };
+
+  users.groups.${dataGroup.name}.gid = dataGroup.gid;
+
+  # Main user can read/write the agent's data dir through the shared group
+  users.users.${base.username}.extraGroups = [ dataGroup.name ];
 
   users.users.${hostuser.username} = {
     inherit (hostuser) uid home group;
@@ -49,7 +55,8 @@ in
         count = hostuser.subUid.count;
       }
     ];
-    # Order matters: the first range becomes intermediate gid 1 (host coding)
+    # Order matters: ranges become intermediate gids in this order
+    # (coding -> 1, subgid range -> 2.., data group -> last)
     subGidRanges = [
       {
         startGid = coding.gid;
@@ -59,8 +66,17 @@ in
         startGid = hostuser.subGid.start;
         count = hostuser.subGid.count;
       }
+      {
+        startGid = dataGroup.gid;
+        count = 1;
+      }
     ];
   };
+
+  # setgid so new files inherit the data group
+  systemd.tmpfiles.rules = [
+    "d ${app.data} 2775 ${toString app.users.container.uid} ${toString dataGroup.gid} - -"
+  ];
 
   virtualisation.oci-containers = {
     backend = "podman";
