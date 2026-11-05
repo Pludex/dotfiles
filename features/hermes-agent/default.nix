@@ -1,135 +1,253 @@
 {
-  pkgs,
-  base,
+  inputs,
   config,
-  lib,
+  base,
   ...
 }:
-let
-  app = base.app "hermes-agent";
-  omniroute = base.app "omniroute";
-  guest = app.container.nixosConfig;
-  toplevel = guest.config.system.build.toplevel;
-  coding = base.group "coding";
-  hostuser = app.user "host";
-  inherit (app)
-    container
-    idmap
-    age
-    network
-    dataGroup
-    ;
-
-  mapArg = flag: seg: "--${flag}=${toString seg.inner}:${toString seg.outer}:${toString seg.count}";
-  keyPath = config.sops.secrets.${age.sopsSecret}.path;
-in
 {
-  virtualisation.podman.enable = true;
-
-  sops.secrets.${age.sopsSecret} = {
-    owner = null;
-    uid = app.users.container.uid;
-    mode = "0400";
-    restartUnits = [ container.unit ];
-  };
-
-  users.groups.${dataGroup.name}.gid = dataGroup.gid;
-
-  # Main user can read/write the agent's data dir through the shared group
-  users.users.${base.username}.extraGroups = [ dataGroup.name ];
-
-  users.users.${hostuser.username} = {
-    inherit (hostuser) uid home group;
-    isSystemUser = true;
-    linger = true;
-    createHome = true;
-    extraGroups = [
-      "keys" # of sops-nix
-      "coding"
+  features.hermes-agent.modules = {
+    nixos = [
+      ./hermesctl/default.nixos.nix
+      ./container.nix
     ];
-
-    autoSubUidGidRange = false;
-    subUidRanges = [
-      {
-        startUid = hostuser.subUid.start;
-        count = hostuser.subUid.count;
-      }
-    ];
-    # Keep ascending by start gid so the intermediate order is stable even if the
-    # ranges get sorted: 1 = hermes-data, 2 = coding, 3.. = subgid range
-    subGidRanges = [
-      {
-        startGid = dataGroup.gid;
-        count = 1;
-      }
-      {
-        startGid = coding.gid;
-        count = 1;
-      }
-      {
-        startGid = hostuser.subGid.start;
-        count = hostuser.subGid.count;
-      }
+    home = [
+      ./hermesctl/default.hm.nix
     ];
   };
 
-  # setgid so new files inherit the data group
-  systemd.tmpfiles.rules = [
-    "d ${app.data} 2775 ${toString app.users.container.uid} ${toString dataGroup.gid} - -"
-  ];
-
-  virtualisation.oci-containers = {
-    backend = "podman";
-    containers.${container.name} = {
-      image = container.image.ref;
-      # Nearly empty image: the real system comes from the mounted /nix/store
-      imageFile = pkgs.dockerTools.buildImage {
-        inherit (container.image) name tag;
-
-        # Lets `podman exec` find binaries without full paths
-        config.Env = [
-          "PATH=/run/current-system/sw/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-        ];
-        runAsRoot = ''
-          mkdir -p ${age.privateDir} ${container.workspaces} ${container.data}
-          touch ${age.privateKeyPath}
-          chown ${toString app.uid}:${toString coding.gid} -R ${container.workspaces}
-          chown ${toString app.uid}:${toString coding.gid} -R ${container.appDir}
-        '';
-      };
-      cmd = [ "${toplevel}/init" ];
-      volumes = [
-        "/nix/store:/nix/store:ro"
-        "/nix/var/nix/daemon-socket:/nix/var/nix/daemon-socket"
-        "${app.data}:${container.data}"
-        "${keyPath}:${age.privateKeyPath}:ro,Z"
+  profiles.hermes-agent = {
+    home = {
+      programs = [
+        "atuin"
+        "bash"
+        "bat"
+        "delta"
+        "direnv"
+        "eza"
+        "fd"
+        "fish"
+        "fzf"
+        "packages"
+        "ripgrep"
+        "starship"
+        "zoxide"
       ];
-      ports = lib.mapAttrsToList (_: p: "${app.loopback}:${toString p}:${toString p}") app.ports;
-      extraOptions = [
-        "--systemd=always"
-        "--security-opt=no-new-privileges"
-        "--network=pasta:--map-host-loopback=${network.hostLoopback}"
-        # Podman owns the container's /etc/hosts, so NixOS' networking.hosts cannot set this
-        "--add-host=${omniroute.hostname}:${network.hostLoopback}"
-      ]
-      ++ lib.mapAttrsToList (_: mapArg "uidmap") idmap.uid
-      ++ lib.mapAttrsToList (_: mapArg "gidmap") idmap.gid;
-      podman.user = hostuser.username;
+      extraModules = [
+        ./backend
+        ./tools.nix
+      ];
     };
+    nixos = { };
   };
 
-  systemd.services.${container.serviceName} = {
-    restartIfChanged = true;
-    restartTriggers = [
-      toplevel
-      keyPath
-    ];
+  nixos.hermes-agent = {
+    profile = "hermes-agent";
+    host = "container";
+    desktop = "tty";
   };
 
-  environment.systemPackages = [
-    (pkgs.writeShellScriptBin "login-hermes-container" ''
-      exec sudo ${pkgs.systemd}/bin/machinectl shell ${hostuser.username}@ \
-        ${pkgs.podman}/bin/podman exec -it --user ${app.username} ${container.name} ${lib.getExe base.tools.shell} "$@"
-    '')
-  ];
+  myPkgs.oh-my-hermes.path = ./oh-my-hermes.nix;
+
+  perSystem =
+    { inputs', ... }:
+    let
+      hermesFull = inputs'.hermes-agent.packages.default.override {
+        version = "0.22.5";
+      };
+      hermes = inputs'.hermes-agent.packages // {
+        full = hermesFull;
+        default = hermesFull;
+        desktop = hermesFull.hermesDesktop;
+        tui = hermesFull.hermesTui;
+      };
+    in
+    {
+      packagesOfInputs = { inherit hermes; };
+      ciPackages = { inherit hermes; };
+    };
+
+  extraBase.apps.hermes-agent =
+    let
+      coding = config.base.group "coding";
+    in
+    rec {
+      # Network
+      loopback = "127.0.0.1";
+
+      ports = {
+        api = 8642;
+        dashboard = 9119;
+      };
+
+      # Loopback-only dashboard backend inside the guest; not published,
+      # reached through a proxy listening on ports.dashboard
+      dashboardBackendPort = 9120;
+
+      # Host side: ports are published on the host loopback
+      urls = {
+        api = "http://${loopback}:${toString ports.api}";
+        dashboard = "http://${loopback}:${toString ports.dashboard}";
+      };
+
+      network = {
+        # Servers inside the container must bind here for published ports to work
+        bindAddress = "0.0.0.0";
+        # The dashboard refuses non-loopback binds unless an auth provider is configured
+        dashboardBindAddress = loopback;
+        # Address inside the pasta netns that maps to the host's 127.0.0.1
+        # (--map-host-loopback). Must not be in use on the host.
+        hostLoopback = "169.254.1.1";
+      };
+
+      # Guest systemd user units (without the .service suffix)
+      units = {
+        agent = "hermes-agent";
+        dashboard = "hermes-dashboard";
+      };
+
+      # GitHub bot identity
+      github = {
+        appId = 5526907;
+        clientId = "Iv23liV3f0Mwh6ersI3Z";
+        slug = "hermes-agent-pludex";
+        botUserId = 349787113;
+      };
+      name = "Hermes-Agent-Pludex[bot]";
+      email = "${toString github.botUserId}+${github.slug}[bot]@users.noreply.github.com";
+
+      # Guest user
+      username = "hermes";
+      uid = 2000;
+      home = "/home/${username}";
+      data = "/workspaces/hermes";
+
+      age = rec {
+        publicKey = "age158va6e0syfx3cm2rwj7un2yu7p8zwqnxdqtedk5tkwk3g7nuxflspzs0em";
+        privateDir = "/private";
+        privateKeyPath = "${privateDir}/${username}.age-key.txt";
+        defaultFile = "${config.paths.data}/hermes.enc.yaml";
+        sopsSecret = "age-keys/${username}";
+      };
+
+      # Container
+      container = rec {
+        name = "hermes-agent";
+        serviceName = "podman-${name}";
+        unit = "${serviceName}.service";
+        nixosConfig = inputs.self.nixosConfigurations.hermes-agent;
+        image = rec {
+          name = "hermes-agent";
+          tag = "latest";
+          ref = "${name}:${tag}";
+        };
+        appDir = "/app";
+        data = "${appDir}/data";
+        workspaces = "/workspaces";
+      };
+
+      # Users and id mapping
+      users = {
+        host = {
+          username = "hermes-host";
+          group = "users-host";
+          home = "/var/lib/hermes-host";
+          uid = 1002;
+          gid = 1002;
+          subUid = {
+            start = 200000;
+            count = 65536;
+          };
+          subGid = {
+            start = 200000;
+            count = 65536;
+          };
+        };
+
+        container = {
+          # container uid N (N >= 1) maps to host subuid start + N - 1
+          uid = users.host.subUid.start + uid - 1;
+        };
+      };
+
+      # Group shared between the agent and the main host user for the data dir
+      dataGroup = {
+        name = "hermes-data";
+        # Host gid
+        gid = 1003;
+        # Intermediate gid: 0 = hermes-host, 1 = coding, 2..count+1 = subgid range,
+        # count+2 = this group (must be the last subGidRanges entry on the host)
+        mappedGid = users.host.subGid.count + 2;
+      };
+
+      # podman --uidmap/--gidmap segments: container id -> intermediate id
+      idmap = {
+        uid = {
+          root = {
+            inner = 0;
+            outer = 0;
+            count = 1;
+          };
+          subordinate = {
+            inner = 1;
+            outer = 1;
+            count = users.host.subUid.count;
+          };
+        };
+        gid = {
+          root = {
+            inner = 0;
+            outer = 0;
+            count = 1;
+          };
+          belowCoding = {
+            inner = 1;
+            outer = 3;
+            count = coding.gid - 1;
+          };
+          coding = {
+            inner = coding.gid;
+            outer = 2;
+            count = 1;
+          };
+          aboveCoding = {
+            inner = coding.gid + 1;
+            outer = coding.gid + 2;
+            count = users.host.subGid.count + 1 - coding.gid;
+          };
+          data = {
+            inner = dataGroup.mappedGid;
+            outer = 1;
+            count = 1;
+          };
+        };
+      };
+
+      # Guest NixOS bits
+      modules.nixos = {
+        users.groups.coding.gid = coding.gid;
+        users.groups.${dataGroup.name}.gid = dataGroup.mappedGid;
+        users.users.${username}.extraGroups = [
+          "coding"
+          dataGroup.name
+        ];
+        users.users.root.extraGroups = [
+          "coding"
+          dataGroup.name
+        ];
+        networking.hosts.${network.hostLoopback} = [ (base.app "omniroute").hostname ];
+
+        # Group-writable files for everything the agent spawns
+        systemd.user.services = builtins.listToAttrs (
+          map (n: {
+            name = n;
+            value.serviceConfig.UMask = "0002";
+          }) (builtins.attrValues units)
+        );
+
+        # Same for shells opened via login-hermes-container
+        security.loginDefs.settings.UMASK = "002";
+      };
+
+      user = name: (base.app "hermes-agent").users.${name};
+    };
 }

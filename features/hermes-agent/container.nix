@@ -55,9 +55,13 @@ in
         count = hostuser.subUid.count;
       }
     ];
-    # Order matters: ranges become intermediate gids in this order
-    # (coding -> 1, subgid range -> 2.., data group -> last)
+    # Keep ascending by start gid so the intermediate order is stable even if the
+    # ranges get sorted: 1 = hermes-data, 2 = coding, 3.. = subgid range
     subGidRanges = [
+      {
+        startGid = dataGroup.gid;
+        count = 1;
+      }
       {
         startGid = coding.gid;
         count = 1;
@@ -65,10 +69,6 @@ in
       {
         startGid = hostuser.subGid.start;
         count = hostuser.subGid.count;
-      }
-      {
-        startGid = dataGroup.gid;
-        count = 1;
       }
     ];
   };
