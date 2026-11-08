@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "context7-cli"
+version = "0.1.0"
+description = "Context7 library documentation search and fetch via OmniRoute"
+requires-python = ">=3.10"
+dependencies = ["requests"]
+
+[project.scripts]
+context7 = "context7_client.client:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

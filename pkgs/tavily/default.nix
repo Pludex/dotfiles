@@ -1,41 +1,44 @@
 {
   lib,
-  stdenvNoCC,
-  python3,
-  makeWrapper,
+  buildPythonPackage,
+  setuptools,
+  requests,
   base,
 }:
 let
-  py = python3.withPackages (ps: [ ps.requests ]);
   omnirouteUrl = (base.app "omniroute").internalUrl;
-
 in
-stdenvNoCC.mkDerivation {
-  pname = "tavily";
+buildPythonPackage {
+  pname = "tavily-cli";
   version = "0.1.0";
+  pyproject = true;
 
-  src = ./client.py;
-  dontUnpack = true;
-  dontBuild = true;
-  nativeBuildInputs = [ makeWrapper ];
+  src = lib.cleanSource ./.;
+  build-system = [ setuptools ];
+  dependencies = [
+    requests
+  ];
 
-  installPhase = ''
-    runHook preInstall
-    install -Dm644 $src $out/libexec/tavily-search.py
-    makeWrapper ${py}/bin/python3 $out/bin/tavily-search \
-      --add-flags $out/libexec/tavily-search.py \
-      --set-default PYTHONUTF8 1 \
-      --set-default OMNIROUTE_BASE_URL ${lib.escapeShellArg omnirouteUrl}
-    runHook postInstall
+  # Bake the URL into the module so both the CLI and library use get it.
+  postPatch = ''
+    substituteInPlace src/tavily_client/client.py \
+      --replace-fail 'DEFAULT_BASE_URL = "http://localhost:20128"' \
+                     'DEFAULT_BASE_URL = ${builtins.toJSON omnirouteUrl}'
   '';
+
+  doCheck = false;
+  pythonImportsCheck = [ "tavily_client" ];
 
   doInstallCheck = true;
   installCheckPhase = ''
-    $out/bin/tavily-search --help > /dev/null
+    runHook preInstallCheck
+    $out/bin/tavily --help > /dev/null
+    $out/bin/tavily --help-python > /dev/null
+    runHook postInstallCheck
   '';
 
   meta = {
-    description = "Tavily web search via OmniRoute";
-    mainProgram = "tavily-search";
+    description = "Tavily web search via OmniRoute (CLI + Python library)";
+    mainProgram = "tavily";
   };
 }

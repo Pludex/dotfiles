@@ -236,5 +236,11 @@ in
         description = "Base SOUL.md; the line @PROFILE_FOCUS@ is replaced by the instance's soulFocus.";
       };
     };
+
+    extraPythonPackages = mkOption {
+      type = types.listOf types.package;
+      default = [ ];
+      description = "Python packages injected into hermes' PYTHONPATH via a package override.";
+    };
   };
 }

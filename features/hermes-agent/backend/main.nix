@@ -6,7 +6,14 @@
   ...
 }:
 let
-  h = import ./lib.nix { inherit config lib pkgs base; };
+  h = import ./lib.nix {
+    inherit
+      config
+      lib
+      pkgs
+      base
+      ;
+  };
   inherit (h)
     cfg
     profileUnits
@@ -15,6 +22,9 @@ let
     units
     ;
   inherit (config) app;
+
+  # The package the module actually runs (with extraPythonPackages applied upstream).
+  hermesPkg = config.services.hermes-agent.package;
 
   mergeEnv = h.mkMergeEnv (h.templatePath "hermes-env") "${cfg.hermesHome}/.env";
 
@@ -35,7 +45,7 @@ let
     fi
     export HERMES_DASHBOARD_SESSION_TOKEN
 
-    exec ${lib.getExe' cfg.package "hermes"} dashboard \
+    exec ${lib.getExe' hermesPkg "hermes"} dashboard \
       --host ${cfg.dashboard.host} --port ${toString cfg.dashboard.port} --no-open
   '';
 in
@@ -46,7 +56,7 @@ in
 
     services.hermes-agent = {
       enable = true;
-      inherit (cfg) package hermesHome;
+      inherit (cfg) hermesHome package extraPythonPackages;
       gateway.enable = true;
       restart = "on-failure";
 
@@ -69,7 +79,7 @@ in
 
     programs.hermes-agent = {
       enable = true;
-      inherit (cfg) package;
+      package = hermesPkg;
       desktop.enable = false;
     };
 
@@ -115,7 +125,7 @@ in
           "HERMES_MANAGED=home-manager"
           "PATH=${
             lib.makeBinPath [
-              cfg.package
+              hermesPkg
               pkgs.bash
               pkgs.coreutils
               pkgs.git
@@ -162,7 +172,12 @@ in
         RemainAfterExit = true;
         ExecStart = "${mergeEnv}";
         Environment = [
-          "PATH=${lib.makeBinPath [ pkgs.coreutils pkgs.gnugrep ]}"
+          "PATH=${
+            lib.makeBinPath [
+              pkgs.coreutils
+              pkgs.gnugrep
+            ]
+          }"
         ];
       };
       Install.WantedBy = [ "default.target" ];

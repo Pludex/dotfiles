@@ -4,13 +4,10 @@
     audio-manager.path = ./audio-manager;
     brightness-control.path = ./brightness-control;
     claude-desktop.path = ./claude-desktop;
-    context7.path = ./context7;
-    firecrawl.path = ./firecrawl;
     lobehub.path = ./lobehub;
     msbuild-ls.path = ./msbuild-ls;
     patchy-cnb.path = ./patchy-cnb;
     schemes.path = ./schemes;
-    tavily.path = ./tavily;
     vimPlugins.treesitter-kanata.path = ./treesitter-kanata;
     vaultwarden-sync.path = ./vaultwarden-sync;
     vivaldi-sync.path = ./vivaldi-sync;
@@ -27,6 +24,19 @@
     screenrecord.path = ./sreenrecord.nix;
     waycal.path = ./waycal.nix;
   };
+
+  overlays = [
+    (final: prev: {
+      pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+        (pyFinal: _: {
+          tavily-cli = pyFinal.callPackage ./tavily { };
+          context7-cli = pyFinal.callPackage ./context7 { };
+          firecrawl-cli = pyFinal.callPackage ./firecrawl { };
+          web-tools = pyFinal.callPackage ./web-tools { };
+        })
+      ];
+    })
+  ];
 
   perSystem =
     { inputs', config, ... }:

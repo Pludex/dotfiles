@@ -53,6 +53,13 @@ let
       printf 'username=x-access-token\npassword=%s\n' "$token"
     '';
   };
+
+  webPkgs = with pkgs.python3Packages; [
+    tavily-cli
+    context7-cli
+    firecrawl-cli
+    web-tools
+  ];
 in
 {
   programs.git = lib.mkForce {
@@ -80,8 +87,5 @@ in
     markitdown
     python3
     ripgrep
-    myPkgs.tavily
-    myPkgs.context7
-    myPkgs.firecrawl
-  ];
+  ] ++ webPkgs;
 }

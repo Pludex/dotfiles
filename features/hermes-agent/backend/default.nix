@@ -2,12 +2,19 @@
   inputs,
   config,
   base,
+  pkgs,
   ...
 }:
 let
   cfg = config.services.hermes-agent-backend;
   app = base.app "hermes-agent";
   dataDir = app.container.data;
+  webPkgs = with pkgs.python3Packages; [
+    tavily-cli
+    context7-cli
+    firecrawl-cli
+    web-tools
+  ];
 in
 {
   imports = [
@@ -24,6 +31,7 @@ in
     sessionTokenSecret = "desktop-token";
     allowedUsersSecret = "discord/user-id";
     apiServer.enable = true;
+    # extraPythonPackages = webPkgs;
 
     soul = {
       enable = true;

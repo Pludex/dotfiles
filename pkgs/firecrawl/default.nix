@@ -1,33 +1,43 @@
-{ lib, stdenvNoCC, python3, makeWrapper, base, }:
+{
+  lib,
+  buildPythonPackage,
+  setuptools,
+  requests,
+  base,
+}:
 let
-  py = python3.withPackages (ps: [ ps.requests ]);
   omnirouteUrl = (base.app "omniroute").internalUrl;
 in
-stdenvNoCC.mkDerivation {
-  pname = "firecrawl";
+buildPythonPackage {
+  pname = "firecrawl-cli";
   version = "0.1.0";
+  pyproject = true;
 
-  src = ./client.py;
-  dontUnpack = true;
-  dontBuild = true;
-  nativeBuildInputs = [ makeWrapper ];
+  src = lib.cleanSource ./.;
+  build-system = [ setuptools ];
+  dependencies = [
+    requests
+  ];
 
-  installPhase = ''
-    runHook preInstall
-    install -Dm644 $src $out/libexec/firecrawl-web.py
-    makeWrapper ${py}/bin/python3 $out/bin/firecrawl-web \
-      --add-flags $out/libexec/firecrawl-web.py \
-      --set-default OMNIROUTE_BASE_URL ${lib.escapeShellArg omnirouteUrl}
-    runHook postInstall
+  postPatch = ''
+    substituteInPlace src/firecrawl_client/client.py \
+      --replace-fail 'DEFAULT_BASE_URL = "http://localhost:20128"' \
+                     'DEFAULT_BASE_URL = ${builtins.toJSON omnirouteUrl}'
   '';
+
+  doCheck = false;
+  pythonImportsCheck = [ "firecrawl_client" ];
 
   doInstallCheck = true;
   installCheckPhase = ''
-    $out/bin/firecrawl-web --help > /dev/null
+    runHook preInstallCheck
+    $out/bin/firecrawl --help > /dev/null
+    $out/bin/firecrawl --help-python > /dev/null
+    runHook postInstallCheck
   '';
 
   meta = {
-    description = "Firecrawl web search and page reader via OmniRoute";
-    mainProgram = "firecrawl-web";
+    description = "Firecrawl web search and page reader via OmniRoute (CLI + Python library)";
+    mainProgram = "firecrawl";
   };
 }
