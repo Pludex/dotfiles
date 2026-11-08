@@ -80,5 +80,8 @@ in
     markitdown
     python3
     ripgrep
+    myPkgs.tavily
+    myPkgs.context7
+    myPkgs.firecrawl
   ];
 }

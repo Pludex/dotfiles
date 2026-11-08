@@ -4,10 +4,13 @@
     audio-manager.path = ./audio-manager;
     brightness-control.path = ./brightness-control;
     claude-desktop.path = ./claude-desktop;
+    context7.path = ./context7;
+    firecrawl.path = ./firecrawl;
     lobehub.path = ./lobehub;
     msbuild-ls.path = ./msbuild-ls;
     patchy-cnb.path = ./patchy-cnb;
     schemes.path = ./schemes;
+    tavily.path = ./tavily;
     vimPlugins.treesitter-kanata.path = ./treesitter-kanata;
     vaultwarden-sync.path = ./vaultwarden-sync;
     vivaldi-sync.path = ./vivaldi-sync;
