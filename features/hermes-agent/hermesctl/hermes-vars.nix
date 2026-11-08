@@ -9,9 +9,24 @@ let
 
   mountRoot = "/run/${app.username}-mounts";
   mountIn = app.container.workspaces;
+
+  # mounted at boot by hermes-refs.service (see the mount module)
+  refs = {
+    dotfiles-ref = {
+      src = "/workspaces/dotfiles";
+      mode = "ro";
+    };
+  };
+
+  refsUnit = "hermes-refs.service";
 in
 {
-  inherit mountRoot mountIn;
+  inherit
+    mountRoot
+    mountIn
+    refs
+    refsUnit
+    ;
 
   vars = {
     mount_root = mountRoot;
@@ -38,11 +53,7 @@ in
     bindfs = "${pkgs.bindfs}/bin/bindfs";
     umount = "${pkgs.util-linux}/bin/umount";
 
-    refs = {
-      dotfiles-ref = {
-        src = "/workspaces/dotfiles";
-        mode = "ro";
-      };
-    };
+    inherit refs;
+    refs_unit = refsUnit;
   };
 }
