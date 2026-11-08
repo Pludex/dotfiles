@@ -87,6 +87,18 @@ let
       default = { };
       description = "Extra config.yaml settings, merged recursively.";
     };
+    soul = {
+      enable = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Write a managed SOUL.md for this instance.";
+      };
+      focus = mkOption {
+        type = types.lines;
+        default = "";
+        description = "Content of the <profile_focus> block; empty omits it.";
+      };
+    };
   };
 in
 {
@@ -214,6 +226,14 @@ in
       src = mkOption {
         type = types.path;
         default = inputs.hermes-desktop-theme-pack;
+      };
+    };
+
+    soul = {
+      enable = mkEnableOption "managed SOUL.md files";
+      base = mkOption {
+        type = types.path;
+        description = "Base SOUL.md; the line @PROFILE_FOCUS@ is replaced by the instance's soulFocus.";
       };
     };
   };

@@ -16,6 +16,7 @@ in
     ./main.nix
     ./profiles.nix
     ./omh.nix
+    ./soul.nix
   ];
 
   services.hermes-agent-backend = {
@@ -23,6 +24,11 @@ in
     sessionTokenSecret = "desktop-token";
     allowedUsersSecret = "discord/user-id";
     apiServer.enable = true;
+
+    soul = {
+      enable = true;
+      base = ../soul/base.md;
+    };
 
     settings = {
       agent.disabled_toolsets = [
@@ -92,6 +98,7 @@ in
       model = "hermes";
       apiKeySecret = "api-keys/omniroute/main";
       secretEnv.API_SERVER_KEY = "api-keys/api-server";
+      soul.focus = builtins.readFile ../soul/focus/default.md;
       discord = {
         tokenSecret = "discord/token";
         homeChannel = "1565701591942561912";
@@ -116,6 +123,7 @@ in
       coding = {
         model = "hermes-coding";
         apiKeySecret = "api-keys/omniroute/coding";
+        soul.focus = builtins.readFile ../soul/focus/coding.md;
         discord = {
           tokenSecret = "discord/coding-token";
           homeChannel = "1565713912106844252";
@@ -133,6 +141,7 @@ in
       study = {
         model = "hermes-study";
         apiKeySecret = "api-keys/omniroute/study";
+        soul.focus = builtins.readFile ../soul/focus/study.md;
         excludeMcp = [
           "omniroute"
           "github"
