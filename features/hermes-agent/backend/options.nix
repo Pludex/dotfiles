@@ -11,6 +11,13 @@ let
   app = base.app "hermes-agent";
   yamlFormat = pkgs.formats.yaml { };
 
+  envValueType = types.oneOf [
+    types.str
+    types.int
+    types.float
+    types.bool
+  ];
+
   mcpServerModule = {
     options = {
       enable = mkOption {
@@ -67,7 +74,7 @@ let
       description = "Global MCP servers this instance must not get.";
     };
     env = mkOption {
-      type = types.attrsOf types.str;
+      type = types.attrsOf envValueType;
       default = { };
     };
     secretEnv = mkOption {
@@ -138,6 +145,18 @@ in
           default = app.ports.dashboard;
         };
       };
+    };
+
+    envs = mkOption {
+      type = types.attrsOf envValueType;
+      default = { };
+      description = "Environment variables for the main instance and every profile; instance-level env overrides them by name.";
+    };
+
+    settings = mkOption {
+      type = yamlFormat.type;
+      default = { };
+      description = "config.yaml settings for the main instance and every profile; instance-level settings are merged on top recursively.";
     };
 
     mcp = mkOption {

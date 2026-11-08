@@ -4,11 +4,15 @@
   base,
   ...
 }:
+let
+  app = base.app "hermes-agent";
+in
 {
   features.hermes-agent.modules = {
     nixos = [
       ./hermesctl/default.nixos.nix
       ./container.nix
+      app.modules.hostNixos or { }
     ];
     home = [
       ./hermesctl/default.hm.nix
@@ -223,31 +227,38 @@
       };
 
       # Guest NixOS bits
-      modules.nixos = {
-        users.groups.coding.gid = coding.gid;
-        users.groups.${dataGroup.name}.gid = dataGroup.mappedGid;
-        users.users.${username}.extraGroups = [
-          "coding"
-          dataGroup.name
-        ];
-        users.users.root.extraGroups = [
-          "coding"
-          dataGroup.name
-        ];
-        networking.hosts.${network.hostLoopback} = [ (base.app "omniroute").hostname ];
+      modules = {
+        nixos = {
+          users.groups.coding.gid = coding.gid;
+          users.groups.${dataGroup.name}.gid = dataGroup.mappedGid;
+          users.users.${username}.extraGroups = [
+            "coding"
+            dataGroup.name
+          ];
+          users.users.root.extraGroups = [
+            "coding"
+            dataGroup.name
+          ];
+          networking.hosts.${network.hostLoopback} = [ (base.app "omniroute").hostname ];
 
-        # Group-writable files for everything the agent spawns
-        systemd.user.services = builtins.listToAttrs (
-          map (n: {
-            name = n;
-            value.serviceConfig.UMask = "0002";
-          }) (builtins.attrValues units)
-        );
+          # Group-writable files for everything the agent spawns
+          systemd.user.services = builtins.listToAttrs (
+            map (n: {
+              name = n;
+              value.serviceConfig.UMask = "0002";
+            }) (builtins.attrValues units)
+          );
 
-        # Same for shells opened via login-hermes-container
-        security.loginDefs.settings.UMASK = "002";
+          # Same for shells opened via login-hermes-container
+          security.loginDefs.settings.UMASK = "002";
+        };
+
+        hostNixos = {
+          users.users.${base.username}.extraGroups = [
+            app.dataGroup.name
+          ];
+        };
       };
-
       user = name: (base.app "hermes-agent").users.${name};
     };
 }

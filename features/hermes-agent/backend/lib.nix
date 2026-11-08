@@ -15,6 +15,7 @@ let
   profileDir = name: "${cfg.hermesHome}/profiles/${name}";
   profileUnits = map (n: "hermes-profile-${n}.service") (lib.attrNames profiles);
   hermesHomes = [ cfg.hermesHome ] ++ map profileDir (lib.attrNames profiles);
+  envToString = v: if lib.isBool v then lib.boolToString v else toString v;
 
   inherit (app) units;
   coreUnits = map (n: "${n}.service") (lib.attrValues units);
@@ -52,11 +53,7 @@ let
     let
       d = inst.discord;
     in
-    inst.env
-    // {
-      # Without the /v1 suffix: the MCP endpoint and /v1/models are both built from this root
-      OMNIROUTE_BASE_URL = cfg.omniroute.baseUrl;
-    }
+    lib.mapAttrs (_: envToString) (cfg.envs // inst.env)
     // lib.optionalAttrs cfg.omh.enable { OMH_HOME = omhHome; }
     // lib.optionalAttrs (d.homeChannel != null) {
       DISCORD_HOME_CHANNEL = d.homeChannel;
@@ -102,6 +99,7 @@ let
         plugins.entries.omh.settings.omh_home = omhHome;
       })
       (lib.optionalAttrs (pluginsEnabled != [ ]) { plugins.enabled = pluginsEnabled; })
+      cfg.settings
       inst.settings
     ];
 

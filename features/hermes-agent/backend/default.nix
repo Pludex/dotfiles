@@ -1,10 +1,13 @@
 {
   inputs,
   config,
+  base,
   ...
 }:
 let
   cfg = config.services.hermes-agent-backend;
+  app = base.app "hermes-agent";
+  dataDir = app.container.data;
 in
 {
   imports = [
@@ -20,6 +23,25 @@ in
     sessionTokenSecret = "desktop-token";
     allowedUsersSecret = "discord/user-id";
     apiServer.enable = true;
+
+    settings = {
+      agent.disabled_toolsets = [
+        "web"
+        "browser"
+      ];
+
+      skills.external_dirs = [
+        "${dataDir}/omh/skills"
+      ];
+
+      terminal.env_passthrough = [
+        "OMNIROUTE_BASE_URL"
+        "OMNIROUTE_API_KEY"
+      ];
+    };
+    envs = {
+      OMNIROUTE_BASE_URL = cfg.omniroute.baseUrl;
+    };
 
     omh = {
       enable = true;
@@ -76,10 +98,17 @@ in
         homeChannelName = "main";
         freeChannels = [ "1565701591942561912" ];
       };
-      mcp.context7 = {
-        url = "https://mcp.context7.com/mcp";
-        headers.CONTEXT7_API_KEY = "\${CONTEXT7_API_KEY}";
-        secretEnv.CONTEXT7_API_KEY = "api-keys/context7";
+      # mcp.context7 = {
+      #   url = "https://mcp.context7.com/mcp";
+      #   headers.CONTEXT7_API_KEY = "\${CONTEXT7_API_KEY}";
+      #   secretEnv.CONTEXT7_API_KEY = "api-keys/context7";
+      # };
+
+      settings = {
+        skills.external_dirs = [
+          "${dataDir}/skills"
+          "${dataDir}/skills-active" # skills are active
+        ];
       };
     };
 
@@ -92,6 +121,13 @@ in
           homeChannel = "1565713912106844252";
           homeChannelName = "coding";
           freeChannels = [ "1565713912106844252" ];
+        };
+
+        settings = {
+          skills.external_dirs = [
+            "${dataDir}/profiles/coding/skills"
+            "${dataDir}/profiles/coding/skills-active" # skills are active
+          ];
         };
       };
       study = {
@@ -106,6 +142,13 @@ in
           homeChannel = "1565713936043483287";
           homeChannelName = "study";
           freeChannels = [ "1565713936043483287" ];
+        };
+
+        settings = {
+          skills.external_dirs = [
+            "${dataDir}/profiles/study/skills"
+            "${dataDir}/profiles/study/skills-active" # skills are active
+          ];
         };
       };
     };
