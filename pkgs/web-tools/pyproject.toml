@@ -7,7 +7,7 @@ name = "web-tools"
 version = "0.1.0"
 description = "Unified web search (Tavily) and fetch (Firecrawl)"
 requires-python = ">=3.10"
-dependencies = ["tavily-cli", "firecrawl-cli"]
+dependencies = ["tavily-client", "firecrawl-client"]
 
 [project.scripts]
 web-tools = "web_tools.cli:main"

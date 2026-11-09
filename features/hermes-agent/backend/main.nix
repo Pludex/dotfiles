@@ -23,8 +23,17 @@ let
     ;
   inherit (config) app;
 
-  # The package the module actually runs (with extraPythonPackages applied upstream).
-  hermesPkg = config.services.hermes-agent.package;
+  # Same package the gateway runs: extras applied through the same override as
+  # upstream's effectivePackage, so the dashboard gets the same PYTHONPATH.
+  hermesSvc = config.services.hermes-agent;
+  hermesPkg =
+    if hermesSvc.extraPythonPackages == [ ] && hermesSvc.extraDependencyGroups == [ ] then
+      hermesSvc.package
+    else
+      hermesSvc.package.override (prev: {
+        extraPythonPackages = (prev.extraPythonPackages or [ ]) ++ hermesSvc.extraPythonPackages;
+        extraDependencyGroups = (prev.extraDependencyGroups or [ ]) ++ hermesSvc.extraDependencyGroups;
+      });
 
   mergeEnv = h.mkMergeEnv (h.templatePath "hermes-env") "${cfg.hermesHome}/.env";
 

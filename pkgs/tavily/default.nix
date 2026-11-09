@@ -9,7 +9,7 @@ let
   omnirouteUrl = (base.app "omniroute").internalUrl;
 in
 buildPythonPackage {
-  pname = "tavily-cli";
+  pname = "tavily-client";
   version = "0.1.0";
   pyproject = true;
 

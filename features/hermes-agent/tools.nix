@@ -55,9 +55,9 @@ let
   };
 
   webPkgs = with pkgs.python3Packages; [
-    tavily-cli
-    context7-cli
-    firecrawl-cli
+    tavily-client
+    context7-client
+    firecrawl-client
     web-tools
   ];
 in

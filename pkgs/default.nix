@@ -29,9 +29,9 @@
     (final: prev: {
       pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
         (pyFinal: _: {
-          tavily-cli = pyFinal.callPackage ./tavily { };
-          context7-cli = pyFinal.callPackage ./context7 { };
-          firecrawl-cli = pyFinal.callPackage ./firecrawl { };
+          tavily-client = pyFinal.callPackage ./tavily { };
+          context7-client = pyFinal.callPackage ./context7 { };
+          firecrawl-client = pyFinal.callPackage ./firecrawl { };
           web-tools = pyFinal.callPackage ./web-tools { };
         })
       ];

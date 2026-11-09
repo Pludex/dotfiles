@@ -9,7 +9,7 @@ let
   omnirouteUrl = (base.app "omniroute").internalUrl;
 in
 buildPythonPackage {
-  pname = "firecrawl-cli";
+  pname = "firecrawl-client";
   version = "0.1.0";
   pyproject = true;
 

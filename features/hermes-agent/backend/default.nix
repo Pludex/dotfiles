@@ -3,16 +3,42 @@
   config,
   base,
   pkgs,
+  lib,
   ...
 }:
 let
   cfg = config.services.hermes-agent-backend;
   app = base.app "hermes-agent";
   dataDir = app.container.data;
-  webPkgs = with pkgs.python3Packages; [
-    tavily-cli
-    context7-cli
-    firecrawl-cli
+
+  hermesProvided = [ "requests" ];
+  notProvided = lib.filter (d: !(lib.elem (d.pname or "") hermesProvided));
+
+  forHermes =
+    pkg:
+    pkg.overridePythonAttrs (old: {
+      dependencies = notProvided (old.dependencies or [ ]);
+      propagatedBuildInputs = notProvided (old.propagatedBuildInputs or [ ]);
+      pythonRemoveDeps = (old.pythonRemoveDeps or [ ]) ++ hermesProvided;
+      pythonImportsCheck = [ ];
+      doInstallCheck = false;
+    });
+
+  webNames = [
+    "tavily-client"
+    "context7-client"
+    "firecrawl-client"
+    "web-tools"
+  ];
+
+  hermesPy = pkgs.python3Packages.overrideScope (
+    _: prev: lib.genAttrs webNames (n: forHermes prev.${n})
+  );
+
+  webPkgs = with hermesPy; [
+    tavily-client
+    context7-client
+    firecrawl-client
     web-tools
   ];
 in
@@ -31,7 +57,7 @@ in
     sessionTokenSecret = "desktop-token";
     allowedUsersSecret = "discord/user-id";
     apiServer.enable = true;
-    # extraPythonPackages = webPkgs;
+    extraPythonPackages = webPkgs;
 
     soul = {
       enable = true;

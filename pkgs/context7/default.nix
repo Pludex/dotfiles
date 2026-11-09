@@ -9,7 +9,7 @@ let
   omnirouteUrl = (base.app "omniroute").internalUrl;
 in
 buildPythonPackage {
-  pname = "context7-cli";
+  pname = "context7-client";
   version = "0.1.0";
   pyproject = true;
 

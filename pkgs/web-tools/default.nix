@@ -2,8 +2,8 @@
   lib,
   buildPythonPackage,
   setuptools,
-  tavily-cli,
-  firecrawl-cli,
+  tavily-client,
+  firecrawl-client,
 }:
 buildPythonPackage {
   pname = "web-tools";
@@ -13,8 +13,8 @@ buildPythonPackage {
   src = lib.cleanSource ./.;
   build-system = [ setuptools ];
   dependencies = [
-    tavily-cli
-    firecrawl-cli
+    tavily-client
+    firecrawl-client
   ];
 
   doCheck = false;
