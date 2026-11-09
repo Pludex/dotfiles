@@ -194,6 +194,19 @@ in
           ];
         };
       };
+
+      web = {
+        soul.enable = false;
+        apiKeySecret = "api-keys/omniroute/web";
+        model = "web";
+        settings = {
+          platform_toolsets.cli = [ ];
+          mcp_servers = {
+            github = lib.mkForce { };
+            omniroute = lib.mkForce { };
+          };
+        };
+      };
     };
   };
 }
