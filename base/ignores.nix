@@ -1,5 +1,0 @@
-{
-  extraBase.ignores = [
-    ".direnv/"
-  ];
-}

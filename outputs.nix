@@ -93,12 +93,12 @@
   flake.lib = inputs.nixpkgs.lib;
 
   imports = [
-    ./base
     ./pkgs
     ./profiles
     ./hosts
     ./features
     ./lib
+    ./base.nix
     ./devshells.nix
 
     inputs.treefmt-nix.flakeModule
