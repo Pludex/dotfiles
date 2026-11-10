@@ -207,6 +207,18 @@ in
           };
         };
       };
+
+      temp = {
+        apiKeySecret = "api-keys/omniroute/temp";
+        model = "temp";
+        soul.focus = "";
+        settings = {
+          mcp_servers = {
+            github = lib.mkForce { };
+            omniroute = lib.mkForce { };
+          };
+        };
+      };
     };
   };
 }
