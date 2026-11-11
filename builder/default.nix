@@ -14,12 +14,6 @@
           ./profiles.nix
 
           ../outputs.nix
-
-          ({ lib, ... }: {
-            options.builder = lib.mkOption {
-              type = lib.types.attrs;
-            };
-          })
         ];
       };
     in

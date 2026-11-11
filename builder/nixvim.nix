@@ -12,16 +12,17 @@ let
   mkConfig =
     base: profile: c:
     let
-      host = if c.host == null then null else cfg.builder.host c.host;
+      host = if c.host == null then null else cfg.builders.host c.host;
     in
     inputs.nixvim.lib.evalNixvim {
       extraSpecialArgs = {
         inherit base host;
-      } // base.extraArgs;
+      }
+      // base.extraSpecialArgs;
       modules =
         cfg.nixvimModules
         ++ c.extraModules
-        ++ cfg.builder.hostModules host "nixvim"
+        ++ cfg.builders.hostModules host "nixvim"
         ++ config.profilesResult.${profile}.nixvim
         ++ [
           "${cfg.paths.modules}/nixvim"
@@ -71,11 +72,11 @@ let
 
   # `final` is the overlay fixed-point, so it's safe to use as `pkgs`
   # here even though this overlay is itself part of building that same
-  # pkgs set - same pattern as the `paths.libx` overlay in base.nix.
+  # pkgs set.
   mkMyPkgsOverlay =
     final: prev:
     let
-      base = cfg.base.builder.mkCoreBase { pkgs = final; };
+      base = cfg.pureBase.builders.mkBaseFromPkgs { pkgs = final; };
       nixvimConfigs = lib.mapAttrs (profile: c: mkConfig base profile c) cfg.nixvim;
     in
     {
@@ -145,10 +146,11 @@ in
   };
 
   config = {
-    builder.mkNvimPkg = mkNvimPkg;
-    builder.mkNixvimConfig = mkConfig;
+    builders.mkNvimPkg = mkNvimPkg;
+    builders.mkNixvimConfig = mkConfig;
 
-    overlays = [ mkMyPkgsOverlay ];
+    # Root overlay: shared by every channel, so `pkgs.stable.myPkgs` exists too
+    nixpkgs.overlays = [ mkMyPkgsOverlay ];
 
     perSystem =
       { base, ... }:

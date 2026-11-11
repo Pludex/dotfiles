@@ -30,24 +30,24 @@ features/hermes-agent/
 
 ## Key identifiers (all sourced from `extraBase.apps.hermes-agent` in `default.nix`)
 
-| Symbol | Value |
-|---|---|
-| `app.uid` | `2000` |
-| `app.username` | `"hermes"` |
-| `app.home` | `"/home/hermes"` |
-| `app.ports.api` | `8642` |
-| `app.ports.dashboard` | `9119` |
-| `app.loopback` | `"127.0.0.1"` |
-| `app.network.mode` | `"host"` &#124; `"bridge"` (currently `"host"`) |
-| `app.network.bindAddress` | `"127.0.0.1"` (host) / `"0.0.0.0"` (bridge) |
-| `app.network.hostAddress` | `"127.0.0.1"` (host) / `"host.containers.internal"` (bridge) |
-| `hostuser.uid` | `1002` (hermes-host) |
-| `hostuser.subUid.start` | `200000` |
-| `app.users.container.uid` | `200000 + 2000 - 1 = 201999` (sops secret owner) |
-| `app.age.sopsSecret` | `"age-keys/hermes"` |
-| `app.container.name` | `"hermes"` |
-| `app.container.data` | `"/app/data"` |
-| `app.container.workspaces` | `"/workspaces"` |
+| Symbol                     | Value                                                        |
+| -------------------------- | ------------------------------------------------------------ |
+| `app.uid`                  | `2000`                                                       |
+| `app.username`             | `"hermes"`                                                   |
+| `app.home`                 | `"/home/hermes"`                                             |
+| `app.ports.api`            | `8642`                                                       |
+| `app.ports.dashboard`      | `9119`                                                       |
+| `app.loopback`             | `"127.0.0.1"`                                                |
+| `app.network.mode`         | `"host"` &#124; `"bridge"` (currently `"host"`)              |
+| `app.network.bindAddress`  | `"127.0.0.1"` (host) / `"0.0.0.0"` (bridge)                  |
+| `app.network.hostAddress`  | `"127.0.0.1"` (host) / `"host.containers.internal"` (bridge) |
+| `hostuser.uid`             | `1002` (hermes-host)                                         |
+| `hostuser.subUid.start`    | `200000`                                                     |
+| `app.users.container.uid`  | `200000 + 2000 - 1 = 201999` (sops secret owner)             |
+| `app.age.sopsSecret`       | `"age-keys/hermes"`                                          |
+| `app.container.name`       | `"hermes"`                                                   |
+| `app.container.data`       | `"/app/data"`                                                |
+| `app.container.workspaces` | `"/workspaces"`                                              |
 
 ---
 
@@ -57,21 +57,21 @@ The container runs as `hermes-host` (uid 1002) with subuid/subgid ranges startin
 
 **UID map** (container → host intermediate → host uid via subuid table):
 
-| Segment | `inner:outer:count` | Effect |
-|---|---|---|
-| `root` | `0:0:1` | container root → host root |
-| `subordinate` | `1:1:65536` | container 1–65536 → host 200000–265535 |
+| Segment       | `inner:outer:count` | Effect                                 |
+| ------------- | ------------------- | -------------------------------------- |
+| `root`        | `0:0:1`             | container root → host root             |
+| `subordinate` | `1:1:65536`         | container 1–65536 → host 200000–265535 |
 
 Container uid 2000 (hermes) maps to host uid **201999** (`200000 + 2000 - 1`). This must match `sops.secrets.${age.sopsSecret}.uid`.
 
 **GID map** (note: first subGid range = coding.gid, second = 200000+):
 
-| Segment | `inner:outer:count` | Effect |
-|---|---|---|
-| `root` | `0:0:1` | container gid 0 → host gid 0 |
-| `belowCoding` | `1:2:coding.gid-1` | intermediate 2..coding.gid |
-| `coding` | `coding.gid:1:1` | container coding.gid → intermediate 1 → host coding.gid |
-| `aboveCoding` | `coding.gid+1:coding.gid+1:65537-coding.gid` | rest of subordinate range |
+| Segment       | `inner:outer:count`                          | Effect                                                  |
+| ------------- | -------------------------------------------- | ------------------------------------------------------- |
+| `root`        | `0:0:1`                                      | container gid 0 → host gid 0                            |
+| `belowCoding` | `1:2:coding.gid-1`                           | intermediate 2..coding.gid                              |
+| `coding`      | `coding.gid:1:1`                             | container coding.gid → intermediate 1 → host coding.gid |
+| `aboveCoding` | `coding.gid+1:coding.gid+1:65537-coding.gid` | rest of subordinate range                               |
 
 The intermediate gid 1 maps to host coding.gid because `subGidRanges` puts `startGid=coding.gid, count=1` **first** (order matters for newgidmap). This allows the container's hermes process (gid = coding.gid) to share files owned by the host `coding` group.
 
@@ -121,6 +121,7 @@ Global servers (`services.hermes-agent-backend.mcp`) are applied to every instan
 ## Switching network mode
 
 Change `network.mode` in `extraBase.apps.hermes-agent` (`default.nix`). On first switch to bridge:
+
 - The `podman-network-hermes.service` will create the network.
 - `container.nix` will add port publish entries and remove `--network=host`.
 - `backend/default.nix` will set `API_SERVER_HOST=0.0.0.0` and route OmniRoute via `host.containers.internal`.

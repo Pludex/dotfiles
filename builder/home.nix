@@ -47,7 +47,7 @@ let
     cfg.homeModules
     ++ extraModules
     ++ cfg.profilesResult.${meta.profile}.home
-    ++ cfg.builder.hostModules host "home"
+    ++ cfg.builders.hostModules host "home"
     ++ [
       "${cfg.paths.modules}/home"
       (import cfg.paths.desktops { inherit (meta) desktop; }).home
@@ -69,9 +69,9 @@ let
     name: c:
     let
       hostName = if c.host == null then name else c.host;
-      host = cfg.builder.host hostName;
-      # Base of this host's architecture, memoized per system by flake-parts
-      base = cfg.base.forSystem host.system // {
+      host = cfg.builders.host hostName;
+      # Memoized per system by flake-parts when the system is in `systems`
+      base = cfg.pureBase.mkBase { system = host.system; } // {
         inherit host;
       };
       meta = {
@@ -87,7 +87,8 @@ let
       # in `imports` (e.g. `base.inputs.sops-nix.homeManagerModules.sops`).
       extraSpecialArgs = {
         inherit base host meta;
-      } // base.extraArgs;
+      }
+      // base.extraSpecialArgs;
 
       modules = mkModules {
         inherit meta host;
@@ -169,7 +170,9 @@ in
 
   config = {
     flake.homeConfigurations = lib.mapAttrs mkStandalone cfg.home;
-    builder.mkHomeNonStandalone = mkNonStandalone;
-    builder.mkHomeStandalone = mkStandalone;
+    builders = {
+      mkHomeNonStandalone = mkNonStandalone;
+      mkHomeStandalone = mkStandalone;
+    };
   };
 }

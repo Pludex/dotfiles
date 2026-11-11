@@ -238,6 +238,6 @@ in
 
   config = {
     profilesResult = lib.mapAttrs resolveProfile cfg.profiles;
-    extraBase.profiles = config.profilesResult;
+    base.pure.profiles = config.profilesResult;
   };
 }

@@ -33,8 +33,8 @@ let
     name: c:
     let
       hostName = if c.host == null then name else c.host;
-      host = cfg.builder.host hostName;
-      base = cfg.base.forSystem host.system // {
+      host = cfg.builders.host hostName;
+      base = (cfg.pureBase.mkBase { inherit (host) system; }) // {
         inherit host;
       };
       meta = {
@@ -54,7 +54,8 @@ let
     in
     {
       inherit base host meta;
-    } // base.extraArgs;
+    }
+    // base.extraSpecialArgs;
 
   mkNixosModules =
     name: c:
@@ -63,7 +64,7 @@ let
       inherit (base) paths;
     in
     cfg.nixosModules
-    ++ cfg.builder.hostModules host "nixos"
+    ++ cfg.builders.hostModules host "nixos"
     ++ config.profilesResult.${c.profile}.nixos
     ++ c.extraModules
     ++ [
@@ -139,7 +140,7 @@ in
   config = {
     flake.nixosConfigurations = lib.mapAttrs mkSystem cfg.nixos;
 
-    builder = {
+    builders = {
       mkNixos = mkSystem;
       mkNixosModules = mkNixosModules;
       mkNixosSpecialArgs = mkNixosSpecialArgs;

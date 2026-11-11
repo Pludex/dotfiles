@@ -54,7 +54,7 @@
     "x86_64-linux"
   ];
 
-  overlaysOfInputs = with inputs; [
+  nixpkgs.inputOverlays = with inputs; [
     chaotic.overlays.default
     vscode-extensions.overlays.default
     nix-firefox-addons.overlays.default
@@ -63,7 +63,7 @@
     emacs-overlays.overlays.default
   ];
 
-  nixpkgsConfig = {
+  nixpkgs.config = {
     allowUnfree = true;
     allowBroken = true;
     android_sdk.accept_license = true;

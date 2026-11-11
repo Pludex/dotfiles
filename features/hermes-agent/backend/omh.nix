@@ -6,7 +6,14 @@
   ...
 }:
 let
-  h = import ./lib.nix { inherit config lib pkgs base; };
+  h = import ./lib.nix {
+    inherit
+      config
+      lib
+      pkgs
+      base
+      ;
+  };
   inherit (h)
     cfg
     omhHome
@@ -23,7 +30,8 @@ let
     builtins.toJSON {
       schema_version = "mixture_chain_overrides/v1";
       categories = lib.mapAttrs (
-        _: map (s: {
+        _:
+        map (s: {
           inherit (s) model;
           reasoning_effort = s.reasoningEffort;
         })
@@ -182,7 +190,12 @@ in
             RemainAfterExit = true;
             ExecStart = "${themeSync}";
             Environment = [
-              "PATH=${lib.makeBinPath [ pkgs.coreutils cfg.package ]}"
+              "PATH=${
+                lib.makeBinPath [
+                  pkgs.coreutils
+                  cfg.package
+                ]
+              }"
             ];
           };
           Install.WantedBy = [ "default.target" ];

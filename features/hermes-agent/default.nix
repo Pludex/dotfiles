@@ -66,13 +66,13 @@ in
       };
     in
     {
-      packagesOfInputs = { inherit hermes; };
+      inputPackages = { inherit hermes; };
       ciPackages = { inherit hermes; };
     };
 
-  extraBase.apps.hermes-agent =
+  base.pure.apps.hermes-agent =
     let
-      coding = config.base.group "coding";
+      coding = base.group "coding";
     in
     rec {
       # Network

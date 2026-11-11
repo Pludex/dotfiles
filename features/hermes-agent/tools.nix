@@ -83,9 +83,12 @@ in
     mode = "0400";
   };
 
-  home.packages = with pkgs; [
-    markitdown
-    python3
-    ripgrep
-  ] ++ webPkgs;
+  home.packages =
+    with pkgs;
+    [
+      markitdown
+      python3
+      ripgrep
+    ]
+    ++ webPkgs;
 }

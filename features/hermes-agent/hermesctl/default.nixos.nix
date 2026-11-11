@@ -20,7 +20,10 @@ in
     wantedBy = [ "multi-user.target" ];
     before = [ container.unit ];
     requiredBy = [ container.unit ];
-    path = [ pkgs.util-linux pkgs.coreutils ];
+    path = [
+      pkgs.util-linux
+      pkgs.coreutils
+    ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;

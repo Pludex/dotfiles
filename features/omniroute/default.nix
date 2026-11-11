@@ -1,5 +1,5 @@
 {
-  extraBase.apps.omniroute = rec {
+  base.pure.apps.omniroute = rec {
     loopback = "127.0.0.1";
     # Name other guests use for the host's omniroute (mapped in their /etc/hosts)
     hostname = "omniroute";

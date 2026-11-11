@@ -1,6 +1,19 @@
-{ config, lib, pkgs, base, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  base,
+  ...
+}:
 let
-  h = import ./lib.nix { inherit config lib pkgs base; };
+  h = import ./lib.nix {
+    inherit
+      config
+      lib
+      pkgs
+      base
+      ;
+  };
   inherit (h) cfg;
 
   render =

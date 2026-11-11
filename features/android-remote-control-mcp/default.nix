@@ -3,5 +3,5 @@
     modules = { };
   };
   myPkgs.android-remote-control-mcp.path = ./drv.pkg.nix;
-  
+
 }

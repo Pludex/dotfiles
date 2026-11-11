@@ -25,7 +25,7 @@
     waycal.path = ./waycal.nix;
   };
 
-  overlays = [
+  nixpkgs.overlays = [
     (final: prev: {
       pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
         (pyFinal: _: {
@@ -41,7 +41,7 @@
   perSystem =
     { inputs', config, ... }:
     {
-      packagesOfInputs = {
+      inputPackages = {
         waybar = inputs'.waybar.packages.default;
         walker = inputs'.walker.packages.default;
       };

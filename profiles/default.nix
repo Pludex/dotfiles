@@ -1,8 +1,8 @@
-{ config, ... }:
+{ base, ... }:
 let
-  hp = config.base.paths.home;
-  np = config.base.paths.nixos;
-  vp = config.base.paths.nixvim;
+  hp = base.paths.home;
+  np = base.paths.nixos;
+  vp = base.paths.nixvim;
 in
 {
 

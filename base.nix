@@ -5,7 +5,7 @@
   ...
 }:
 {
-  extraBase = {
+  base.pure = {
     # ── Identity ────────────────────────────────────────────
     name = "Pludex";
     username = "pludex";
@@ -22,7 +22,7 @@
       users-host.gid = 1002;
       data.gid = 1201;
     };
-    group = name: config.base.groups.${name};
+    group = name: base.groups.${name};
 
     # ── Secrets / keys ──────────────────────────────────────
     age = {
@@ -106,49 +106,52 @@
       };
     };
 
+    ignores = [
+      ".direnv/"
+    ];
   };
 
   paths = {
     # ── Top-level dirs ──────────────────────────────────────
     flake = inputs.self;
-    data = ../data;
-    desktops = ../desktops;
-    commonDesktop = ../desktops/common;
-    emacs = ../emacs;
-    hosts = ../hosts;
-    libx = ../lib;
-    modules = ../modules;
-    overlays = ../overlays;
-    patches = ../patches;
-    pkgs = ../pkgs;
-    profiles = ../profiles;
+    data = ./data;
+    desktops = ./desktops;
+    commonDesktop = ./desktops/common;
+    emacs = ./emacs;
+    hosts = ./hosts;
+    libx = ./lib;
+    modules = ./modules;
+    overlays = ./overlays;
+    patches = ./patches;
+    pkgs = ./pkgs;
+    profiles = ./profiles;
 
     nixos = {
-      root = ../nixos;
-      apps = ../nixos/apps;
-      containers = ../nixos/containers;
-      programs = ../nixos/programs;
-      services = ../nixos/services;
-      virtualisation = ../nixos/virtualisation;
+      root = ./nixos;
+      apps = ./nixos/apps;
+      containers = ./nixos/containers;
+      programs = ./nixos/programs;
+      services = ./nixos/services;
+      virtualisation = ./nixos/virtualisation;
     };
 
     home = {
-      root = ../home;
-      apps = ../home/apps;
-      develop = ../home/develop;
-      ides = ../home/ides;
-      programs = ../home/programs;
-      services = ../home/services;
+      root = ./home;
+      apps = ./home/apps;
+      develop = ./home/develop;
+      ides = ./home/ides;
+      programs = ./home/programs;
+      services = ./home/services;
     };
 
     nixvim = {
-      root = ../nixvim;
-      languages = ../nixvim/languages;
+      root = ./nixvim;
+      languages = ./nixvim/languages;
     };
 
     # ── Absolute paths on the machine ───────────────────────
     abs = {
-      home = "/home/${config.base.username}";
+      home = "/home/${base.username}";
       workspaces = "/workspaces";
       dotfiles = "${config.paths.abs.workspaces}/dotfiles";
       emacs = "${config.paths.abs.dotfiles}/emacs";
@@ -156,49 +159,102 @@
       data = "${config.paths.abs.dotfilesBot}/data";
       dataPrivate = "/private";
     };
-
-    ignores = [
-      ".direnv/"
-    ];
   };
 
-  extraBaseWithPkgs =
-    pkgs:
-    let
-      inherit (pkgs) lib;
-    in
-    {
-      tools = rec {
-        shell = pkgs.fish;
-        editor = pkgs.myPkgs.editor;
-        browser = pkgs.vivaldi;
-        # pager = "bat --plain --pager='less -FR'";
-        pager = pkgs.bat;
-        term = pkgs.ghostty;
+  # Needs pkgs everywhere
+  base.withPkgs = [
+    (
+      pkgs:
+      let
+        inherit (pkgs) lib;
+      in
+      {
+        tools = rec {
+          shell = pkgs.fish;
+          editor = pkgs.myPkgs.editor;
+          browser = pkgs.vivaldi;
+          # pager = "bat --plain --pager='less -FR'";
+          pager = pkgs.bat;
+          term = pkgs.ghostty;
 
-        vivaldi = {
-          cmdProfileWork = ''${lib.getExe pkgs.vivaldi} --profile-directory="Default" &'';
-          cmdProfileSociety = ''${lib.getExe pkgs.vivaldi} --profile-directory="Profile 1" &'';
+          vivaldi = {
+            cmdProfileWork = ''${lib.getExe pkgs.vivaldi} --profile-directory="Default" &'';
+            cmdProfileSociety = ''${lib.getExe pkgs.vivaldi} --profile-directory="Profile 1" &'';
+          };
+
+          shellAliases = {
+            cd = "z";
+            cat = "bat";
+            less = lib.getExe pager;
+            nano = lib.getExe editor;
+            grep = "grep";
+            find = "fd";
+            tree = "eza -T";
+          };
+
+          envvars = {
+            EDITOR = "${lib.getExe editor}";
+            BROWSER = vivaldi.cmdProfileWork;
+          };
+        };
+      }
+    )
+  ];
+
+  # Names, sizes and flags are pkgs-free and also land in pureBase
+  base.mixed = [
+    (pkgs: {
+      fonts = {
+        serif = {
+          package = pkgs.noto-fonts;
+          name = "Noto Serif";
         };
 
-        shellAliases = {
-          cd = "z";
-          cat = "bat";
-          less = lib.getExe pager;
-          nano = lib.getExe editor;
-          grep = "grep";
-          find = "fd";
-          tree = "eza -T";
+        sansSerif = {
+          package = pkgs.nerd-fonts.ubuntu-sans;
+          name = "UbuntuSans NF";
         };
 
-        envvars = {
-          EDITOR = "${lib.getExe editor}";
-          BROWSER = vivaldi.cmdProfileWork;
+        monospace = {
+          package = pkgs.nerd-fonts.jetbrains-mono;
+          name = "JetBrainsMono Nerd Font";
+        };
+
+        emoji = {
+          package = pkgs.noto-fonts-color-emoji;
+          name = "Noto Color Emoji";
+        };
+
+        sizes = {
+          terminal = 9;
         };
       };
-    };
 
-  extraArgs = {
-    inherit (base) inputs;
-  };
+      icons = {
+        package = pkgs.papirus-icon-theme;
+        dark = "Papirus-Dark";
+        light = "Papirus-Light";
+      };
+
+      opacity = {
+        terminal = 0.5;
+        applications = 0.9;
+        desktop = 0.9;
+        popups = 0.9;
+      };
+
+      cursor = {
+        package = pkgs.bibata-cursors;
+        name = "Bibata-Original-Classic";
+        size = 22;
+      };
+
+      base16Scheme = "${pkgs.myPkgs.schemes}/base16/carbonfox.yaml";
+      polarity = "dark";
+    })
+  ];
+
+  base.specialArgs = [
+    { inherit inputs; }
+  ];
 }

@@ -69,7 +69,7 @@ Add a new omh routing category: add it to `omh.chains`; nothing else.
 ## Conventions
 
 - Nix style: `nixfmt` formatting, 2-space indent, `inherit (x) a b;` over repetition.
-- Code comments are written in English and only where they explain a non-obvious *why*. Remove comments that restate the code.
+- Code comments are written in English and only where they explain a non-obvious _why_. Remove comments that restate the code.
 - Keep shell scripts under `set -euo pipefail`; pass tools via `lib.makeBinPath`, never rely on ambient `PATH`.
 - Prefer `lib.mkIf` / `lib.optionalAttrs` over `if` for module config.
 

@@ -72,7 +72,7 @@ in
     description = "Host definitions shared by every framework";
   };
 
-  config.builder = {
+  config.builders = {
     host = name: cfg.hosts.${name} or (throw "Unknown host '${name}'");
     inherit hostModules;
   };
