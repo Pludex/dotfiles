@@ -41,7 +41,7 @@
   };
 
   nixvim = {
-    editor = {
+    coding = {
       host = "dp7530";
     };
 

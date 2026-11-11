@@ -8,8 +8,8 @@ in
 
   imports = [
     ./ci.nix
+    ./coding.nix
     ./desktop.nix
-    ./editor.nix
     ./leetcode.nix
     ./live.nix
   ];

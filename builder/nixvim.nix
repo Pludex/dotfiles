@@ -38,8 +38,9 @@ let
         ];
     };
 
-  # `<profile>` is the plain terminal nvim, `<profile>-gui` starts neovide
-  # with the same config. Both forward "$@" and apply `startupArgs`.
+  # `<profile>` is the plain terminal nvim, `<profile>-g` starts neovide
+  # with the same config. Both forward "$@", apply `startupArgs` and use
+  # a per-profile data/state dir via NVIM_APPNAME.
   mkPackage =
     {
       profile,
@@ -48,14 +49,18 @@ let
       startupArgs ? [ ],
     }:
     let
+      guiName = "${profile}-g";
+      appName = lib.escapeShellArg profile;
       nvimArgs = lib.escapeShellArgs startupArgs;
       # neovide forwards everything after `--` to nvim
       guiArgs = lib.optionalString (startupArgs != [ ]) (lib.escapeShellArgs ([ "--" ] ++ startupArgs));
 
       nvim = pkgs.writeShellScript profile ''
+        export NVIM_APPNAME=${appName}
         exec ${nixvimPkg}/bin/nvim ${nvimArgs} "$@"
       '';
-      gui = pkgs.writeShellScript "${profile}-gui" ''
+      gui = pkgs.writeShellScript guiName ''
+        export NVIM_APPNAME=${appName}
         export PATH=${nixvimPkg}/bin:$PATH
         exec ${pkgs.neovide}/bin/neovide "$@" ${guiArgs}
       '';
@@ -63,7 +68,7 @@ let
     pkgs.runCommand profile { meta.mainProgram = profile; } ''
       mkdir -p $out/bin
       ln -s ${nvim} $out/bin/${profile}
-      ln -s ${gui} $out/bin/${profile}-gui
+      ln -s ${gui} $out/bin/${guiName}
     '';
 
   mkNvimPkg =

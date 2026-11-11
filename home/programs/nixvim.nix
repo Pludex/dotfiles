@@ -5,7 +5,7 @@
 }:
 {
   home.packages = with pkgs; [
-    myPkgs.editor
+    myPkgs.coding
     myPkgs.leetcode
   ];
 
