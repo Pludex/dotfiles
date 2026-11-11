@@ -171,7 +171,7 @@
       {
         tools = rec {
           shell = pkgs.fish;
-          editor = pkgs.myPkgs.editor;
+          editor = pkgs.myPkgs.coding;
           browser = pkgs.vivaldi;
           # pager = "bat --plain --pager='less -FR'";
           pager = pkgs.bat;

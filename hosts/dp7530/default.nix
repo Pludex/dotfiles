@@ -11,8 +11,13 @@
         ...
       }:
       {
+        imports = [
+          ./hardware-configuration.nix
+          inputs.lanzaboote.nixosModules.lanzaboote
+        ];
+
         boot = {
-          kernelPackages = pkgs.linuxPackages_cachyos;
+          kernelPackages = pkgs.linuxPackages_zen;
           loader.systemd-boot.enable = lib.mkForce false;
 
           lanzaboote = {
@@ -27,21 +32,33 @@
           };
 
           consoleLogLevel = 0;
-          initrd.verbose = false;
 
           plymouth = {
             enable = true;
             theme = "bgrt";
           };
+
+          tmp.useTmpfs = true;
+
+          kernel.sysctl = {
+            "vm.swappiness" = 180;
+            "vm.page-cluster" = 0;
+          };
         };
 
-        services.scx.enable = true;
-        services.scx.scheduler = "scx_rustland";
+        powerManagement.cpuFreqGovernor = "performance";
 
-        imports = [
-          ./hardware-configuration.nix
-          inputs.lanzaboote.nixosModules.lanzaboote
-        ];
+        services = {
+          scx-loader = {
+            enable = true;
+            config = {
+              default_sched = "scx_bpfland";
+              default_mode = "Auto";
+            };
+          };
+
+          thermald.enable = true;
+        };
       };
   };
 }
