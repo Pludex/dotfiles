@@ -88,9 +88,9 @@
       ];
 
       virtualisation = [
-        "core/libvirt"
+        # "core/libvirt"
         "core/podman"
-        "win10"
+        # "win10"
       ];
 
       extraModules = [
