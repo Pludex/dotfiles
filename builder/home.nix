@@ -71,7 +71,7 @@ let
       hostName = if c.host == null then name else c.host;
       host = cfg.builders.host hostName;
       # Memoized per system by flake-parts when the system is in `systems`
-      base = cfg.pureBase.mkBase { system = host.system; } // {
+      base = cfg.pureBase.mkBase { inherit (host) system; } // {
         inherit host;
       };
       meta = {
@@ -82,7 +82,7 @@ let
       };
     in
     inputs.home-manager.lib.homeManagerConfiguration {
-      pkgs = base.pkgs;
+      inherit (base) pkgs;
       # specialArgs are resolved before `config`, so modules can use them
       # in `imports` (e.g. `base.inputs.sops-nix.homeManagerModules.sops`).
       extraSpecialArgs = {

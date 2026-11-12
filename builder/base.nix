@@ -477,7 +477,7 @@ in
     };
 
     perSystem = flake-parts-lib.mkPerSystemOption (
-      { ... }:
+      _:
       {
         options = {
           base = mkOption {

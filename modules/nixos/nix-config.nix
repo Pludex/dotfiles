@@ -5,7 +5,7 @@
   ...
 }:
 let
-  isContainer = config.isContainer;
+  inherit (config) isContainer;
   dotfiles = if isContainer then "/workspaces/dotfiles-ref" else "/workspaces/dotfiles";
 in
 {

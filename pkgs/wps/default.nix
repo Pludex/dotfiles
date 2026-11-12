@@ -82,7 +82,7 @@ let
 in
 pkgs.stdenv.mkDerivation {
   pname = "wpsoffice-sandboxed";
-  version = package.version;
+  inherit (package) version;
 
   dontBuild = true;
   dontUnpack = true;

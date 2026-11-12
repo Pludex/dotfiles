@@ -239,9 +239,9 @@ let
     supports_hdr = 0;
     sdr_min_luminance = 0.2;
     sdr_max_luminance = 80;
-    min_luminance = (-1.0);
-    max_luminance = (-1);
-    max_avg_luminance = (-1);
+    min_luminance = -1.0;
+    max_luminance = -1;
+    max_avg_luminance = -1;
   };
 
   reservedAreaType = types.oneOf [
@@ -765,16 +765,16 @@ let
     let
       matchFields = mkSetFields { namespace = r.match.namespace; } toLuaVal;
       effectFields = mkSetFields {
-        above_lock = r.above_lock;
-        animation = r.animation;
-        blur = r.blur;
-        blur_popups = r.blur_popups;
-        dim_around = r.dim_around;
-        ignore_alpha = r.ignore_alpha;
-        no_anim = r.no_anim;
-        no_screen_share = r.no_screen_share;
-        order = r.order;
-        xray = r.xray;
+        inherit (r) above_lock;
+        inherit (r) animation;
+        inherit (r) blur;
+        inherit (r) blur_popups;
+        inherit (r) dim_around;
+        inherit (r) ignore_alpha;
+        inherit (r) no_anim;
+        inherit (r) no_screen_share;
+        inherit (r) order;
+        inherit (r) xray;
       } toLuaVal;
       fields =
         lib.optional (r.name != null) "name = ${luaStr r.name}"
@@ -1023,22 +1023,22 @@ let
         "workspace = ${toLuaVal r.workspace}"
       ]
       ++ mkSetFields {
-        animation = r.animation;
-        border_size = r.border_size;
-        decorate = r.decorate;
-        default_name = r.default_name;
-        float_gaps = r.float_gaps;
-        gaps_in = r.gaps_in;
-        gaps_out = r.gaps_out;
-        layout = r.layout;
-        layout_opts = r.layout_opts;
-        monitor = r.monitor;
-        default = r.default;
-        no_border = r.no_border;
-        no_rounding = r.no_rounding;
-        no_shadow = r.no_shadow;
-        on_created_empty = r.on_created_empty;
-        persistent = r.persistent;
+        inherit (r) animation;
+        inherit (r) border_size;
+        inherit (r) decorate;
+        inherit (r) default_name;
+        inherit (r) float_gaps;
+        inherit (r) gaps_in;
+        inherit (r) gaps_out;
+        inherit (r) layout;
+        inherit (r) layout_opts;
+        inherit (r) monitor;
+        inherit (r) default;
+        inherit (r) no_border;
+        inherit (r) no_rounding;
+        inherit (r) no_shadow;
+        inherit (r) on_created_empty;
+        inherit (r) persistent;
       } toLuaVal;
     in
     "hl.workspace_rule({ ${lib.concatStringsSep ", " fields} })";
@@ -1139,10 +1139,10 @@ let
           "enabled = ${toLuaVal a.enabled}"
         ]
         ++ mkSetFields {
-          speed = a.speed;
-          bezier = a.bezier;
-          spring = a.spring;
-          style = a.style;
+          inherit (a) speed;
+          inherit (a) bezier;
+          inherit (a) spring;
+          inherit (a) style;
         } toLuaVal;
       in
       "hl.animation({ ${lib.concatStringsSep ", " fields} })";

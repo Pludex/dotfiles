@@ -64,7 +64,7 @@ in
     package = mkPackageOption pkgs "warp-terminal" { };
 
     settings = mkOption {
-      type = tomlFormat.type;
+      inherit (tomlFormat) type;
       default = { };
       example = lib.literalExpression ''
         {
@@ -79,7 +79,7 @@ in
     };
 
     keybinds = mkOption {
-      type = yamlFormat.type;
+      inherit (yamlFormat) type;
       default = { };
       description = "Rendered to `$XDG_CONFIG_HOME/warp-terminal/keybindings.yaml`.";
     };

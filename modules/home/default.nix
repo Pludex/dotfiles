@@ -18,7 +18,7 @@ let
       {
         identity = {
           inherit (app) username;
-          home = app.home;
+          inherit (app) home;
         };
         secrets = {
           file = app.age.defaultFile;

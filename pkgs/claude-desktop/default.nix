@@ -55,10 +55,10 @@ let
     inputJson.${debArch}
       or (throw "claude-desktop: no entry for arch '${debArch}' in input.json - re-run get-claude-desktop-url.sh");
 
-  version = entry.version;
+  inherit (entry) version;
 
   src = fetchurl {
-    url = entry.url;
+    inherit (entry) url;
     hash = entry.sha256;
   };
 

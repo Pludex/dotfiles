@@ -26,7 +26,7 @@ let
     src = "${src}/src/ui";
 
     npmDeps = importNpmLock { npmRoot = "${src}/src/ui"; };
-    npmConfigHook = importNpmLock.npmConfigHook;
+    inherit (importNpmLock) npmConfigHook;
 
     env.ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
     dontNpmBuild = true;

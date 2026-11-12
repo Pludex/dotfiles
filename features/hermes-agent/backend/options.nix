@@ -83,7 +83,7 @@ let
       description = "ENV_VAR -> sops secret name.";
     };
     settings = mkOption {
-      type = yamlFormat.type;
+      inherit (yamlFormat) type;
       default = { };
       description = "Extra config.yaml settings, merged recursively.";
     };
@@ -166,7 +166,7 @@ in
     };
 
     settings = mkOption {
-      type = yamlFormat.type;
+      inherit (yamlFormat) type;
       default = { };
       description = "config.yaml settings for the main instance and every profile; instance-level settings are merged on top recursively.";
     };

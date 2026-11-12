@@ -48,7 +48,7 @@ let
   resolveCategory =
     category: categoryCfg:
     let
-      extraModules = categoryCfg.extraModules;
+      inherit (categoryCfg) extraModules;
       subkeys = removeAttrs categoryCfg [ "extraModules" ];
     in
     extraModules ++ lib.concatLists (lib.mapAttrsToList (resolveSubkey category) subkeys);

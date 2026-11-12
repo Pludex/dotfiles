@@ -50,9 +50,9 @@ in
         users.${app.username} = {
           isSystemUser = true;
           # isNormalUser = false;
-          uid = app.uid;
+          inherit (app) uid;
           group = app.username;
-          home = app.home;
+          inherit (app) home;
           createHome = true;
           linger = true;
           shell = base.tools.shell;

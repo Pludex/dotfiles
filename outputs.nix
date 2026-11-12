@@ -79,7 +79,7 @@
     };
   };
 
-  perSystem = { ... }: {
+  perSystem = _: {
     treefmt.config = {
       projectRootFile = "flake.nix";
       programs = {

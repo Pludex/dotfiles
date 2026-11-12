@@ -1,7 +1,7 @@
 { inputs }:
 {
   mkDotfiles =
-    { ... }:
+    _:
     let
       result = inputs.flake-parts.lib.mkFlake { inherit inputs; } {
         imports = [

@@ -142,8 +142,8 @@ in
 
     builders = {
       mkNixos = mkSystem;
-      mkNixosModules = mkNixosModules;
-      mkNixosSpecialArgs = mkNixosSpecialArgs;
+      inherit mkNixosModules;
+      inherit mkNixosSpecialArgs;
       inherit nixosModulesOf nixosSpecialArgsOf;
     };
   };
