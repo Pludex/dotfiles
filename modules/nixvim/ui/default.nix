@@ -3,7 +3,7 @@
     ./statusline
     ./themes
     ./dashboard.nix
-    ./noice.nix
+    # ./noice.nix
     ./notification.nix
   ];
 }
