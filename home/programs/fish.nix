@@ -31,6 +31,14 @@
     shellInitLast = ''
       set fish_greeting ""
     '';
+
+    functions = {
+      clear = "command clear -x $argv";
+      clear_push = ''
+        printf '\e[2J'
+        commandline -f repaint
+      '';
+    };
   };
 
   xdg.configFile."fish/functions/fish_user_key_bindings.fish".text = ''
@@ -39,10 +47,8 @@
       bind alt-a complete-and-search
       bind tab accept-autosuggestion
       bind alt-q _fzf_search_directory
-      # bind alt-l clear-screen
 
-      bind ctrl-l forward-token
-      bind ctrl-h backward-token
+      bind ctrl-l clear_push
 
       bind alt-e undo
       bind alt-r redo
