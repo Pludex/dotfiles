@@ -241,6 +241,17 @@
         applications = 0.9;
         desktop = 0.9;
         popups = 0.9;
+        all = 0.75;
+        all-nonfocus = 0.65;
+      };
+
+      blur = {
+        brightness = 0.4;
+        size = 2;
+        passes = 3;
+        noise = 0.0117;
+        vibrancy = 0.1696;
+        vibrancy_darkness = 0.0;
       };
 
       cursor = {

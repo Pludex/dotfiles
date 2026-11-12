@@ -1,4 +1,9 @@
-{ pkgs, config, ... }:
+{
+  pkgs,
+  config,
+  base,
+  ...
+}:
 let
   resizePx = 30;
   colors = config.lib.stylix.colors;
@@ -203,30 +208,40 @@ in
       border_size = 2;
     };
 
-    decoration = {
-      rounding = 4;
-      active_opacity = 0.75;
-      inactive_opacity = 0.65;
-      fullscreen_opacity = 1.0;
+    decoration =
+      let
+        inherit (base) opacity;
+      in
+      {
+        rounding = 4;
+        active_opacity = opacity.all;
+        inactive_opacity = opacity.all-nonfocus;
+        fullscreen_opacity = opacity.all;
 
-      shadow = {
-        enabled = true;
-        range = 15;
-        render_power = 3;
-        color_inactive = "rgba(1a1a1aaa)";
-      };
+        shadow = {
+          enabled = true;
+          range = 15;
+          render_power = 3;
+          color_inactive = "rgba(1a1a1aaa)";
+        };
 
-      blur = {
-        enabled = true;
-        brightness = 0.4;
-        size = 2;
-        passes = 3;
-        new_optimizations = true;
-        ignore_opacity = true;
-        xray = false;
-        popups = true;
+        blur = {
+          enabled = true;
+          inherit (base.blur)
+            brightness
+            size
+            passes
+            noise
+            vibrancy
+            vibrancy_darkness
+            ;
+
+          new_optimizations = true;
+          ignore_opacity = true;
+          xray = false;
+          popups = true;
+        };
       };
-    };
 
     input.follow_mouse = 2;
 

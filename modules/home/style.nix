@@ -18,10 +18,30 @@
         inherit (base)
           base16Scheme
           polarity
-          cursor
-          opacity
-          fonts
           ;
+
+        fonts = {
+          inherit (base.fonts)
+            serif
+            sansSerif
+            monospace
+            emoji
+            sizes
+            ;
+        };
+
+        opacity = {
+          inherit (base.opacity)
+            terminal
+            applications
+            desktop
+            popups
+            ;
+        };
+
+        cursor = {
+          inherit (base.cursor) package name size;
+        };
 
         icons = {
           enable = true;
