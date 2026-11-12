@@ -255,6 +255,13 @@
   ];
 
   base.specialArgs = [
-    { inherit inputs; }
+    {
+      inherit inputs;
+    }
+
+    (pkgs: {
+      sPkgs = pkgs.stable;
+      stablePkgs = pkgs.stable;
+    })
   ];
 }

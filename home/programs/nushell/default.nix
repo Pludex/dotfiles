@@ -25,7 +25,7 @@
       formats
       gstat
 
-      highlight
+      # highlight
     ];
 
     extraConfig = ''

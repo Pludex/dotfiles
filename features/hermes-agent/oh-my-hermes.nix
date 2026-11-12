@@ -17,12 +17,13 @@ python3Packages.buildPythonApplication {
   build-system = [ python3Packages.setuptools ];
   doCheck = false;
   makeWrapperArgs = [
-    "--prefix PATH : ${
-      lib.makeBinPath [
-        nodejs
-        git
-      ]
-    }"
+    "--prefix"
+    "PATH"
+    ":"
+    (lib.makeBinPath [
+      nodejs
+      git
+    ])
   ];
   meta.mainProgram = "omh";
 }

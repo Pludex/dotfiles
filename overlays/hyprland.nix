@@ -1,6 +1,8 @@
 { inputs, base, ... }:
 (final: prev: {
   hyprland = inputs.hyprland.packages.${final.stdenv.system}.hyprland;
+  xdg-desktop-portal-hyprland =
+    inputs.hyprland.packages.${final.stdenv.system}.xdg-desktop-portal-hyprland;
 
   hyprlandPlugins =
     prev.hyprlandPlugins

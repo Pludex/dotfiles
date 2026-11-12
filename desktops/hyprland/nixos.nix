@@ -1,4 +1,4 @@
-{ pkgs, host, ... }:
+{ pkgs, host, sPkgs, ... }:
 {
   programs.hyprland = {
     enable = true;
@@ -26,6 +26,12 @@
   services.xserver = {
     enable = true;
     videoDrivers = host.gpus;
+  };
+
+  hardware.graphics = {
+    enable = true;
+    package = sPkgs.mesa;
+    package32 = sPkgs.pkgsi686Linux.mesa;
   };
 
   services.logind.settings.Login.HandlePowerKey = "ignore";

@@ -75,6 +75,7 @@
 
     problems.handlers = {
       zfs.broken = "ignore";
+      "gtk+".broken = "warn";
     };
   };
 

@@ -70,7 +70,7 @@
 
       ides = [
         "vscode"
-        "rider"
+        # "rider"
       ];
 
       extraModules = [

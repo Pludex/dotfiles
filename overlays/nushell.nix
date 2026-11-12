@@ -7,6 +7,9 @@
       src = inputs.nushell-highlight;
       cargoLock.lockFile = "${inputs.nushell-highlight}/Cargo.lock";
 
+      nativeBuildInputs = [ final.pkg-config ];
+      buildInputs = [ final.oniguruma ];
+
       meta.mainProgram = "nu_plugin_highlight";
     };
   };
