@@ -10,5 +10,6 @@
     fzf
     grc
     libnotify
+    myPkgs.clipboard
   ];
 }
