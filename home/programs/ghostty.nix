@@ -13,6 +13,7 @@
       window-padding-balance = true;
       window-decoration = true;
       window-show-tab-bar = "never";
+      background-blur = true;
 
       scrollback-limit = 50000000;
 
