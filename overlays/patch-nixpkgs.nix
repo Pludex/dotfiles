@@ -1,14 +1,12 @@
 _: final: prev: {
-  nu_plugin_gstat = prev.nu_plugin_gstat.overrideAttrs (old: {
-    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final.pkg-config ];
-    buildInputs = (old.buildInputs or [ ]) ++ [ final.libgit2 ];
-  });
-
+  # TODO: remove once nixpkgs fixes neocmakelsp (onig_sys needs pkg-config)
   neocmakelsp = prev.neocmakelsp.overrideAttrs (old: {
     nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final.pkg-config ];
     buildInputs = (old.buildInputs or [ ]) ++ [ final.oniguruma ];
   });
 
+  # TODO: remove once speechrecognition tests no longer hit the network
+  # (the Nix sandbox has no network access, so test_openai.py fails)
   pythonPackagesExtensions = (prev.pythonPackagesExtensions or [ ]) ++ [
     (pyFinal: pyPrev: {
       speechrecognition = pyPrev.speechrecognition.overridePythonAttrs (old: {
@@ -19,6 +17,9 @@ _: final: prev: {
     })
   ];
 
+  # TODO: remove once nixpkgs fixes the libgit2 version mismatch in nu_plugin_gstat
+  # (libgit2-sys wants libgit2 >= 1.9.6 and < 1.10.0; unset the flag so the crate
+  # builds its bundled libgit2 instead)
   nushellPlugins = prev.nushellPlugins // {
     gstat = prev.nushellPlugins.gstat.overrideAttrs (old: {
       env = removeAttrs (old.env or { }) [ "LIBGIT2_NO_VENDOR" ];
@@ -31,16 +32,4 @@ _: final: prev: {
       ];
     });
   };
-
-  patchelf = prev.patchelf.overrideAttrs (old: {
-    patches = final.lib.filter (
-      p: !(final.lib.hasInfix "fix-executable-header-load-overlap" (toString p))
-    ) (old.patches or [ ]);
-  });
-
-  pnpm = prev.pnpm.overrideAttrs (old: {
-    nativeBuildInputs = map (p: if (p.pname or "") == "patchelf" then final.patchelfUnstable else p) (
-      old.nativeBuildInputs or [ ]
-    );
-  });
 }
