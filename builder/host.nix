@@ -28,7 +28,7 @@ let
         extends = mkOption {
           type = types.nullOr types.str;
           default = null;
-          description = "Host to inherit system, gpus and modules from";
+          description = "Host to inherit system, role, gpus and modules from";
         };
 
         withHome = mkOption {
@@ -42,6 +42,13 @@ let
           default = if parent != null then parent.system else throw "hosts.${name}.system is not set";
           example = "x86_64-linux";
           description = "System architecture of this host";
+        };
+
+        role = mkOption {
+          type = types.enum cfg.roles;
+          default = if parent != null then parent.role else throw "hosts.${name}.role is not set";
+          example = "server";
+          description = "Role of this host; must be listed in `roles`";
         };
 
         gpus = mkOption {

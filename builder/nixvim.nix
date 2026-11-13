@@ -9,14 +9,31 @@ let
   inherit (lib) mkOption types;
   cfg = config;
 
+  hostOf = c: if c.host == null then null else cfg.builders.host c.host;
+
+  # host and role are null for host-independent profiles, all role flags are then false
+  metaOf =
+    profile: c:
+    let
+      host = hostOf c;
+      role = if host == null then null else host.role;
+    in
+    {
+      name = profile;
+      inherit profile role;
+      host = if host == null then null else host.name;
+    }
+    // cfg.builders.roleFlags role;
+
   mkConfig =
     base: profile: c:
     let
-      host = if c.host == null then null else cfg.builders.host c.host;
+      host = hostOf c;
+      meta = base.configMeta.nixvim.${profile};
     in
     inputs.nixvim.lib.evalNixvim {
       extraSpecialArgs = {
-        inherit base host;
+        inherit base host meta;
       }
       // base.extraSpecialArgs;
       modules =
@@ -153,6 +170,8 @@ in
   config = {
     builders.mkNvimPkg = mkNvimPkg;
     builders.mkNixvimConfig = mkConfig;
+
+    base.pure.configMeta.nixvim = lib.mapAttrs metaOf cfg.nixvim;
 
     # Root overlay: shared by every channel, so `pkgs.stable.myPkgs` exists too
     nixpkgs.overlays = [ mkMyPkgsOverlay ];

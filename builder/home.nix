@@ -31,11 +31,32 @@ let
         description = "Host name currently in use";
       };
 
+      options.role = lib.mkOption {
+        type = lib.types.enum cfg.roles;
+        description = "Role of the host currently in use";
+      };
+
       options.name = lib.mkOption {
         type = lib.types.str;
         description = "Config name currently in use";
       };
     };
+
+  hostOf = name: c: cfg.builders.host (if c.host == null then name else c.host);
+
+  metaOf =
+    name: c:
+    let
+      host = hostOf name c;
+    in
+    {
+      inherit name;
+      inherit (c) profile desktop;
+      host = host.name;
+      inherit (host) role;
+      standalone = true;
+    }
+    // cfg.builders.roleFlags host.role;
 
   # Shared by both modes so they always evaluate the same module list.
   mkModules =
@@ -51,6 +72,7 @@ let
     ++ [
       "${cfg.paths.modules}/home"
       (import cfg.paths.desktops { inherit (meta) desktop; }).home
+      cfg.builders.roleFlagsModule
       configOptions
       meta
     ];
@@ -61,6 +83,7 @@ let
     cfg.homeModules
     ++ (cfg.profilesResult.${meta.profile}.rootHome or [ ])
     ++ [
+      cfg.builders.roleFlagsModule
       configOptions
       meta
     ];
@@ -68,18 +91,12 @@ let
   mkStandalone =
     name: c:
     let
-      hostName = if c.host == null then name else c.host;
-      host = cfg.builders.host hostName;
+      host = hostOf name c;
       # Memoized per system by flake-parts when the system is in `systems`
       base = cfg.pureBase.mkBase { inherit (host) system; } // {
         inherit host;
       };
-      meta = {
-        inherit name;
-        inherit (c) profile desktop;
-        host = host.name;
-        standalone = true;
-      };
+      meta = base.configMeta.home.${name};
     in
     inputs.home-manager.lib.homeManagerConfiguration {
       inherit (base) pkgs;
@@ -170,6 +187,9 @@ in
 
   config = {
     flake.homeConfigurations = lib.mapAttrs mkStandalone cfg.home;
+
+    base.pure.configMeta.home = lib.mapAttrs metaOf cfg.home;
+
     builders = {
       mkHomeNonStandalone = mkNonStandalone;
       mkHomeStandalone = mkStandalone;

@@ -91,6 +91,40 @@
     };
   };
 
+  roles = [
+    "container"
+    "desktop"
+    "laptop"
+    "live"
+    "server"
+  ];
+
+  groupsRole = {
+    graphical = [
+      "desktop"
+      "laptop"
+      "live"
+    ];
+    interactive = [
+      "desktop"
+      "laptop"
+      "live"
+    ];
+    headless = [
+      "server"
+      "container"
+    ];
+    physical = [
+      "desktop"
+      "laptop"
+      "server"
+      "live"
+    ];
+    portable = [ "laptop" ];
+    ephemeral = [ "live" ];
+    container = [ "container" ];
+  };
+
   flake.lib = inputs.nixpkgs.lib;
 
   imports = [

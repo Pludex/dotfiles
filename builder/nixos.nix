@@ -24,27 +24,41 @@ let
         profile = mkStrOption "Profile name currently in use";
         host = mkStrOption "Host name currently in use";
         name = mkStrOption "Config name currently in use";
+        role = lib.mkOption {
+          type = lib.types.enum cfg.roles;
+          description = "Role of the host currently in use";
+        };
       };
     };
 
   nixosConfigOf = name: cfg.nixos.${name} or (throw "builder: nixos.${name} is not defined");
 
+  hostOf = name: c: cfg.builders.host (if c.host == null then name else c.host);
+
+  metaOf =
+    name: c:
+    let
+      host = hostOf name c;
+    in
+    {
+      inherit name;
+      inherit (c) desktop profile;
+      host = host.name;
+      inherit (host) role;
+    }
+    // cfg.builders.roleFlags host.role;
+
   resolve =
     name: c:
     let
-      hostName = if c.host == null then name else c.host;
-      host = cfg.builders.host hostName;
+      host = hostOf name c;
       base = (cfg.pureBase.mkBase { inherit (host) system; }) // {
         inherit host;
       };
-      meta = {
-        inherit name;
-        inherit (c) desktop profile;
-        host = host.name;
-      };
     in
     {
-      inherit host base meta;
+      inherit host base;
+      meta = base.configMeta.nixos.${name};
     };
 
   mkNixosSpecialArgs =
@@ -70,6 +84,7 @@ let
     ++ [
       "${paths.modules}/nixos"
       (import paths.desktops { inherit (c) desktop; }).nixos
+      cfg.builders.roleFlagsModule
       configOptions
       (meta // { networking.hostName = lib.mkDefault host.name; })
       { nixpkgs.pkgs = base.pkgs; }
@@ -87,7 +102,7 @@ let
               meta
               ;
             inherit (c) withRoot;
-            username = if (!config.isContainer) then base.username else (base.app name).username;
+            username = if meta.isContainer then (base.app name).username else base.username;
           };
         }
       )
@@ -139,6 +154,8 @@ in
 
   config = {
     flake.nixosConfigurations = lib.mapAttrs mkSystem cfg.nixos;
+
+    base.pure.configMeta.nixos = lib.mapAttrs metaOf cfg.nixos;
 
     builders = {
       mkNixos = mkSystem;

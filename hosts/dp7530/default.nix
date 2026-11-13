@@ -2,6 +2,7 @@
   hosts.dp7530 = {
     system = "x86_64-linux";
     gpus = [ "intel" ];
+    role = "laptop";
 
     modules.nixos =
       {

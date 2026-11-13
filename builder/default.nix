@@ -12,6 +12,7 @@
           ./nixvim.nix
           ./package.nix
           ./profiles.nix
+          ./role.nix
 
           ../outputs.nix
         ];
