@@ -30,13 +30,12 @@
     level.__raw = "vim.log.levels.TRACE";
 
     icons = {
-      inherit (base.glyphs.level)
-        error
-        warn
-        info
-        debug
-        trace
-        ;
+      error = " ";
+      warn = " ";
+      info = "󰋽 ";
+      hint = " ";
+      debug = " ";
+      trace = "[Trace]";
     };
 
     keep.__raw = ''

@@ -1,4 +1,4 @@
-{ pkgs, base, ... }:
+{ pkgs, ... }:
 {
   extraPackages = with pkgs; [ lazygit ];
 
@@ -7,7 +7,16 @@
   globals = {
     lazygit_floating_window_scaling_factor = 0.85;
     lazygit_floating_window_winblend = 0;
-    lazygit_floating_window_border_chars = base.glyphs.border;
+    lazygit_floating_window_border_chars = [
+      "╭"
+      "─"
+      "╮"
+      "│"
+      "╯"
+      "─"
+      "╰"
+      "│"
+    ];
   };
 
   keymaps = [

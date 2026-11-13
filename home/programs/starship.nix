@@ -1,4 +1,3 @@
-{ base, ... }:
 {
   programs.starship = {
     enable = true;
@@ -10,8 +9,8 @@
       format = "$directory$git_branch$git_status$nix_shell$cmd_duration$line_break$character";
 
       character = {
-        success_symbol = "[${base.glyphs.nix.logo}](bold blue) [${base.glyphs.prompt}](bold green)";
-        error_symbol = "[${base.glyphs.level.error}](bold red) [${base.glyphs.prompt}](bold red)";
+        success_symbol = "[ ](bold blue) [ ](bold green)";
+        error_symbol = "[ ](bold red) [ ](bold red)";
       };
 
       directory = {
