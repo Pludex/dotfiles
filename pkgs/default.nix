@@ -15,7 +15,6 @@
     volume-control.path = ./volume-control;
     warp.path = ./warp;
     wps.path = ./wps;
-    zalo-for-linux.path = ./zalo-for-linux;
 
     icons.path = ./icons.nix;
     openleetcode.path = ./openleetcode.nix;

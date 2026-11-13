@@ -1,4 +1,8 @@
-{ pkgs, ... }:
+{ inputs, ... }:
 {
-  home.packages = [ pkgs.myPkgs.zalo-for-linux ];
+  imports = [ inputs.zalo-for-linux.homeManagerModules.default ];
+
+  programs.zalo = {
+    enable = true;
+  };
 }

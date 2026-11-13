@@ -225,6 +225,11 @@
       flake = false;
     };
 
+    zalo-for-linux = {
+      url = "github:VN-Linux-Family/zalo-for-linux";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # AI
     omniroute = {
       url = "github:diegosouzapw/OmniRoute";
