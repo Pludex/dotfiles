@@ -1,11 +1,11 @@
 {
   pkgs,
   lib,
-  config,
+  meta,
   ...
 }:
 {
-  config = lib.mkIf (!config.isContainer) {
+  config = lib.mkIf meta.isGraphical {
     i18n.inputMethod = {
       enable = true;
       type = "fcitx5";

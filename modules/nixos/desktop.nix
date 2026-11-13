@@ -1,11 +1,11 @@
 {
-  config,
+  meta,
   lib,
   pkgs,
   ...
 }:
 {
-  config = lib.mkIf (!config.isContainer) (
+  config = lib.mkIf meta.isGraphical (
     lib.mkMerge [
       {
         services.pulseaudio.enable = false;

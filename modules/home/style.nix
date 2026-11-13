@@ -3,6 +3,7 @@
   pkgs,
   config,
   base,
+  meta,
   lib,
   ...
 }:
@@ -62,7 +63,7 @@
       ];
     }
 
-    (lib.mkIf (!config.isContainer) {
+    (lib.mkIf meta.isGraphical {
       gtk = {
         enable = true;
       };

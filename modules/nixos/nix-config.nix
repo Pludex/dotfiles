@@ -1,11 +1,11 @@
 {
   base,
-  config,
+  meta,
   lib,
   ...
 }:
 let
-  inherit (config) isContainer;
+  inherit (meta) isContainer;
   dotfiles = if isContainer then "/workspaces/dotfiles-ref" else "/workspaces/dotfiles";
 in
 {

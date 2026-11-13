@@ -1,10 +1,10 @@
-{ config, lib, ... }:
+{ meta, lib, ... }:
 let
-  inherit (config) isContainer;
+  inherit (meta) isContainer;
 in
 {
   networking = lib.mkMerge [
-    { hostName = config.name; }
+    { hostName = meta.name; }
 
     (lib.mkIf (!isContainer) {
       nameservers = [

@@ -1,6 +1,6 @@
-{ lib, config, ... }:
+{ lib, meta, ... }:
 {
-  services.kanata = lib.mkIf (!config.isContainer) {
+  services.kanata = lib.mkIf meta.isInteractive {
     enable = true;
     keyboards = {
       default = {

@@ -1,11 +1,13 @@
 {
   base,
   config,
+  meta,
   lib,
   ...
 }:
 let
-  inherit (config) isContainer app;
+  inherit (meta) isContainer;
+  inherit (config) app;
   coding = base.group "coding";
   users-host = base.group "users-host";
   data = base.group "data";

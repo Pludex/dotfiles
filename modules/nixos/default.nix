@@ -2,17 +2,15 @@
   base,
   pkgs,
   lib,
-  config,
   meta,
   inputs,
   ...
 }:
 let
   inherit (base) libx;
-  inherit (config) isContainer;
 
   app = libx.tryOr (base.app meta.name) null;
-  ageSource = if isContainer then app.age else base.age;
+  ageSource = if meta.isHeadless then app.age else base.age;
 in
 {
   imports = [
@@ -26,17 +24,10 @@ in
     inputs.sops-nix.nixosModules.sops
   ];
 
-  options = {
-    isContainer = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-    };
-
-    app = lib.mkOption {
-      type = lib.types.raw;
-      readOnly = true;
-      default = app;
-    };
+  options.app = lib.mkOption {
+    type = lib.types.raw;
+    readOnly = true;
+    default = app;
   };
 
   config = lib.mkMerge [
