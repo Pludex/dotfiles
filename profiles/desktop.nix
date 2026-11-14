@@ -7,6 +7,7 @@
         "discord"
         "obsidian"
         "sklauncher"
+        "soundcloud"
         "spotify"
         # "steam"
         "vivaldi"

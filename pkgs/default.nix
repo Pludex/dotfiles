@@ -9,6 +9,7 @@
     msbuild-ls.path = ./msbuild-ls;
     patchy-cnb.path = ./patchy-cnb;
     schemes.path = ./schemes;
+    soundcloud.path = ./soundcloud;
     vimPlugins.treesitter-kanata.path = ./treesitter-kanata;
     vaultwarden-sync.path = ./vaultwarden-sync;
     vivaldi-sync.path = ./vivaldi-sync;
