@@ -136,6 +136,8 @@
     ./base.nix
     ./devshells.nix
 
+    ./home/apps.nix
+
     inputs.treefmt-nix.flakeModule
   ];
 }
