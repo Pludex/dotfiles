@@ -138,6 +138,15 @@
 
     ./home/apps.nix
     ./home/services
+    ./home/packages.nix
+
+    ./home/programs/ai.nix
+    ./home/programs/browser.nix
+    ./home/programs/cli.nix
+    ./home/programs/editor.nix
+    ./home/programs/git.nix
+    ./home/programs/shell.nix
+    ./home/programs/term.nix
 
     inputs.treefmt-nix.flakeModule
   ];
