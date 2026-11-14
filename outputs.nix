@@ -150,6 +150,7 @@
 
     ./nixos/services
     ./nixos/apps.nix
+    ./nixos/virtualisation.nix
     inputs.treefmt-nix.flakeModule
   ];
 }
