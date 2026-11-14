@@ -9,12 +9,20 @@
   python3,
   chromium,
   baseBrowser ? chromium,
+  myPkgs,
+  pipewire,
+  wireplumber,
 }:
 
 let
   source = lib.importJSON ./sources.json;
 
   python = python3.withPackages (ps: [ ps.dbus-fast ]);
+
+  iconDir = runCommand "soundcloud-icon" { } ''
+    mkdir -p $out
+    cp ${myPkgs.icons}/share/pixmaps/soundcloud.png $out/soundcloud.svg
+  '';
 
   uboLite =
     runCommand "ubolite-${source.version}"
@@ -28,6 +36,12 @@ let
       '';
 
   launcher = writeShellScriptBin "soundcloud" ''
+    export PATH=${
+      lib.makeBinPath [
+        pipewire
+        wireplumber
+      ]
+    }:$PATH
     data="''${XDG_DATA_HOME:-$HOME/.local/share}/soundcloud"
     ext="$data/ubol"
     profile="$data/profile"
@@ -35,11 +49,28 @@ let
     mkdir -p "$ext" "$profile"
     cp -r --no-preserve=mode ${uboLite}/. "$ext"
 
-    ${python}/bin/python ${./mpris-proxy.py} --profile "$profile" &
-    proxy_pid=$!
-    trap 'kill "$proxy_pid" 2>/dev/null' EXIT
+    pw-loopback \
+      --capture-props='media.class=Audio/Sink node.name=soundcloud node.description=SoundCloud node.nick=SoundCloud media.name=SoundCloud' \
+      --playback-props='node.name=soundcloud-out node.description=SoundCloud node.nick=SoundCloud media.name=SoundCloud node.passive=true' &
+    loop_pid=$!
 
-    ${lib.getExe baseBrowser} \
+    for _ in $(seq 50); do
+      pw-dump | grep -q '"node.name": "soundcloud"' && break
+      sleep 0.1
+    done
+
+    ${python}/bin/python ${./mpris-proxy.py} \
+      --profile "$profile" \
+      --icon-name soundcloud \
+      --icon-dir ${iconDir} &
+    proxy_pid=$!
+    trap 'kill "$proxy_pid" "$loop_pid" 2>/dev/null' EXIT
+
+    env \
+      PULSE_SINK=soundcloud \
+      "PULSE_PROP_application.name=SoundCloud" \
+      "PULSE_PROP_application.icon_name=soundcloud" \
+      ${lib.getExe baseBrowser} \
       --app=https://soundcloud.com \
       --class=SoundCloud \
       --user-data-dir="$profile" \
@@ -54,7 +85,7 @@ let
     name = "soundcloud";
     desktopName = "SoundCloud";
     exec = "soundcloud %U";
-    icon = "soundcloud";
+    icon = "${iconDir}/soundcloud.svg";
     categories = [
       "AudioVideo"
       "Audio"

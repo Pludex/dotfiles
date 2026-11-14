@@ -1,5 +1,8 @@
 import argparse
 import asyncio
+import json
+import os
+import subprocess
 import sys
 import time
 import traceback
@@ -16,13 +19,14 @@ from dbus_fast.service import (
 )
 
 UPSTREAM_PREFIX = "org.mpris.MediaPlayer2.chromium."
-OWN_NAME = "org.mpris.MediaPlayer2.soundcloud"
+OWN_NAME = "org.mpris.MediaPlayer2.SoundCloud"
 LOCK_NAME = "dev.local.SoundCloudMprisProxy"
 MPRIS_PATH = "/org/mpris/MediaPlayer2"
 PLAYER_IFACE = "org.mpris.MediaPlayer2.Player"
 PROPS_IFACE = "org.freedesktop.DBus.Properties"
 BUS_NAME = "org.freedesktop.DBus"
 BUS_PATH = "/org/freedesktop/DBus"
+SINK_NAME = "soundcloud"
 
 DEFAULTS = {
     "PlaybackStatus": "Stopped",
@@ -190,12 +194,83 @@ class Player(ServiceInterface):
         return self.get("CanControl")
 
 
+class Tray(ServiceInterface):
+    def __init__(self, proxy, icon_name, icon_dir, window_class):
+        super().__init__("org.kde.StatusNotifierItem")
+        self.proxy = proxy
+        self.icon_name = icon_name
+        self.icon_dir = icon_dir
+        self.window_class = window_class
+
+    @method()
+    def Activate(self, x: "i", y: "i"):
+        subprocess.Popen(
+            ["hyprctl", "dispatch", "focuswindow", f"class:{self.window_class}"]
+        )
+
+    @method()
+    async def SecondaryActivate(self, x: "i", y: "i"):
+        await self.proxy.forward("PlayPause")
+
+    @method()
+    def ContextMenu(self, x: "i", y: "i"):
+        pass
+
+    @method()
+    def Scroll(self, delta: "i", orientation: "s"):
+        pass
+
+    @signal()
+    def NewToolTip(self):
+        pass
+
+    @dbus_property(access=PropertyAccess.READ)
+    def Category(self) -> "s":
+        return "ApplicationStatus"
+
+    @dbus_property(access=PropertyAccess.READ)
+    def Id(self) -> "s":
+        return "soundcloud"
+
+    @dbus_property(access=PropertyAccess.READ)
+    def Title(self) -> "s":
+        return "SoundCloud"
+
+    @dbus_property(access=PropertyAccess.READ)
+    def Status(self) -> "s":
+        return "Active"
+
+    @dbus_property(access=PropertyAccess.READ)
+    def IconName(self) -> "s":
+        return self.icon_name
+
+    @dbus_property(access=PropertyAccess.READ)
+    def IconThemePath(self) -> "s":
+        return self.icon_dir
+
+    @dbus_property(access=PropertyAccess.READ)
+    def ItemIsMenu(self) -> "b":
+        return False
+
+    @dbus_property(access=PropertyAccess.READ)
+    def Menu(self) -> "o":
+        return "/NO_DMENU"
+
+    @dbus_property(access=PropertyAccess.READ)
+    def ToolTip(self) -> "(sa(iiay)ss)":
+        meta = self.proxy.state.get("Metadata", {})
+        title = meta["xesam:title"].value if "xesam:title" in meta else "SoundCloud"
+        artists = meta["xesam:artist"].value if "xesam:artist" in meta else []
+        return ["", [], title, ", ".join(artists)]
+
+
 class Proxy:
     def __init__(self, bus, profile):
         self.bus = bus
         self.flag = f"--user-data-dir={profile}".encode()
         self.root = Root()
         self.player = Player(self)
+        self.tray = None
         self.exported = False
         self.named = False
         self.upstream = None
@@ -240,16 +315,44 @@ class Proxy:
                 self.upstream, MPRIS_PATH, PLAYER_IFACE, member, signature, body
             )
 
+    async def sink_id(self):
+        proc = await asyncio.create_subprocess_exec(
+            "pw-dump", stdout=asyncio.subprocess.PIPE
+        )
+        out, _ = await proc.communicate()
+        for obj in json.loads(out):
+            props = obj.get("info", {}).get("props", {})
+            if (
+                props.get("node.name") == SINK_NAME
+                and props.get("media.class") == "Audio/Sink"
+            ):
+                return obj["id"]
+        return None
+
     async def set_volume(self, value):
-        if self.upstream:
-            await self.call(
-                self.upstream,
-                MPRIS_PATH,
-                PROPS_IFACE,
-                "Set",
-                "ssv",
-                [PLAYER_IFACE, "Volume", Variant("d", value)],
-            )
+        value = max(0.0, min(1.0, value))
+        self.apply({"Volume": value}, local=True)
+        node = await self.sink_id()
+        if node is None:
+            log("soundcloud sink not found")
+            return
+        proc = await asyncio.create_subprocess_exec(
+            "wpctl", "set-volume", str(node), f"{value:.2f}"
+        )
+        await proc.wait()
+
+    async def read_volume(self):
+        node = await self.sink_id()
+        if node is None:
+            return
+        proc = await asyncio.create_subprocess_exec(
+            "wpctl", "get-volume", str(node), stdout=asyncio.subprocess.PIPE
+        )
+        out, _ = await proc.communicate()
+        try:
+            self.apply({"Volume": float(out.split()[1])}, local=True)
+        except (IndexError, ValueError):
+            pass
 
     def position(self):
         pos = self.pos_base
@@ -262,12 +365,14 @@ class Proxy:
         self.pos_base = self.position() if position is None else position
         self.pos_ts = time.monotonic()
 
-    def apply(self, changed):
+    def apply(self, changed, local=False):
         if "Position" in changed:
             self.rebase(changed["Position"])
         out = {}
         for name, value in changed.items():
             if name not in DEFAULTS or self.state.get(name) == value:
+                continue
+            if name == "Volume" and not local:
                 continue
             if name == "PlaybackStatus" and "Position" not in changed:
                 self.rebase()
@@ -275,6 +380,8 @@ class Proxy:
             out[name] = value
         if out and self.exported:
             self.player.emit_properties_changed(out)
+        if "Metadata" in out and self.tray:
+            self.tray.NewToolTip()
 
     async def belongs(self, name):
         reply = await self.bus_call("GetConnectionUnixProcessID", "s", [name])
@@ -297,7 +404,9 @@ class Proxy:
             return False
         props = reply.body[0]
         self.upstream, self.owner = name, owner
-        self.state = {k: v.value for k, v in props.items() if k in DEFAULTS}
+        self.state = {
+            k: v.value for k, v in props.items() if k in DEFAULTS and k != "Volume"
+        }
         position = props.get("Position")
         self.rebase(position.value if position else 0)
         if not self.exported:
@@ -309,6 +418,8 @@ class Proxy:
             result = await self.bus.request_name(OWN_NAME)
             log("request_name result:", result)
             self.named = True
+        if self.tray:
+            self.tray.NewToolTip()
         return True
 
     async def detach(self):
@@ -318,6 +429,8 @@ class Proxy:
         if self.named:
             await self.bus.release_name(OWN_NAME)
             self.named = False
+        if self.tray:
+            self.tray.NewToolTip()
 
     async def on_name(self, name, owner):
         log("candidate", name, owner)
@@ -369,7 +482,10 @@ class Proxy:
     async def poll(self):
         while True:
             await asyncio.sleep(5)
-            if self.upstream and self.state.get("PlaybackStatus") == "Playing":
+            if not self.upstream:
+                continue
+            await self.read_volume()
+            if self.state.get("PlaybackStatus") == "Playing":
                 reply = await self.call(
                     self.upstream,
                     MPRIS_PATH,
@@ -400,9 +516,23 @@ class Proxy:
                 self.spawn(self.on_name(name, owner.body[0]))
 
 
+async def register_tray(bus, tray):
+    bus.export("/StatusNotifierItem", tray)
+    name = f"org.kde.StatusNotifierItem-{os.getpid()}-1"
+    await bus.request_name(name)
+    path = "/StatusNotifierWatcher"
+    intro = await bus.introspect("org.kde.StatusNotifierWatcher", path)
+    obj = bus.get_proxy_object("org.kde.StatusNotifierWatcher", path, intro)
+    watcher = obj.get_interface("org.kde.StatusNotifierWatcher")
+    await watcher.call_register_status_notifier_item(name)
+
+
 async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--profile", required=True)
+    parser.add_argument("--icon-name", required=True)
+    parser.add_argument("--icon-dir", required=True)
+    parser.add_argument("--class", dest="window_class", default="SoundCloud")
     args = parser.parse_args()
 
     bus = await MessageBus(bus_type=BusType.SESSION).connect()
@@ -412,6 +542,14 @@ async def main():
         return
 
     proxy = Proxy(bus, args.profile)
+    proxy.tray = Tray(proxy, args.icon_name, args.icon_dir, args.window_class)
+    try:
+        await register_tray(bus, proxy.tray)
+    except Exception:
+        log("tray registration failed")
+        traceback.print_exc()
+        proxy.tray = None
+
     await proxy.start()
     proxy.spawn(proxy.poll())
     log("proxy started")

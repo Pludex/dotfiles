@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, base, ... }:
 {
   systemd.user.services.audio-manager = {
     Unit = {
@@ -16,7 +16,7 @@
     Service = {
       Type = "simple";
       ExecStart = ''
-        ${pkgs.myPkgs.audio-manager}/bin/audio-manager
+        ${pkgs.myPkgs.audio-manager}/bin/audio-manager --primary ${base.players.music} --blacklist chromium
       '';
 
       Restart = "on-failure";
