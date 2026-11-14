@@ -151,6 +151,14 @@
     ./nixos/services
     ./nixos/apps.nix
     ./nixos/virtualisation.nix
+
+    ./nixvim/languages/data.nix
+    ./nixvim/languages/docs.nix
+    ./nixvim/languages/dotnet.nix
+    ./nixvim/languages/scripting.nix
+    ./nixvim/languages/system.nix
+    ./nixvim/languages/web.nix
+
     inputs.treefmt-nix.flakeModule
   ];
 }
