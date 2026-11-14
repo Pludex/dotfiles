@@ -49,6 +49,12 @@
     ignores = [
       ".direnv/"
     ];
+
+    players = {
+      music = "SoundCloud";
+      musicIcon = " ";
+      soundcloud = "SoundColud";
+    };
   };
 
   paths = {

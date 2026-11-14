@@ -60,7 +60,7 @@ window#waybar.empty #window {
 #idle_inhibitor,
 #custom-audio_idle_inhibitor,
 #custom-notification,
-#custom-spotify,
+#custom-player,
 #custom-media,
 #custom-gpu-nvidia,
 #custom-gpu-amd,
@@ -90,11 +90,11 @@ window#waybar.empty #window {
   padding: 0 8px;
 }
 
-#tray > .passive {
+#tray>.passive {
   -gtk-icon-effect: dim;
 }
 
-#tray > .needs-attention {
+#tray>.needs-attention {
   -gtk-icon-effect: highlight;
 }
 
@@ -201,7 +201,7 @@ window#waybar.empty #window {
 }
 
 /* Media and controls */
-#custom-spotify {
+#custom-player {
   color: @base0B;
 }
 
@@ -217,6 +217,7 @@ window#waybar.empty #window {
 #custom-media.stopped {
   color: @base04;
 }
+
 #pulseaudio {
   color: @base0D;
 }

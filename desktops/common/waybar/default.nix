@@ -3,11 +3,14 @@
   lib,
   config,
   host,
+  base,
   ...
 }:
 
 let
   term = "kitty --class waybar-tui -e";
+  playerMusic = base.players.music;
+  playerIcon = base.players.musicIcon;
 
   playerctl = lib.getExe pkgs.playerctl;
   jq = lib.getExe pkgs.jq;
@@ -108,10 +111,10 @@ let
     render() {
       text="No music"
       class="stopped"
-      status=$(${playerctl} -p spotify status 2>/dev/null)
+      status=$(${playerctl} -p ${playerMusic} status 2>/dev/null)
       if [ -n "$status" ]; then
         class=''${status,,}
-        text=$(${playerctl} -p spotify metadata --format "$fmt" 2>/dev/null)
+        text=$(${playerctl} -p ${playerMusic} metadata --format "$fmt" 2>/dev/null)
       fi
 
       tooltip=$(${playerctl} -l 2>/dev/null | while read -r p; do
@@ -132,7 +135,7 @@ let
 
     render
     while true; do
-      ${playerctl} -p spotify --follow metadata \
+      ${playerctl} -p ${playerMusic} --follow metadata \
         --format '{{status}}|{{artist}}|{{title}}' 2>/dev/null \
         | while read -r _; do render; done
       render
@@ -272,14 +275,14 @@ let
     "custom/media" = {
       exec = "${mediaScript}";
       return-type = "json";
-      # interval = 2;
       escape = true;
-      on-click = "${playerctl} -p spotify play-pause";
+      on-click = "${playerctl} -p ${playerMusic} play-pause";
       on-click-right = "${mediaPick}";
+      max-length = 50;
     };
 
-    "custom/spotify" = {
-      format = "󰓇 ";
+    "custom/player" = {
+      format = "${playerIcon}";
       tooltip = false;
     };
 
@@ -543,7 +546,7 @@ in
           };
 
           "group/media" = island [
-            "custom/spotify"
+            "custom/player"
             "custom/media"
           ];
 

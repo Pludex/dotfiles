@@ -1,4 +1,9 @@
-{ pkgs, config, ... }:
+{
+  pkgs,
+  config,
+  base,
+  ...
+}:
 let
   volume-control = pkgs.myPkgs.volume-control;
   brightness-control = pkgs.myPkgs.brightness-control;
@@ -7,6 +12,7 @@ let
   hyprlock = "${config.programs.hyprlock.package}/bin/hyprlock";
   pkill = "${pkgs.procps}/bin/pkill";
   toggle-wlogout = "${pkill} -x wlogout || ${wlogout}";
+  inherit (base.players) music;
 
   # Close wlogout first, otherwise it stays open behind the lock screen
   lock = "${pkill} -x wlogout; sleep 0.3; ${hyprlock}";
@@ -39,10 +45,10 @@ in
     "Mod+XF86AudioRaiseVolume" = repeat "${brightness-control}/bin/brightness-control --inc";
     "Mod+XF86AudioLowerVolume" = repeat "${brightness-control}/bin/brightness-control --dec";
 
-    "XF86AudioPlay" = locked "${player-control} --player=spotify play-pause";
-    "XF86AudioStop" = locked "${player-control} --player=spotify stop";
-    "XF86AudioPrev" = locked "${player-control} --player=spotify previous";
-    "XF86AudioNext" = locked "${player-control} --player=spotify next";
+    "XF86AudioPlay" = locked "${player-control} --player=${music} play-pause";
+    "XF86AudioStop" = locked "${player-control} --player=${music} stop";
+    "XF86AudioPrev" = locked "${player-control} --player=${music} previous";
+    "XF86AudioNext" = locked "${player-control} --player=${music} next";
 
     "XF86MonBrightnessUp" = repeat "${brightness-control}/bin/brightness-control --inc";
     "XF86MonBrightnessDown" = repeat "${brightness-control}/bin/brightness-control --dec";
