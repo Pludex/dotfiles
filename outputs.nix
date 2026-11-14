@@ -149,6 +149,7 @@
     ./home/programs/term.nix
 
     ./nixos/services
+    ./nixos/apps.nix
     inputs.treefmt-nix.flakeModule
   ];
 }
