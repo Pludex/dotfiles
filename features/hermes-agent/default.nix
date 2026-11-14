@@ -8,7 +8,7 @@ let
   app = base.app "hermes-agent";
 in
 {
-  features.hermes-agent.modules = {
+  features.hermes-agent.extra = {
     nixos = [
       ./hermesctl/default.nixos.nix
       ./container.nix

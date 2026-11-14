@@ -25,7 +25,7 @@
     };
   };
 
-  features.omniroute.modules = {
+  features.omniroute.extra = {
     home = [
       # ./backend.module.nix
       ./backend.nix
