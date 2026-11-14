@@ -7,7 +7,7 @@
   };
 
   plugins.conform-nvim.settings.formatters_by_ft = {
-    cs = "csharpier";
+    cs = ["csharpier"];
   };
 
   plugins.treesitter.settings.ensure_installed = [ "c_sharp" ];
