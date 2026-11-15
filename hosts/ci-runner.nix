@@ -1,7 +1,7 @@
 {
   hosts.ci-runner = {
     system = "x86_64-linux";
-    role = "";
+    role = "server";
     modules.nixos =
       { lib, ... }:
       {
