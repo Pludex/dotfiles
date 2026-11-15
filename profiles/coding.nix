@@ -1,5 +1,5 @@
 {
-  profiles.coding.nixvim = {
+  profiles.coding.use.nixvim = {
     languages = [
       # "bazel"
       "c-cpp"
@@ -26,7 +26,7 @@
     ];
 
     root = [
-      "obsidian"
+      # "obsidian"
     ];
   };
 }

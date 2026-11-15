@@ -139,6 +139,8 @@
     ./home/apps.nix
     ./home/services
     ./home/packages.nix
+    ./home/develop.nix
+    ./home/packages.nix
 
     ./home/programs/ai.nix
     ./home/programs/browser.nix

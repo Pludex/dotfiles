@@ -1,5 +1,5 @@
 {
-  profiles.ci = {
+  profiles.ci.use = {
     home = {
       programs = [
         "bash"

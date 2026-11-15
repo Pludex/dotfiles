@@ -1,11 +1,28 @@
-{ base, ... }:
+{ base, lib, ... }:
 let
   hp = base.paths.home;
   np = base.paths.nixos;
   vp = base.paths.nixvim;
+
+  # Registers every `<name>.nix` file and `<name>/` directory under `dir` as `<name>`.
+  fromDir =
+    dir:
+    lib.optionalAttrs (builtins.pathExists dir) (
+      lib.mapAttrs' (n: _: lib.nameValuePair (lib.removeSuffix ".nix" n) (dir + "/${n}")) (
+        lib.filterAttrs (n: t: n != "default.nix" && (t == "directory" || lib.hasSuffix ".nix" n)) (
+          builtins.readDir dir
+        )
+      )
+    );
+
+  homeCatalogs = lib.genAttrs [
+    "apps"
+    "programs"
+    "services"
+    "develop"
+  ] (c: fromDir hp.${c});
 in
 {
-
   imports = [
     ./ci.nix
     ./coding.nix
@@ -14,69 +31,19 @@ in
     ./live.nix
   ];
 
-  # Every handler here has the same shape: subkey name -> the matching
-  # `base.paths.<category>.<subkey>` dir, entry name appended as-is.
-  # profiles.nix tries `<that>.nix` then `<that>/` (default.nix), so a
-  # subkey can mix flat files ("atuin") and directories ("fastfetch")
-  # freely without the handler needing to know which is which.
-  profilesImportHandlers = {
-    home = {
-      apps = n: hp.apps + "/${n}";
-      programs = n: hp.programs + "/${n}";
-      services = n: hp.services + "/${n}";
-      develop = n: hp.develop + "/${n}";
-      ides = n: hp.ides + "/${n}";
-    };
+  modules = {
+    home = homeCatalogs;
+    homeRoot = homeCatalogs;
 
-    homeRoot = {
-      apps = n: hp.apps + "/${n}";
-      programs = n: hp.programs + "/${n}";
-      services = n: hp.services + "/${n}";
-      develop = n: hp.develop + "/${n}";
-      ides = n: hp.ides + "/${n}";
-    };
+    nixos = lib.genAttrs [
+      "services"
+      "virtualisation"
+      "apps"
+    ] (c: fromDir np.${c});
 
-    nixos = {
-      services = n: np.services + "/${n}";
-      virtualisation = n: np.virtualisation + "/${n}";
-      apps = n: np.apps + "/${n}";
-      containers = n: np.containers + "/${n}";
-      programs = n: np.programs + "/${n}";
-    };
-
-    nixvim = {
-      languages = n: vp.languages + "/${n}";
-      root = n: vp.root + "/${n}";
-    };
-  };
-
-  modules.sops-os = {
-    home =
-      { lib, ... }:
-      {
-        options.os-sops = {
-          secrets = lib.mkOption {
-            type = lib.types.attrsOf lib.types.raw;
-            default = { };
-            description = "Passthrough to NixOS sops.secrets";
-          };
-          templates = lib.mkOption {
-            type = lib.types.attrsOf lib.types.raw;
-            default = { };
-            description = "Passthrough to NixOS sops.templates";
-          };
-        };
-      };
-
-    nixos =
-      { config, lib, ... }:
-      let
-        users = config.home-manager.users;
-        collect = attr: lib.mkMerge (lib.mapAttrsToList (_: u: u.os-sops.${attr} or { }) users);
-      in
-      {
-        sops.secrets = collect "secrets";
-        sops.templates = collect "templates";
-      };
+    nixvim = lib.genAttrs [
+      "languages"
+      "root"
+    ] (c: fromDir vp.${c});
   };
 }

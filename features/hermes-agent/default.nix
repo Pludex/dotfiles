@@ -20,28 +20,38 @@ in
   };
 
   profiles.hermes-agent = {
-    home = {
-      programs = [
-        "atuin"
-        "bash"
-        "bat"
-        "delta"
-        "direnv"
-        "eza"
-        "fd"
-        "fish"
-        "fzf"
-        "packages"
-        "ripgrep"
-        "starship"
-        "zoxide"
-      ];
-      extraModules = [
-        ./backend
-        ./tools.nix
-      ];
+    use = {
+      home = {
+        programs = [
+          "atuin"
+          "bash"
+          "bat"
+          "delta"
+          "direnv"
+          "eza"
+          "fd"
+          "fish"
+          "fzf"
+          "ripgrep"
+          "starship"
+          "zoxide"
+        ];
+
+        packages = [
+          "desktop"
+          "nix-dev"
+          "utils"
+        ];
+      };
+
+      nixos = { };
+
     };
-    nixos = { };
+
+    extra.home = [
+      ./backend
+      ./tools.nix
+    ];
   };
 
   nixos.hermes-agent = {

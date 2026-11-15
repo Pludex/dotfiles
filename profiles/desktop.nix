@@ -1,105 +1,88 @@
-{ base, ... }:
 {
   profiles.desktop = {
-    home = {
-      apps = [
-        "bitwarden"
-        "discord"
-        "obsidian"
-        "sklauncher"
-        "soundcloud"
-        "spotify"
-        # "steam"
-        "vivaldi"
-        "wps"
-        "zalo"
-      ];
+    use = {
+      home = {
+        apps = [
+          "bitwarden"
+          "discord"
+          "obsidian"
+          "sklauncher"
+          "soundcloud"
+          "spotify"
+          "vivaldi"
+          "wps"
+          "zalo"
+        ];
 
-      programs = [
-        "fastfetch"
-        # "firefox"
-        # "floorp"
-        "nushell"
-        "quiz-bot"
-        "statix"
-        "warp"
-        "wezterm"
-        "zsh"
+        programs = [
+          "fastfetch"
+          "nushell"
+          "quiz-bot"
+          "statix"
+          "warp"
+          "wezterm"
+          "zsh"
 
-        "atuin"
-        "bash"
-        "bat"
-        "btop"
-        "carapace"
-        "cava"
-        # "claude-code"
-        # "claude-desktop"
-        "delta"
-        "direnv"
-        "emacs"
-        "eza"
-        "fd"
-        "fish"
-        "fzf"
-        "gh"
-        "ghostty"
-        "kitty"
-        "lazygit"
-        "mpv"
-        "nh"
-        "nix-index"
-        "nix-your-shell"
-        "nixvim"
-        "packages"
-        "ripgrep"
-        "starship"
-        # "sunix"
-        "superfile"
-        # "tirith"
-        "yazi"
-        "zoxide"
-      ];
+          "atuin"
+          "bash"
+          "bat"
+          "btop"
+          "carapace"
+          "cava"
+          "delta"
+          "direnv"
+          "emacs"
+          "eza"
+          "fd"
+          "fish"
+          "fzf"
+          "gh"
+          "ghostty"
+          "kitty"
+          "lazygit"
+          "mpv"
+          "nh"
+          "nix-index"
+          "nix-your-shell"
+          "nixvim"
+          "ripgrep"
+          "starship"
+          "superfile"
+          "yazi"
+          "zoxide"
+          "vscode"
+        ];
 
-      services = [
-        "audio-manager"
-        # "espanso"
-      ];
+        services = [
+          "audio-manager"
+        ];
 
-      develop = [
-        "dotnet"
-      ];
+        develop = [
+          "dotnet"
+        ];
 
-      ides = [
-        "vscode"
-        # "rider"
-      ];
+        packages = [
+          "desktop"
+          "nix-dev"
+          "utils"
+        ];
+      };
 
-      extraModules = [
-      ];
-    };
+      nixos = {
+        services = [
+          "envfs"
+          "ngrok"
+          "vaultwarden"
+        ];
 
-    nixos = {
-      services = [
-        # "caddy"
-        "envfs"
-        # "flatpak"
-        # "nginx"
-        "ngrok"
-        "vaultwarden"
-      ];
+        virtualisation = [
+          "podman"
+        ];
 
-      virtualisation = [
-        # "core/libvirt"
-        "core/podman"
-        # "win10"
-      ];
-
-      extraModules = [
-      ];
-
-      apps = [
-        "steam"
-      ];
+        apps = [
+          "steam"
+        ];
+      };
     };
 
     features = [

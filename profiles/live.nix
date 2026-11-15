@@ -1,27 +1,15 @@
 {
-  profiles.live = {
+  profiles.live.use = {
     home = {
       apps = [
-        # "bitwarden"
-        # "claude-desktop"
-        # "discord"
-        # "obsidian"
-        # "sklauncher"
         "spotify"
-        # "steam"
         "vivaldi"
-        # "wps"
       ];
 
       programs = [
-        # "emacs"
         "fastfetch"
-        # "firefox"
-        # "floorp"
         "nushell"
         "statix"
-        # "wezterm"
-        # "zsh"
 
         "atuin"
         "bash"
@@ -39,44 +27,33 @@
         "git"
         "kitty"
         "lazygit"
-        # "mpv"
         "nh"
-        # "nix-index"
-        # "nix-your-shell"
         "nixvim"
-        "packages"
         "ripgrep"
         "starship"
-        # "sunix"
         "superfile"
-        # "tirith"
         "zoxide"
       ];
 
       services = [
         "audio-manager"
         "clipse"
-        # "espanso"
       ];
 
       develop = [
         # "dotnet"
       ];
 
-      ides = [
-        # "vscode"
-        # "rider"
+      packages = [
+        "desktop"
+        "nix-dev"
+        "utils"
       ];
     };
 
     nixos = {
       services = [
-        # "caddy"
         "envfs"
-        # "flatpak"
-        # "nginx"
-        # "ngrok"
-        # "vaultwarden"
       ];
     };
   };

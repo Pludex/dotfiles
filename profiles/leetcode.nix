@@ -1,5 +1,5 @@
 {
-  profiles.leetcode = {
+  profiles.leetcode.use = {
     nixvim = {
       languages = [
         "cs"
