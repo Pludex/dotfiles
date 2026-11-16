@@ -34,7 +34,7 @@
     };
 
     ci = {
-      profile = "ci";
+      profile = "desktop";
       desktop = "tty";
       host = "ci-runner";
     };
