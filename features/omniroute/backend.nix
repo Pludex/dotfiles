@@ -14,13 +14,26 @@ let
   app = base.app "omniroute";
   inherit (app) container;
 
+  # Chromium ships under /home/node, which the container user cannot read
+  overlay = pkgs.writeText "omniroute-overlay.Containerfile" ''
+    FROM ${container.image.repo}:src-${srcId}
+    USER root
+    RUN mv /home/node/.cache/ms-playwright /opt/ms-playwright \
+     && chmod -R a+rX /opt/ms-playwright
+    ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
+    USER node
+  '';
+
   bootstrap = pkgs.writeShellScript "omniroute-bootstrap" ''
     set -euo pipefail
-    tag=${container.image.repo}:src-${srcId}
+    base=${container.image.repo}:src-${srcId}
+    tag=$base-pw
     rebuilt=0
 
     if ! podman image exists "$tag"; then
-      podman build --target runner-web -t "$tag" -f ${src}/Dockerfile ${src}
+      podman image exists "$base" \
+        || podman build --target runner-web -t "$base" -f ${src}/Dockerfile ${src}
+      podman build -t "$tag" -f ${overlay} ${pkgs.emptyDirectory}
       rebuilt=1
     fi
     podman tag "$tag" ${container.image.ref}
@@ -28,8 +41,8 @@ let
     if [ "$rebuilt" = 1 ]; then
       systemctl --user restart --no-block ${container.unit}
       podman images --format '{{.Repository}}:{{.Tag}}' \
-        | grep '^${container.image.repo}:src-' | grep -vx "$tag" \
-        | xargs -r podman rmi || true
+        | grep '^${container.image.repo}:src-' | grep -vx "$tag" | grep -vx "$base" \
+        | sort -r | xargs -r podman rmi || true
     else
       systemctl --user start --no-block ${container.unit}
     fi
@@ -50,7 +63,10 @@ in
       autoStart = false;
       network = "host";
       userNS = "keep-id";
-      extraPodmanArgs = [ "--user=${toString base.uid}:${toString data.gid}" ];
+      extraPodmanArgs = [
+        "--user=${toString base.uid}:${toString data.gid}"
+        "--shm-size=1g"
+      ];
       environment = {
         PORT = toString app.port;
         HOSTNAME = app.listenHost;

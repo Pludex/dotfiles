@@ -199,13 +199,12 @@ in
         soul.enable = false;
         apiKeySecret = "api-keys/omniroute/web";
         model = "web";
-        settings = {
-          platform_toolsets.cli = [ ];
-          mcp_servers = {
-            github = lib.mkForce { };
-            omniroute = lib.mkForce { };
-          };
-        };
+        baseUrl = app.promptFilter.url;
+        excludeMcp = [
+          "omniroute"
+          "github"
+        ];
+        settings.platform_toolsets.cli = [ ];
       };
 
       temp = {

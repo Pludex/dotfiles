@@ -27,6 +27,8 @@ let
   effectiveMcp =
     inst: lib.filterAttrs (n: s: s.enable && !(lib.elem n inst.excludeMcp)) (cfg.mcp // inst.mcp);
 
+  baseUrlOf = inst: if inst.baseUrl != null then inst.baseUrl else cfg.omniroute.baseUrl;
+
   mcpToYaml = lib.mapAttrs (
     _: s: { inherit (s) url; } // lib.optionalAttrs (s.headers != { }) { inherit (s) headers; }
   );
@@ -85,10 +87,10 @@ let
         model = {
           provider = "custom:omniroute";
           default = inst.model;
-          base_url = "${cfg.omniroute.baseUrl}/v1";
+          base_url = "${baseUrlOf inst}/v1";
         };
         providers.omniroute = {
-          api = "${cfg.omniroute.baseUrl}/v1";
+          api = "${baseUrlOf inst}/v1";
           api_key = "\${OMNIROUTE_API_KEY}";
           transport = "openai_chat";
           discover_models = true;

@@ -219,6 +219,7 @@
     (pkgs: {
       sPkgs = pkgs.stable;
       stablePkgs = pkgs.stable;
+      inherit (pkgs) myPkgs;
     })
   ];
 }

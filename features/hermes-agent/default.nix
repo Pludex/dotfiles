@@ -45,13 +45,18 @@ in
       };
 
       nixos = { };
-
     };
 
-    extra.home = [
-      ./backend
-      ./tools.nix
-    ];
+    extra = {
+      home = [
+        ./backend
+        ./tools.nix
+      ];
+
+      nixos = [
+        ./prompt-filter/nixos.module.nix
+      ];
+    };
   };
 
   nixos.hermes-agent = {
@@ -60,7 +65,10 @@ in
     desktop = "tty";
   };
 
-  myPkgs.oh-my-hermes.path = ./oh-my-hermes.nix;
+  myPkgs = {
+    oh-my-hermes.path = ./oh-my-hermes.nix;
+    hermes-prompt-filter.path = ./prompt-filter;
+  };
 
   perSystem =
     { inputs', ... }:
@@ -234,6 +242,18 @@ in
             count = 1;
           };
         };
+      };
+
+      # Loopback-only proxy between hermes and omniroute that strips system prompts
+      promptFilter = rec {
+        service = "hermes-prompt-filter";
+        user = "hermes-prompt-filter";
+        host = loopback;
+        port = 8081;
+        upstream = (base.app "omniroute").internalUrl;
+        keepRoles = [ "user" ];
+        # Hermes appends /v1 itself
+        url = "http://${host}:${toString port}";
       };
 
       # Guest NixOS bits

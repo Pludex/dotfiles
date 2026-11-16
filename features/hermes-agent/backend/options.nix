@@ -41,6 +41,11 @@ let
   # Shared by the main instance and every profile
   instanceOptions = {
     model = mkOption { type = types.str; };
+    baseUrl = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "OpenAI-compatible endpoint (without /v1) for this instance; null uses omniroute.baseUrl.";
+    };
     apiKeySecret = mkOption {
       type = types.str;
       description = "sops secret holding the omniroute API key.";
