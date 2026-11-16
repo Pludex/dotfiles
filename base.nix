@@ -29,11 +29,11 @@
       publicKey = "age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0";
       # privateKeyPath = "${config.paths.abs.home}/.config/sops/age/keys.txt";
       privateKeyPath = "${config.paths.abs.keys}/dotfiles.age-key.txt";
-      defaultFile = "${config.paths.data}/main.enc.yaml";
+      defaultFile = "${config.paths.secrets}/main.enc.yaml";
     };
 
     ssh = {
-      pub = builtins.readFile "${config.paths.abs.data}/ssh.pub";
+      pub = builtins.readFile "${config.paths.abs.secrets}/ssh.pub";
       privateKeyPath = "${config.paths.abs.home}/.ssh/id_ed25519";
     };
 
@@ -60,7 +60,7 @@
   paths = {
     # ── Top-level dirs ──────────────────────────────────────
     flake = inputs.self;
-    data = ./data;
+    secrets = ./secrets;
     desktops = ./desktops;
     commonDesktop = ./desktops/common;
     emacs = ./emacs;
@@ -102,7 +102,7 @@
       dotfiles = "${config.paths.abs.workspaces}/dotfiles";
       emacs = "${config.paths.abs.dotfiles}/emacs";
       dotfilesBot = "/workspaces/dotfiles-bot";
-      data = "${config.paths.abs.dotfilesBot}/data";
+      secrets = "${config.paths.abs.dotfilesBot}/secrets";
       keys = "/keys";
     };
   };

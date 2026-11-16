@@ -146,7 +146,7 @@ in
       age = {
         publicKey = "age158va6e0syfx3cm2rwj7un2yu7p8zwqnxdqtedk5tkwk3g7nuxflspzs0em";
         privateKeyPath = "${app.container.keys}/${username}.age-key.txt";
-        defaultFile = "${config.paths.data}/hermes.enc.yaml";
+        defaultFile = "${config.paths.secrets}/hermes.enc.yaml";
         sopsSecret = "age-keys/${username}";
       };
 
