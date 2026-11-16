@@ -143,10 +143,9 @@ in
       home = "/home/${username}";
       data = "/workspaces/hermes";
 
-      age = rec {
+      age = {
         publicKey = "age158va6e0syfx3cm2rwj7un2yu7p8zwqnxdqtedk5tkwk3g7nuxflspzs0em";
-        privateDir = "/private";
-        privateKeyPath = "${privateDir}/${username}.age-key.txt";
+        privateKeyPath = "${app.container.keys}/${username}.age-key.txt";
         defaultFile = "${config.paths.data}/hermes.enc.yaml";
         sopsSecret = "age-keys/${username}";
       };
@@ -165,6 +164,7 @@ in
         appDir = "/app";
         data = "${appDir}/data";
         workspaces = "/workspaces";
+        keys = "/keys";
       };
 
       # Users and id mapping

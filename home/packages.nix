@@ -16,6 +16,7 @@
           jq
           file
           sops
+          grc
         ];
       };
 

@@ -91,7 +91,7 @@ in
           "PATH=/run/current-system/sw/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
         ];
         runAsRoot = ''
-          mkdir -p ${age.privateDir} ${container.workspaces} ${container.data}
+          mkdir -p ${container.keys} ${container.workspaces} ${container.data}
           touch ${age.privateKeyPath}
           chown ${toString app.uid}:${toString coding.gid} -R ${container.workspaces}
           chown ${toString app.uid}:${toString coding.gid} -R ${container.appDir}

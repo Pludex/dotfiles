@@ -28,7 +28,7 @@
     age = {
       publicKey = "age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0";
       # privateKeyPath = "${config.paths.abs.home}/.config/sops/age/keys.txt";
-      privateKeyPath = "${config.paths.abs.dataPrivate}/age.dotfiles.keys.txt";
+      privateKeyPath = "${config.paths.abs.keys}/dotfiles.age-key.txt";
       defaultFile = "${config.paths.data}/main.enc.yaml";
     };
 
@@ -103,7 +103,7 @@
       emacs = "${config.paths.abs.dotfiles}/emacs";
       dotfilesBot = "/workspaces/dotfiles-bot";
       data = "${config.paths.abs.dotfilesBot}/data";
-      dataPrivate = "/private";
+      keys = "/keys";
     };
   };
 
