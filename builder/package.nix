@@ -62,27 +62,22 @@ let
         throw "package.nix: invalid package specification at attribute '${name}'"
     ) tree;
 
-  # Collects packages with `ciBuild = true`, keeping the nested shape of `myPkgs`
-  # (e.g. `ciPackages.vimPlugins.treesitter-kanata`). Empty subtrees are dropped.
-  #
-  # Because the result is nested, CI discovery must walk the tree recursively
-  # (checking `type or null == "derivation"` at each leaf) and build each leaf with
-  # `nix build .#ciPackages.<system>.<a>.<b>...`.
+  # Collects packages with `ciBuild = true` into a flat attrset whose keys are the
+  # attribute path joined with "-" (e.g. `myPkgs-vimPlugins-treesitter-kanata`).
+  # Since the result is flat, CI only needs `attrNames` to discover packages.
   collectCiPackages =
-    tree: builtTree:
+    prefix: tree: builtTree:
     lib.foldl' lib.mergeAttrs { } (
       lib.mapAttrsToList (
         name: node:
         let
           builtNode = builtTree.${name} or null;
+          path = prefix ++ [ name ];
         in
         if node ? path then
-          if node.ciBuild && builtNode != null then { "${name}" = builtNode; } else { }
+          if node.ciBuild && builtNode != null then { ${lib.concatStringsSep "-" path} = builtNode; } else { }
         else if builtins.isAttrs node && builtins.isAttrs builtNode then
-          let
-            sub = collectCiPackages node builtNode;
-          in
-          if sub == { } then { } else { "${name}" = sub; }
+          collectCiPackages path node builtNode
         else
           { }
       ) tree
@@ -96,14 +91,14 @@ in
     (flake-parts-lib.mkTransposedPerSystemModule {
       name = "ciPackages";
       option = mkOption {
-        type = config.libx.types.tree;
+        type = types.attrsOf types.package;
         default = { };
         description = ''
           Packages registered by any module to be built by CI for this
           system and pushed to Cachix. Distinct from `packages`: an explicit,
           opt-in registry, so a derivation can be built by CI without being
-          published as a `packages.<name>` output. Nested the same way as
-          `myPkgs`.
+          published as a `packages.<name>` output. Kept flat: every key is a
+          single attribute name pointing at a derivation.
         '';
       };
       file = ./package.nix;
@@ -134,7 +129,7 @@ in
       {
         legacyPackages = base.pkgs;
         packages = base.myPkgs;
-        ciPackages.myPkgs = collectCiPackages config.myPkgs base.myPkgs;
+        ciPackages = collectCiPackages [ "myPkgs" ] config.myPkgs base.myPkgs;
       };
 
     # Kept as a plain named attribute rather than `flake.__functor`: a `__functor`

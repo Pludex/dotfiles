@@ -85,7 +85,13 @@ in
     in
     {
       inputPackages = { inherit hermes; };
-      ciPackages = { inherit hermes; };
+
+      # Flat: only what the CI bot should build
+      ciPackages = {
+        hermes-full = hermesFull;
+        hermes-desktop = hermesFull.hermesDesktop;
+        hermes-tui = hermesFull.hermesTui;
+      };
     };
 
   base.pure.apps.hermes-agent =

@@ -2,6 +2,9 @@ name: build packages
 on:
   pull_request:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   build-and-cache:
@@ -31,43 +34,19 @@ jobs:
           SYSTEM=$(nix eval --raw --impure --expr 'builtins.currentSystem')
           echo "Current runner system: $SYSTEM"
 
-          # Walk ciPackages recursively and return each derivation's attr path
-          # as a list of components. A derivation is itself an attrset, so it
-          # is excluded from recursion.
-          FLATTEN='
-            let
-              flatten = prefix: attrs:
-                builtins.concatLists (
-                  builtins.attrValues (
-                    builtins.mapAttrs (
-                      name: value:
-                        let
-                          path = prefix ++ [ name ];
-                          isDrv = builtins.isAttrs value && (value.type or null) == "derivation";
-                        in
-                        if builtins.isAttrs value && !isDrv then
-                          flatten path value
-                        else
-                          [ path ]
-                    ) attrs
-                  )
-                );
-            in
-            attrs: flatten [ ] attrs
-          '
+          # ciPackages is a flat attrset of derivations, so attrNames is enough
+          mapfile -t NAMES < <(nix eval --json ".#ciPackages.$SYSTEM" --apply builtins.attrNames | jq -r '.[]')
 
-          PACKAGES_JSON=$(nix eval --json ".#ciPackages.$SYSTEM" --apply "$FLATTEN")
-
-          if [ "$PACKAGES_JSON" = "[]" ]; then
+          if [ "${#NAMES[@]}" -eq 0 ]; then
             echo "No packages found in 'ciPackages.$SYSTEM'."
             exit 0
           fi
 
-          echo "Packages to build: $PACKAGES_JSON"
+          echo "Packages to build: ${NAMES[*]}"
 
-          # Each path component is JSON-quoted, e.g. "Build & Push".foo
-          while IFS= read -r pkg; do
-            echo "::group::Building .#ciPackages.$SYSTEM.$pkg"
-            nix build ".#ciPackages.$SYSTEM.$pkg" --print-build-logs --accept-flake-config </dev/null
-            echo "::endgroup::"
-          done < <(echo "$PACKAGES_JSON" | jq -r '.[] | map(@json) | join(".")')
+          TARGETS=()
+          for name in "${NAMES[@]}"; do
+            TARGETS+=(".#ciPackages.$SYSTEM.\"$name\"")
+          done
+
+          nix build "${TARGETS[@]}" --print-build-logs --accept-flake-config --keep-going --no-link
