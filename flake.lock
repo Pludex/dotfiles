@@ -1250,11 +1250,11 @@
     "lobehub": {
       "flake": false,
       "locked": {
-        "lastModified": 1794901580,
-        "narHash": "sha256-B917IQP4yTzd+Fw1tw6kq9L1GZT07a1kcW+fgaqk+hc=",
+        "lastModified": 1794904610,
+        "narHash": "sha256-LOjmqc5VaxNR2nNCmEQ+kx9vZ3lpsTc9MfTsJabsNuA=",
         "owner": "lobehub",
         "repo": "lobehub",
-        "rev": "995c0f1c0898edb428169ab5d16d9cd84c198007",
+        "rev": "cb0aaadad0df4e9c3b4c13c7e1f6bf3488d2985d",
         "type": "github"
       },
       "original": {
