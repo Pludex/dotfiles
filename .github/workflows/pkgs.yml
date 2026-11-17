@@ -29,24 +29,28 @@ jobs:
           name: pludex
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
-      - name: Build all packages
+      - name: Build packages missing from cache
         run: |
           SYSTEM=$(nix eval --raw --impure --expr 'builtins.currentSystem')
-          echo "Current runner system: $SYSTEM"
 
-          # ciPackages is a flat attrset of derivations, so attrNames is enough
           mapfile -t NAMES < <(nix eval --json ".#ciPackages.$SYSTEM" --apply builtins.attrNames | jq -r '.[]')
-
-          if [ "${#NAMES[@]}" -eq 0 ]; then
-            echo "No packages found in 'ciPackages.$SYSTEM'."
-            exit 0
-          fi
-
-          echo "Packages to build: ${NAMES[*]}"
 
           TARGETS=()
           for name in "${NAMES[@]}"; do
-            TARGETS+=(".#ciPackages.$SYSTEM.\"$name\"")
+            attr=".#ciPackages.$SYSTEM.\"$name\""
+            out=$(nix eval --raw "$attr.outPath")
+            # Only asks the binary cache for narinfo, downloads nothing
+            if nix path-info --store https://pludex.cachix.org "$out" >/dev/null 2>&1; then
+              echo "cached, skip: $name"
+            else
+              echo "needs build: $name"
+              TARGETS+=("$attr")
+            fi
           done
+
+          if [ "${#TARGETS[@]}" -eq 0 ]; then
+            echo "Everything is already in cache."
+            exit 0
+          fi
 
           nix build "${TARGETS[@]}" --print-build-logs --accept-flake-config --keep-going --no-link
