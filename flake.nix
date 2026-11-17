@@ -237,7 +237,7 @@
     };
 
     hermes-agent = {
-      url = "github:NousResearch/hermes-agent";
+      url = "github:NousResearch/hermes-agent/pull/152542/head";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
@@ -248,7 +248,7 @@
     };
 
     oh-my-hermes = {
-      url = "github:rlaope/oh-my-hermes";
+      url = "github:rlaope/oh-my-hermes/v4.0.8";
       flake = false;
     };
 
