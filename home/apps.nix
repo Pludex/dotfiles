@@ -1,3 +1,18 @@
+{ inputs, ... }:
+let
+  zaloPkg =
+    pkgs: inputs:
+    inputs.zalo-for-linux.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
+      dwarfs = pkgs.dwarfs.overrideAttrs {
+        checkPhase = ''
+          runHook preCheck
+          ctest -j$NIX_BUILD_CORES -E 'dwarfsextract_format_test\.basic/\((pwb|raw|xar), (false|true)\)'
+          runHook postCheck
+        '';
+      };
+    };
+
+in
 {
   modules.home.apps = {
     bitwarden = { pkgs, ... }: {
@@ -83,16 +98,12 @@
 
       programs.zalo = {
         enable = true;
-        package = inputs.zalo-for-linux.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
-          dwarfs = pkgs.dwarfs.overrideAttrs {
-            checkPhase = ''
-              runHook preCheck
-              ctest -j$NIX_BUILD_CORES -E 'dwarfsextract_format_test\.basic/\((pwb|raw|xar), (false|true)\)'
-              runHook postCheck
-            '';
-          };
-        };
+        package = zaloPkg pkgs inputs;
       };
     };
+  };
+
+  perSystem = { pkgs, ... }: {
+    ciPackages.zalo = zaloPkg pkgs inputs;
   };
 }
