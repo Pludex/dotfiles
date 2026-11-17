@@ -48,7 +48,7 @@
       };
 
       ciPackages = {
-        inherit (config.packageOfInputs) waybar walker;
+        inherit (config.inputPackages) waybar walker;
       };
     };
 }
