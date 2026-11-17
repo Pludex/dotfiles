@@ -1,11 +1,7 @@
 name: build packages
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - "data/**"
   pull_request:
+  workflow_dispatch:
 
 jobs:
   build-and-cache:
@@ -35,11 +31,9 @@ jobs:
           SYSTEM=$(nix eval --raw --impure --expr 'builtins.currentSystem')
           echo "Current runner system: $SYSTEM"
 
-          # ciPackages can nest arbitrarily deep (plain attrsets used as
-          # grouping/labels, e.g. "Build & Push ..." = { foo = pkg; bar.baz = pkg; }).
-          # Walk it and collect dot-separated paths to actual derivations only -
-          # a derivation is itself an attrset, so it must be excluded from recursion
-          # or this would try to recurse into its own attrs (meta, outputs, ...).
+          # Walk ciPackages recursively and return each derivation's attr path
+          # as a list of components. A derivation is itself an attrset, so it
+          # is excluded from recursion.
           FLATTEN='
             let
               flatten = prefix: attrs:
@@ -48,7 +42,7 @@ jobs:
                     builtins.mapAttrs (
                       name: value:
                         let
-                          path = if prefix == "" then name else "${prefix}.${name}";
+                          path = prefix ++ [ name ];
                           isDrv = builtins.isAttrs value && (value.type or null) == "derivation";
                         in
                         if builtins.isAttrs value && !isDrv then
@@ -59,20 +53,21 @@ jobs:
                   )
                 );
             in
-            attrs: flatten "" attrs
+            attrs: flatten [ ] attrs
           '
 
-          PACKAGES_JSON=$(nix eval --json ".#ciPackages.$SYSTEM" --apply "$FLATTEN" 2>/dev/null || echo "[]")
+          PACKAGES_JSON=$(nix eval --json ".#ciPackages.$SYSTEM" --apply "$FLATTEN")
 
-          if [ "$PACKAGES_JSON" = "[]" ] || [ -z "$PACKAGES_JSON" ]; then
+          if [ "$PACKAGES_JSON" = "[]" ]; then
             echo "No packages found in 'ciPackages.$SYSTEM'."
             exit 0
           fi
 
           echo "Packages to build: $PACKAGES_JSON"
 
-          for pkg in $(echo "$PACKAGES_JSON" | jq -r '.[]'); do
+          # Each path component is JSON-quoted, e.g. "Build & Push".foo
+          while IFS= read -r pkg; do
             echo "::group::Building .#ciPackages.$SYSTEM.$pkg"
-            nix build ".#ciPackages.$SYSTEM.$pkg" --print-build-logs --accept-flake-config
+            nix build ".#ciPackages.$SYSTEM.$pkg" --print-build-logs --accept-flake-config </dev/null
             echo "::endgroup::"
-          done
+          done < <(echo "$PACKAGES_JSON" | jq -r '.[] | map(@json) | join(".")')
