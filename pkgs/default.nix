@@ -49,6 +49,7 @@
 
       ciPackages = {
         inherit (config.inputPackages) waybar walker;
+        inherit (inputs'.lanzaboote.packages) lzbt stub;
       };
     };
 }
