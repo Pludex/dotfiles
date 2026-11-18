@@ -16,6 +16,7 @@
     volume-control.path = ./volume-control;
     warp.path = ./warp;
     wps.path = ./wps;
+    omniroute-clients.path = ./omniroute-clients;
 
     icons.path = ./icons.nix;
     openleetcode.path = ./openleetcode.nix;
@@ -30,10 +31,7 @@
     (final: prev: {
       pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
         (pyFinal: _: {
-          tavily-client = pyFinal.callPackage ./tavily { };
-          context7-client = pyFinal.callPackage ./context7 { };
-          firecrawl-client = pyFinal.callPackage ./firecrawl { };
-          web-tools = pyFinal.callPackage ./web-tools { };
+          omniroute-clients = pyFinal.callPackage ./omniroute-clients { };
         })
       ];
     })

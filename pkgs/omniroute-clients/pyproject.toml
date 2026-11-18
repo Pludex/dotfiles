@@ -1,0 +1,22 @@
+[project]
+name = "omniroute-clients"
+version = "0.1.0"
+description = "OmniRoute client tools: context7, tavily, firecrawl, web-tools"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31.0",
+]
+
+[project.scripts]
+context7 = "context7_client.cli:main"
+tavily = "tavily_client.cli:main"
+firecrawl = "firecrawl_client.cli:main"
+web-tools = "web_tools.cli:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
