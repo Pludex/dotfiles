@@ -7,7 +7,7 @@ import sys
 from omniroute_common import (
     api, call, meta_attrs, Parser, add_common, add_paging,
     choice, pick, short_date, cut, shape, csv, normalize_http_url,
-    fail, emit, execute
+    fail, emit, execute, ToolError
 )
 
 TOOL = "tavily"

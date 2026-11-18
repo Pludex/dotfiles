@@ -55,10 +55,7 @@ let
   };
 
   webPkgs = with pkgs.python3Packages; [
-    tavily-client
-    context7-client
-    firecrawl-client
-    web-tools
+    omniroute-clients
   ];
 in
 {

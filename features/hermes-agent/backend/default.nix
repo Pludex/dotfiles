@@ -24,22 +24,15 @@ let
       doInstallCheck = false;
     });
 
-  webNames = [
-    "tavily-client"
-    "context7-client"
-    "firecrawl-client"
-    "web-tools"
-  ];
-
+  # All tools now provided by omniroute-clients package
   hermesPy = pkgs.python3Packages.overrideScope (
-    _: prev: lib.genAttrs webNames (n: forHermes prev.${n})
+    _: prev: {
+      omniroute-clients = forHermes prev.omniroute-clients;
+    }
   );
 
   webPkgs = with hermesPy; [
-    tavily-client
-    context7-client
-    firecrawl-client
-    web-tools
+    omniroute-clients
   ];
 in
 {

@@ -104,49 +104,60 @@
 
       <commands>
         <command name="context7">
-          <use>Library, framework, SDK and Nix/NixOS/Home Manager option docs. Two steps: `search` finds a context7.com URL (or /org/repo id), `fetch` reads it.</use>
+          <use>Library, framework, SDK and Nix/NixOS/Home Manager option docs. Two steps: `search` finds a context7.com URL (or /org/repo id), `fetch` reads it. Both accept multiple items in one call (processed in parallel).</use>
           <cli>
-context7 search "{library or option}" [--limit 5] [--fast]
-context7 fetch {context7-url-or-/org/repo} --topic "{topic}" [--max-chars 6000]
+context7 search "{library}" ["{library B}" ...] [--limit 5] [--max-chars 1500] [--fast]
+context7 fetch {url-or-/org/repo} [{url B} ...] --topic "{topic}" [--max-chars 6000] [--tokens {n}]
           </cli>
           <python>
 from context7_client import search, fetch
-print(search("home-manager services.podman", limit=3))
-print(fetch("/nix-community/home-manager", topic="services.podman", max_chars=12000))
+print(search(["home-manager services.podman", "podman quadlet"], limit=3))
+print(fetch(["/nix-community/home-manager", "/nixos/nixpkgs"], topic="podman", max_chars=6000))
           </python>
-          <note>CLI flags are inferred from the Python signature. Confirm with `context7 --help` before first use.</note>
+          <note>search takes up to 5 queries, fetch takes up to 10 URLs, both run in parallel. --topic and --max-chars apply to every URL in a fetch call. Prefer official docs (/websites/{official-docs}) or the project's own org over third-party mirrors.</note>
         </command>
 
         <command name="web-tools">
-          <use>Default for everything else on the web. `search` (Tavily) returns titles, URLs and snippets; `fetch` (Firecrawl) reads one URL as markdown, including JavaScript pages.</use>
+          <use>Default for everything else on the web. `search` (Tavily backend) returns titles, URLs and snippets; `fetch` (Firecrawl backend) reads URLs as markdown, including JavaScript pages. Both accept multiple items in one call (processed in parallel).</use>
           <cli>
-web-tools search "{query}" [--limit 5] [--topic general|news|finance] [--time-range day|week|month|year] [--include-domains {d1,d2}] [--include-answer basic]
-web-tools fetch {url} [--max-chars 6000] [--wait-for-selector "main"] [--model jina/reader]
+web-tools search "{query}" ["{query B}" ...] [--limit 5] [--topic general|news|finance] [--time-range hour|day|week|month|year] [--include-domains {d1,d2}] [--include-answer basic|advanced] [--fetch-top N]
+web-tools fetch {url} [{url B} ...] [--max-chars 6000] [--total-chars 24000] [--wait-for-selector "{css}"] [--grep "pattern"] [--format markdown|outline]
           </cli>
           <python>
 from web_tools import search, fetch
-print(search("{query}", topic="news", time_range="week", limit=8))
-print(fetch("{url}", max_chars=12000))
+print(search(["{query A}", "{query B}"], topic="news", time_range="week", limit=5))
+print(fetch(["{url A}", "{url B}"], max_chars=6000, total_chars=24000))
           </python>
-          <note>News or recent events: always set --topic news with --time-range. Snippets are not enough: fetch the page before relying on details. truncated="true" means cut: raise --max-chars, do not repeat the call.</note>
+          <note>search takes up to 5 queries, fetch takes up to 10 URLs, both run in parallel. --fetch-top N also fetches the top N results of each search query. fetch auto-retries with jina/reader when Firecrawl fails. News or recent events: always set --topic news with --time-range. Snippets are not enough: fetch the page before relying on details. truncated="true" means cut: raise --max-chars or continue with --offset, do not repeat the call. --total-chars splits budget evenly across URLs (default 24000), so ten URLs get ~2400 chars each; raise it or --max-chars when you need depth.</note>
         </command>
 
         <command name="tavily, firecrawl">
-          <use>Advanced options only: Tavily search depth/answer/raw content; Firecrawl search with --scrape, domain or category filters (github, pdf, research, gov), crawl depth. Run `{cmd} --help` or `{cmd} --help-python` before first use; do not guess flags.</use>
+          <use>Advanced options only when web-tools does not expose them: Tavily search depth/answer/raw content; Firecrawl search with --scrape, domain or category filters (github, pdf, research, gov), crawl depth. Run `{cmd} --help` or `{cmd} --help-python` before first use; do not guess flags.</use>
         </command>
       </commands>
+
+      <multi_item>
+        <rule>Several items, one call. Comparisons, multi-part questions and "each side" research: one query per item in a single search call, then fetch the best URL from each in a single fetch call. Do not combine items into one query, and do not loop one call per item.</rule>
+        <rule>Limits: search max 5 queries, fetch max 10 URLs (both tools). More items: split into batches.</rule>
+        <rule>Options are shared. --limit, --topic, --time-range, domain filters, --max-chars and --topic (context7) apply to every query or URL in the call. Items that need different options go in separate calls.</rule>
+        <rule>Budget. web-tools fetch splits --total-chars evenly across URLs (default 24000), so ten URLs get about 2400 chars each by default. Raise --total-chars or --max-chars, or fetch fewer URLs, when you need depth. context7 fetch has no total cap: --max-chars applies per URL.</rule>
+        <rule>Output is one block per query or URL, in order. A failed item returns a block with kind="error" and code; the other blocks are still valid. Read every block separately.</rule>
+        <rule>Retry only the failed items, through the fallbacks below. Never repeat the whole call.</rule>
+        <rule>truncated="true" applies to one block. Raise --max-chars for that item alone, or continue it with --offset in a separate call.</rule>
+      </multi_item>
 
       <usage>
         <rule>Pick by task: library or Nix option docs, context7. Anything else on the web, web-tools. tavily or firecrawl only for options web-tools does not expose.</rule>
         <rule>Run `{cmd} --help` before first use in a session.</rule>
-        <rule>In Python scripts, import the client libraries instead of shelling out. All raise ToolError with `.code` equal to the exit codes below. Each package has its own ToolError class, so catch `Exception` and read `.code`. `raw=True` returns the parsed JSON dict instead of the XML string.</rule>
+        <rule>In Python scripts, import the client libraries instead of shelling out. Pass a list for multiple items; pass one string for single-item (returns one block, raises ToolError on failure). All raise ToolError with `.code` equal to the exit codes below. ToolError is a tuple of both client exception classes for web-tools; catch `Exception` and read `.code`. `raw=True` returns the parsed JSON dict instead of the XML string.</rule>
       </usage>
 
       <fallbacks>
-        <rule>Fetch fails or is blocked: never the same call twice. Order: `web-tools fetch`, then `tavily fetch`, then `firecrawl fetch --model jina/reader`. For JavaScript pages add `--wait-for-selector "main"` first.</rule>
+        <rule>Fetch fails or is blocked: never the same call twice. Order: `web-tools fetch`, then the same with `--wait-for-selector "main"` (JavaScript pages), then jina/reader (auto-tried by web-tools fetch).</rule>
         <rule>Search fails or returns nothing: broaden terms, drop filters, then `firecrawl search`.</rule>
         <rule>Library docs not found: retry `context7 search` with the official name, then `web-tools search` with --include-domains set to the official docs domain.</rule>
-        <rule>The 3-failures limit spans all routes. If all fail, report the URL and the last error.</rule>
+        <rule>Continue a cut page with --offset N instead of refetching it whole.</rule>
+        <rule>The 3-failures limit spans all routes. A multi-item call where every item fails counts as one failed attempt. If all routes fail, report the URL and the last error.</rule>
       </fallbacks>
 
       <exit_codes>

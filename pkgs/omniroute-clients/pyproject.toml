@@ -9,9 +9,9 @@ dependencies = [
 ]
 
 [project.scripts]
-context7 = "context7_client.cli:main"
-tavily = "tavily_client.cli:main"
-firecrawl = "firecrawl_client.cli:main"
+context7 = "context7_client.client:main"
+tavily = "tavily_client.client:main"
+firecrawl = "firecrawl_client.client:main"
 web-tools = "web_tools.cli:main"
 
 [build-system]

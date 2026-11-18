@@ -7,7 +7,7 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from omniroute_common import (
     api, call, meta_attrs, Parser, add_common, add_paging,
-    choice, pick, short_date, cut, shape, fail, emit, execute
+    choice, pick, short_date, cut, shape, fail, emit, execute, ToolError
 )
 
 TOOL = "context7"
