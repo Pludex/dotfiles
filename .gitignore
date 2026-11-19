@@ -1,3 +1,5 @@
 .direnv/
 .aider*
 !.aider.conf.yml
+**/result/
+**/result
