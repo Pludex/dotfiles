@@ -54,7 +54,7 @@ in
 
     soul = {
       enable = true;
-      base = ../soul/base.md;
+      base = ../soul/BASE.md;
     };
 
     settings = {
@@ -125,7 +125,7 @@ in
       model = "hermes";
       apiKeySecret = "api-keys/omniroute/main";
       secretEnv.API_SERVER_KEY = "api-keys/api-server";
-      soul.focus = builtins.readFile ../soul/focus/default.md;
+      soul.focus = builtins.readFile ../soul/focus/DEFAULT.md;
       discord = {
         tokenSecret = "discord/token";
         homeChannel = "1565701591942561912";
@@ -150,7 +150,7 @@ in
       coding = {
         model = "hermes-coding";
         apiKeySecret = "api-keys/omniroute/coding";
-        soul.focus = builtins.readFile ../soul/focus/coding.md;
+        soul.focus = builtins.readFile ../soul/focus/CODING.md;
         discord = {
           tokenSecret = "discord/coding-token";
           homeChannel = "1565713912106844252";
@@ -168,7 +168,7 @@ in
       study = {
         model = "hermes-study";
         apiKeySecret = "api-keys/omniroute/study";
-        soul.focus = builtins.readFile ../soul/focus/study.md;
+        soul.focus = builtins.readFile ../soul/focus/STUDY.md;
         excludeMcp = [
           "omniroute"
           "github"
