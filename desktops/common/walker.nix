@@ -3,6 +3,7 @@
   config,
   lib,
   base,
+  meta,
   ...
 }:
 let
@@ -161,6 +162,14 @@ in
           background: ${colors.base0D};
         }
       '';
+    })
+
+    # for desktop
+
+    (lib.mkIf (meta.desktop == "hyprland") {
+      programs.hyprland.settings.binds = {
+        "Mod+A".dsp.exec_cmd = "${lib.getExe config.programs.walker.package}";
+      };
     })
   ];
 }
