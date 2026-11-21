@@ -10,12 +10,7 @@ in
       clipse = ./clipse.nix;
       hyprlock = ./hyprlock.nix;
       walker = ./walker.nix;
-
-      wlogout = {
-        programs.wlogout = {
-          enable = true;
-        };
-      };
+      wlogout = ./wlogout.nix;
 
       fuzzel =
         { pkgs, ... }:
