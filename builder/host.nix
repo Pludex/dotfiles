@@ -45,10 +45,10 @@ let
         };
 
         role = mkOption {
-          type = types.enum cfg.roles;
+          type = types.enum (lib.attrNames cfg.roles);
           default = if parent != null then parent.role else throw "hosts.${name}.role is not set";
           example = "server";
-          description = "Role of this host; must be listed in `roles`";
+          description = "Role of this host; must be a key of `roles`";
         };
 
         gpus = mkOption {

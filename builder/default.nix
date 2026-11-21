@@ -11,8 +11,7 @@
           ./host.nix
           ./nixvim.nix
           ./package.nix
-          ./profiles.nix
-          ./role.nix
+          ./registry.nix
 
           ../outputs.nix
         ];

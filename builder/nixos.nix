@@ -20,12 +20,15 @@ let
     in
     {
       options = {
-        desktop = mkStrOption "Desktop name currently in use";
         profile = mkStrOption "Profile name currently in use";
         host = mkStrOption "Host name currently in use";
         name = mkStrOption "Config name currently in use";
+        desktop = lib.mkOption {
+          type = lib.types.enum (lib.attrNames cfg.desktops);
+          description = "Desktop name currently in use";
+        };
         role = lib.mkOption {
-          type = lib.types.enum cfg.roles;
+          type = lib.types.enum (lib.attrNames cfg.roles);
           description = "Role of the host currently in use";
         };
       };
@@ -42,7 +45,8 @@ let
     in
     {
       inherit name;
-      inherit (c) desktop profile;
+      inherit (c) profile;
+      desktop = cfg.builders.desktopOf "nixos.${name}" c;
       host = host.name;
       inherit (host) role;
     }
@@ -76,14 +80,14 @@ let
     let
       inherit (resolve name c) host base meta;
       inherit (base) paths;
+      resolved = cfg.resolve { inherit (meta) profile desktop role; };
     in
     cfg.nixosModules
     ++ cfg.builders.hostModules host "nixos"
-    ++ config.profilesResult.${c.profile}.nixos
+    ++ (resolved.nixos or [ ])
     ++ c.extraModules
     ++ [
       "${paths.modules}/nixos"
-      (import paths.desktops { inherit (c) desktop; }).nixos
       cfg.builders.roleFlagsModule
       configOptions
       (meta // { networking.hostName = lib.mkDefault host.name; })
@@ -135,11 +139,15 @@ in
               description = "Key in hosts.<name> to use, defaults to the name of this configuration";
             };
             profile = mkOption { type = types.str; };
-            desktop = mkOption { type = types.str; };
+            desktop = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "Desktop to use, defaults to the desktop of the profile";
+            };
             withRoot = mkOption {
               type = types.bool;
               default = true;
-              description = "Embed the profile's rootHome modules as home-manager.users.root";
+              description = "Embed the rootHome modules as home-manager.users.root";
             };
             extraModules = mkOption {
               type = types.listOf types.raw;

@@ -30,6 +30,10 @@ let
     let
       host = hostOf c;
       meta = base.configMeta.nixvim.${profile};
+      resolved = cfg.resolve {
+        inherit profile;
+        inherit (meta) role;
+      };
     in
     inputs.nixvim.lib.evalNixvim {
       extraSpecialArgs = {
@@ -40,7 +44,7 @@ let
         cfg.nixvimModules
         ++ c.extraModules
         ++ cfg.builders.hostModules host "nixvim"
-        ++ config.profilesResult.${profile}.nixvim
+        ++ (resolved.nixvim or [ ])
         ++ [
           "${cfg.paths.modules}/nixvim"
           # Overlays are baked into base.pkgs

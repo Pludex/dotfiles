@@ -22,7 +22,7 @@ let
       };
 
       options.desktop = lib.mkOption {
-        type = lib.types.str;
+        type = lib.types.enum (lib.attrNames cfg.desktops);
         description = "Desktop name currently in use";
       };
 
@@ -32,7 +32,7 @@ let
       };
 
       options.role = lib.mkOption {
-        type = lib.types.enum cfg.roles;
+        type = lib.types.enum (lib.attrNames cfg.roles);
         description = "Role of the host currently in use";
       };
 
@@ -44,6 +44,16 @@ let
 
   hostOf = name: c: cfg.builders.host (if c.host == null then name else c.host);
 
+  # An explicit desktop wins, otherwise the profile default
+  desktopOf =
+    name: c:
+    let
+      d = if c.desktop != null then c.desktop else cfg.profiles.${c.profile}.desktop;
+    in
+    lib.throwIf (d == null)
+      "home.${name}: no desktop set, and profile '${c.profile}' has no default desktop"
+      d;
+
   metaOf =
     name: c:
     let
@@ -51,12 +61,17 @@ let
     in
     {
       inherit name;
-      inherit (c) profile desktop;
+      inherit (c) profile;
+      desktop = desktopOf name c;
       host = host.name;
       inherit (host) role;
       standalone = true;
     }
     // cfg.builders.roleFlags host.role;
+
+  resolved = meta: cfg.resolve { inherit (meta) profile desktop role; };
+
+  rootModulesOf = meta: (resolved meta).rootHome or [ ];
 
   # Shared by both modes so they always evaluate the same module list.
   mkModules =
@@ -67,21 +82,20 @@ let
     }:
     cfg.homeModules
     ++ extraModules
-    ++ cfg.profilesResult.${meta.profile}.home
+    ++ (resolved meta).home or [ ]
     ++ cfg.builders.hostModules host "home"
     ++ [
       "${cfg.paths.modules}/home"
-      (import cfg.paths.desktops { inherit (meta) desktop; }).home
       cfg.builders.roleFlagsModule
       configOptions
       meta
     ];
 
-  # Root only gets the profile's rootHome modules, never the per-user home or desktop.
+  # Root only gets the rootHome modules, never the per-user home or desktop.
   mkRootModules =
     { meta }:
     cfg.homeModules
-    ++ (cfg.profilesResult.${meta.profile}.rootHome or [ ])
+    ++ rootModulesOf meta
     ++ [
       cfg.builders.roleFlagsModule
       configOptions
@@ -128,8 +142,7 @@ let
         standalone = false;
       };
       # withRoot is checked first so hosts that disable root never touch rootHome
-      hasRoot =
-        withRoot && username != "root" && (cfg.profilesResult.${meta.profile}.rootHome or [ ]) != [ ];
+      hasRoot = withRoot && username != "root" && rootModulesOf homeMeta != [ ];
     in
     {
       # pkgs (with all overlays) comes from the NixOS config, which is
@@ -173,7 +186,11 @@ in
               description = "Key in hosts.<name> to use, defaults to the name of this configuration";
             };
             profile = mkOption { type = types.str; };
-            desktop = mkOption { type = types.str; };
+            desktop = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "Desktop to use, defaults to the desktop of the profile";
+            };
             extraModules = mkOption {
               type = types.listOf types.raw;
               default = [ ];
