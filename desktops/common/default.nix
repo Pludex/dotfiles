@@ -1,30 +1,36 @@
 { lib, ... }:
 let
   program = name: { modules.home.programs = [ name ]; };
+  service = name: { modules.home.service = [ name ]; };
 in
 {
-  modules.home.programs = {
-    swaync = ./swaync;
-    waybar = ./waybar;
-    clipse = ./clipse.nix;
-    hyprlock = ./hyprlock.nix;
-    walker = ./walker.nix;
+  modules = {
+    home.programs = {
+      waybar = ./waybar;
+      clipse = ./clipse.nix;
+      hyprlock = ./hyprlock.nix;
+      walker = ./walker.nix;
 
-    wlogout = {
-      programs.wlogout = {
-        enable = true;
+      wlogout = {
+        programs.wlogout = {
+          enable = true;
+        };
       };
+
+      fuzzel =
+        { pkgs, ... }:
+        {
+          programs.fuzzel = {
+            enable = true;
+            package = pkgs.fuzzel;
+          };
+          stylix.targets.fuzzel.enable = true;
+        };
     };
 
-    fuzzel =
-      { pkgs, ... }:
-      {
-        programs.fuzzel = {
-          enable = true;
-          package = pkgs.fuzzel;
-        };
-        stylix.targets.fuzzel.enable = true;
-      };
+    nixos.modules = {
+      tuigreet = ./tuigreet.nix;
+    };
   };
 
   tools.desktop = {
@@ -34,5 +40,6 @@ in
     session-management.wlogout = program "wlogout";
     lock-screen.hyprlock = program "hyprlock";
     status-bar.waybar = program "waybar";
+    display-manager = service "tuigreet";
   };
 }
