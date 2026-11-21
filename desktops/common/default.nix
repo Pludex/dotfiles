@@ -33,5 +33,6 @@ in
     clipboard.clipse = program "clipse";
     session-management.wlogout = program "wlogout";
     lock-screen.hyprlock = program "hyprlock";
+    status-bar.waybar = program "waybar";
   };
 }
