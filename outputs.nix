@@ -61,6 +61,7 @@
     nur.overlays.default
     obsidian-extensions.overlays.default
     emacs-overlays.overlays.default
+    llm-agent.overlays.shared-nixpkgs
   ];
 
   nixpkgs.config = {
@@ -138,7 +139,6 @@
 
     ./home/apps.nix
     ./home/services
-    ./home/packages.nix
     ./home/develop.nix
     ./home/packages.nix
 

@@ -33,7 +33,7 @@
     };
 
     ssh = {
-      pub = builtins.readFile "${config.paths.abs.secrets}/ssh.pub";
+      pub = builtins.readFile "${config.paths.secrets}/ssh.pub";
       privateKeyPath = "${config.paths.abs.home}/.ssh/id_ed25519";
     };
 

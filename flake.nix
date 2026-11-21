@@ -261,5 +261,10 @@
       url = "github:danielealbano/android-remote-control-mcp";
       flake = false;
     };
+
+    llm-agent = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 }
