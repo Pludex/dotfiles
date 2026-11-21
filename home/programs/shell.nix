@@ -81,7 +81,7 @@
 
     bash = ./bash.nix;
     fish = ./fish.nix;
+    zsh = ./zsh.nix;
     nushell = ./nushell;
-    zsh = ./zsh;
   };
 }

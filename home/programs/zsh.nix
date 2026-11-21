@@ -35,8 +35,26 @@
 
     dotDir = "${config.xdg.configHome}/zsh";
 
-    oh-my-zsh = import ./oh-my-zsh;
-    initContent = builtins.readFile ./init.zsh;
+    oh-my-zsh = {
+      enable = true;
+      plugins = [
+        "git"
+        "sudo"
+        "dotnet"
+        "node"
+        "npm"
+        "zoxide"
+      ];
+    };
+
+    initContent = ''
+      bindkey '^H' backward-kill-word
+      bindkey '^[[1;5D' backward-word
+      bindkey '^[[1;5C' forward-word
+
+      bindkey '\t' autosuggest-accept
+      bindkey '^@' _atuin_search_widget
+    '';
   };
 
   programs.zoxide.enableZshIntegration = true;
