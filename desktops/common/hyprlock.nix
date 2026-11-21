@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   c = config.lib.stylix.colors;
   font = config.stylix.fonts.monospace.name;
@@ -7,6 +12,11 @@ let
 
   playerctl = "${pkgs.playerctl}/bin/playerctl";
   curl = "${pkgs.curl}/bin/curl";
+  pkill = "${pkgs.procps}/bin/pkill";
+  hyprlock = "${config.programs.hyprlock.package}/bin/hyprlock";
+
+  # Close wlogout first, otherwise it stays open behind the lock screen
+  lock = "${pkill} -x wlogout; sleep 0.3; ${hyprlock}";
 
   label =
     extra:
@@ -18,8 +28,17 @@ let
     }
     // extra;
 in
-{
+  {
   stylix.targets.hyprlock.enable = false;
+
+  programs.wlogout.layout = lib.mkBefore [
+    {
+      label = "lock";
+      action = lock;
+      text = "Lock";
+      keybind = "l";
+    }
+  ];
 
   programs.hyprlock = {
     enable = true;
