@@ -1,12 +1,13 @@
 { lib, ... }:
 let
   program = name: { modules.home.programs = [ name ]; };
-  service = name: { modules.home.service = [ name ]; };
+  nixos-service = name: { modules.nixos.services = [ name ]; };
 in
 {
   modules = {
     home.programs = {
       waybar = ./waybar;
+      swaync = ./swaync.nix;
       clipse = ./clipse.nix;
       hyprlock = ./hyprlock.nix;
       walker = ./walker.nix;
@@ -23,7 +24,7 @@ in
         };
     };
 
-    nixos.modules = {
+    nixos.services = {
       tuigreet = ./tuigreet.nix;
     };
   };
@@ -32,9 +33,9 @@ in
     notification.swaync = program "swaync";
     launcher = lib.genAttrs [ "walker" "fuzzel" ] program;
     clipboard.clipse = program "clipse";
-    session-management.wlogout = program "wlogout";
+    logout.wlogout = program "wlogout";
     lock-screen.hyprlock = program "hyprlock";
     status-bar.waybar = program "waybar";
-    display-manager = service "tuigreet";
+    display-manager.tuigreet = nixos-service "tuigreet";
   };
 }
