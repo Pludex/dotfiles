@@ -134,7 +134,7 @@
     ./hosts
     ./features
     ./lib
-    ./base.nix
+    ./settings.nix
     ./devshells.nix
 
     ./home/apps.nix
