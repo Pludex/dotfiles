@@ -1,7 +1,7 @@
 {
   description = "Pludex dotfiles";
 
-  outputs = inputs: ((import ./builder { inherit inputs; }).mkDotfiles { });
+  outputs = inputs: ((import ./flake { inherit inputs; }).mkDotfiles { });
   inputs = {
     # core
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
