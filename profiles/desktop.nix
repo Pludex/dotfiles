@@ -1,6 +1,6 @@
 {
   profiles.desktop = {
-    use = {
+    modules = {
       home = {
         apps = [
           "bitwarden"

@@ -1,5 +1,5 @@
 {
-  profiles.live.use = {
+  profiles.live.modules = {
     home = {
       apps = [
         "spotify"

@@ -1,5 +1,5 @@
 {
-  profiles.coding.use.nixvim = {
+  profiles.coding.modules.nixvim = {
     languages = [
       # "bazel"
       "c-cpp"

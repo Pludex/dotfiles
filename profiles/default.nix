@@ -33,7 +33,7 @@ in
 
   modules = {
     home = homeCatalogs;
-    homeRoot = homeCatalogs;
+    rootHome = homeCatalogs;
 
     nixos = lib.genAttrs [
       "services"
