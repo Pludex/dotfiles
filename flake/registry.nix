@@ -104,9 +104,7 @@ let
   # ── tools: defined as <domain>.<slot>.<backend>, chosen as <slot> = <backend>
   # slot -> [ domains defining it ]; a slot must belong to exactly one domain
   slotOwners = lib.zipAttrsWith (_: lib.id) (
-    lib.mapAttrsToList (_: slots: lib.mapAttrs (_: _: null) slots) cfg.tools
-    |> lib.imap0 (_: x: x)
-    |> (xs: lib.zipListsWith (d: s: lib.mapAttrs (_: _: d) s) (lib.attrNames cfg.tools) xs)
+    lib.mapAttrsToList (domain: slots: lib.mapAttrs (_: _: domain) slots) cfg.tools
   );
 
   toFlat = lib.mapAttrs (slot: backend: { inherit slot backend; });
@@ -157,7 +155,31 @@ let
       in
       resolveModules def.modules;
 
-  # ── Resolution ───────────────────────────────────────────────────────
+  # ── Meta and resolution ──────────────────────────────────────────────
+  # host is the host record or null; with null, role and host are null
+  mkMeta =
+    {
+      name,
+      profile,
+      host ? null,
+      extra ? { },
+    }:
+    let
+      profileCfg =
+        cfg.profiles.${profile} or (throw ''
+          registry: ${name}: unknown profile "${profile}".
+          Defined profiles: ${names cfg.profiles}
+        '');
+      role = if host == null then null else host.role;
+    in
+    {
+      inherit name profile role;
+      inherit (profileCfg) desktop;
+      host = if host == null then null else host.name;
+    }
+    // roleFlags role
+    // extra;
+
   featuresOf =
     what: entity:
     map (
@@ -170,25 +192,18 @@ let
 
   # Layer order, later wins for tools: features, role, desktop, profile
   resolve =
-    {
-      profile,
-      desktop ? null,
-      role ? null,
-    }:
+    meta:
     let
-      profileCfg =
-        cfg.profiles.${profile} or (throw ''
-          registry: unknown profile "${profile}".
-          Defined profiles: ${names cfg.profiles}
+      inherit (meta) profile role;
+      profileCfg = cfg.profiles.${profile};
+      desktopName = meta.desktop;
+      desktopEntry =
+        cfg.desktops.${desktopName} or (throw ''
+          registry: unknown desktop "${desktopName}".
+          Defined desktops: ${names cfg.desktops}
         '');
-      desktopName = if desktop != null then desktop else profileCfg.desktop;
       desktopCfg = lib.optional (desktopName != null) (
-        guard "desktop '${desktopName}'" cfg.desktops.${desktopName}.requires role (
-          cfg.desktops.${desktopName} or (throw ''
-            registry: unknown desktop "${desktopName}".
-            Defined desktops: ${names cfg.desktops}
-          '')
-        )
+        guard "desktop '${desktopName}'" desktopEntry.requires role desktopEntry
       );
       roleCfg = lib.optional (role != null) cfg.roles.${checkRole role};
       profileChecked = guard "profile '${profile}'" profileCfg.requires role profileCfg;
@@ -304,6 +319,15 @@ let
       ) cfg.roles
     ))
 
+    (lib.concatLists (
+      lib.mapAttrsToList (
+        n: p:
+        lib.optional (
+          p.desktop != null && !(cfg.desktops ? ${p.desktop})
+        ) "profiles.${n}: unknown desktop '${p.desktop}'"
+      ) cfg.profiles
+    ))
+
     (map (g: "roleGroups: '${g}' is not a valid flag name") (
       lib.filter (g: lib.match "[a-z][a-zA-Z0-9]*" g == null) cfg.roleGroups
     ))
@@ -336,7 +360,7 @@ let
   toolsChoiceOption = mkOption {
     type = types.attrsOf types.str;
     default = { };
-    example = lib.literalExpression ''{ launcher = "walker"; dm = "none"; }'';
+    example = lib.literalExpression ''{ launcher = "walker"; display-manager = "none"; }'';
     description = ''
       Exactly one backend per slot, as tools.<slot> = "<backend>". The domain is
       looked up from the slot, so slot names are unique across domains.
@@ -360,7 +384,7 @@ let
       };
     };
     default = { };
-    description = "Role compatibility, checked when a role is given to resolve";
+    description = "Role compatibility, checked when the meta has a role";
   };
 
   selectionOptions = {
@@ -404,7 +428,7 @@ in
       example = lib.literalExpression ''
         {
           desktop.launcher.walker.modules.home.programs = [ "walker" ];
-          desktop.lockscreen.hyprlock.modules = {
+          desktop.lock-screen.hyprlock.modules = {
             home.programs = [ "hyprlock" ];
             nixos.extra = [ ./hyprlock.pam.nix ];
           };
@@ -446,7 +470,7 @@ in
       );
       default = { };
       description = ''
-        Mutually exclusive: each configuration picks exactly one.
+        Mutually exclusive: each profile picks at most one.
         Its `tools` provide defaults that the profile can override.
       '';
     };
@@ -498,7 +522,7 @@ in
             desktop = mkOption {
               type = types.nullOr types.str;
               default = null;
-              description = "Default desktop; a configuration may override it";
+              description = "Desktop of the profile, null when headless";
             };
           };
         }
@@ -511,15 +535,15 @@ in
       type = types.raw;
       readOnly = true;
       description = ''
-        resolve { profile, desktop ? null, role ? null } -> { <framework> = [ module ]; }
-        Ready for `imports`.
+        resolve meta -> { <framework> = [ module ]; }
+        The meta comes from builders.mkMeta. Ready for `imports`.
       '';
     };
 
     profilesResult = mkOption {
       type = types.attrsOf (types.attrsOf (types.listOf types.raw));
       readOnly = true;
-      description = "Profiles resolved with their default desktop and no role, for older callers.";
+      description = "Profiles resolved without a host (no role), for older callers.";
     };
 
     registryErrors = mkOption {
@@ -532,7 +556,13 @@ in
   config = {
     inherit resolve registryErrors;
 
-    profilesResult = lib.mapAttrs (profile: _: resolve { inherit profile; }) cfg.profiles;
+    profilesResult = lib.mapAttrs (
+      profile: _:
+      resolve (mkMeta {
+        name = profile;
+        inherit profile;
+      })
+    ) cfg.profiles;
 
     base.pure = {
       roles = roleNames;
@@ -542,6 +572,6 @@ in
     }
     // groupFns;
 
-    builders = { inherit roleFlags roleFlagsModule; };
+    builders = { inherit roleFlags roleFlagsModule mkMeta; };
   };
 }

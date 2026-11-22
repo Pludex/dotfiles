@@ -11,35 +11,24 @@ let
 
   hostOf = c: if c.host == null then null else cfg.builders.host c.host;
 
-  # host and role are null for host-independent profiles, all role flags are then false
+  # host is null for host-independent profiles, role is then null and all role flags false
   metaOf =
     profile: c:
-    let
-      host = hostOf c;
-      role = if host == null then null else host.role;
-    in
-    {
+    cfg.builders.mkMeta {
       name = profile;
-      inherit profile role;
-      host = if host == null then null else host.name;
-    }
-    // cfg.builders.roleFlags role;
+      inherit profile;
+      host = hostOf c;
+    };
 
   mkConfig =
     base: profile: c:
     let
       host = hostOf c;
       meta = base.configMeta.nixvim.${profile};
-      resolved = cfg.resolve {
-        inherit profile;
-        inherit (meta) role;
-      };
+      resolved = cfg.resolve meta;
     in
     inputs.nixvim.lib.evalNixvim {
-      extraSpecialArgs = {
-        inherit base host meta;
-      }
-      // base.extraSpecialArgs;
+      extraSpecialArgs = base.extraSpecialArgs // { inherit base host meta; };
       modules =
         cfg.nixvimModules
         ++ c.extraModules

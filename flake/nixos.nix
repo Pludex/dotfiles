@@ -24,8 +24,8 @@ let
         host = mkStrOption "Host name currently in use";
         name = mkStrOption "Config name currently in use";
         desktop = lib.mkOption {
-          type = lib.types.enum (lib.attrNames cfg.desktops);
-          description = "Desktop name currently in use";
+          type = lib.types.nullOr (lib.types.enum (lib.attrNames cfg.desktops));
+          description = "Desktop name currently in use, null when headless";
         };
         role = lib.mkOption {
           type = lib.types.enum (lib.attrNames cfg.roles);
@@ -40,19 +40,13 @@ let
 
   metaOf =
     name: c:
-    let
-      host = hostOf name c;
-    in
-    {
+    cfg.builders.mkMeta {
       inherit name;
       inherit (c) profile;
-      desktop = cfg.builders.desktopOf "nixos.${name}" c;
-      host = host.name;
-      inherit (host) role;
-    }
-    // cfg.builders.roleFlags host.role;
+      host = hostOf name c;
+    };
 
-  resolve =
+  contextOf =
     name: c:
     let
       host = hostOf name c;
@@ -68,19 +62,16 @@ let
   mkNixosSpecialArgs =
     name: c:
     let
-      inherit (resolve name c) host base meta;
+      inherit (contextOf name c) host base meta;
     in
-    {
-      inherit base host meta;
-    }
-    // base.extraSpecialArgs;
+    base.extraSpecialArgs // { inherit base host meta; };
 
   mkNixosModules =
     name: c:
     let
-      inherit (resolve name c) host base meta;
+      inherit (contextOf name c) host base meta;
       inherit (base) paths;
-      resolved = cfg.resolve { inherit (meta) profile desktop role; };
+      resolved = cfg.resolve meta;
     in
     cfg.nixosModules
     ++ cfg.builders.hostModules host "nixos"
@@ -139,11 +130,6 @@ in
               description = "Key in hosts.<name> to use, defaults to the name of this configuration";
             };
             profile = mkOption { type = types.str; };
-            desktop = mkOption {
-              type = types.nullOr types.str;
-              default = null;
-              description = "Desktop to use, defaults to the desktop of the profile";
-            };
             withRoot = mkOption {
               type = types.bool;
               default = true;
