@@ -49,6 +49,7 @@ in
       clipboard = "clipse";
       display-manager = "tuigreet";
       logout = "wlogout";
+      notification = "swaync";
     };
   };
 }
