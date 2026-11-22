@@ -46,6 +46,8 @@ let
 
   # Upstream defaults, overridden below in a single definition
   upstreamConfig = importTOML "${inputs.walker}/resources/config.toml";
+
+  inherit (meta) desktop;
 in
 {
   imports = [
@@ -166,10 +168,23 @@ in
 
     # for desktop
 
-    (lib.mkIf (meta.desktop == "hyprland") {
-      programs.hyprland.settings.binds = {
-        "Mod+A".dsp.exec_cmd = "${lib.getExe config.programs.walker.package}";
-      };
-    })
+    (
+      if (desktop == "hyprland") then
+        {
+          programs.hyprland.settings.binds = {
+            "Mod+A".dsp.exec_cmd = "${lib.getExe config.programs.walker.package}";
+          };
+        }
+      else if (desktop == "mango") then
+        {
+          wayland.windowManager.mango.settings = {
+            bind = [
+              "SUPER,A,spawn,${lib.getExe config.programs.walker.package}"
+            ];
+          };
+        }
+      else
+        throw "modules.home.programs.walker: could not determine desktop '${desktop}'"
+    )
   ];
 }

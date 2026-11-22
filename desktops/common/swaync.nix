@@ -393,26 +393,38 @@ in
 
     # for desktop
 
-    (lib.mkIf (desktop == "hyprland") {
-      programs.hyprland.settings = {
-        rules.layer = [
-          {
-            match.namespace = "swaync-control-center";
-            blur = true;
-            ignore_alpha = 0.3;
-          }
-          {
-            match.namespace = "swaync-notification-window";
-            blur = true;
-            ignore_alpha = 0.3;
-          }
-        ];
+    (
+      if (desktop == "hyprland") then
+        {
+          programs.hyprland.settings = {
+            rules.layer = [
+              {
+                match.namespace = "swaync-control-center";
+                blur = true;
+                ignore_alpha = 0.3;
+              }
+              {
+                match.namespace = "swaync-notification-window";
+                blur = true;
+                ignore_alpha = 0.3;
+              }
+            ];
 
-        binds = {
-          "Mod+N".dsp.exec_cmd = "swaync-client -t -sw";
-          "Mod+Shift+N".dsp.exec_cmd = "swaync-client -d -sw";
-        };
-      };
-    })
+            binds = {
+              "Mod+N".dsp.exec_cmd = "swaync-client -t -sw";
+              "Mod+Shift+N".dsp.exec_cmd = "swaync-client -d -sw";
+            };
+          };
+        }
+      else if (desktop == "mango") then
+        {
+          programs.mango.settings.binds = [
+            "SUPER,N,spawn,swaync-client -t -sw"
+            "SUPER,Shift+N,spawn,swaync-client -d -sw"
+          ];
+        }
+      else
+        throw "modules.home.services.swaync: could not determine desktop '${desktop}'"
+    )
   ];
 }

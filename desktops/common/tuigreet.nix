@@ -8,6 +8,9 @@ let
   cmd =
     if (desktop == "hyprland") then
       "start-hyprland"
+
+    else if (desktop == "mango") then
+      "mango"
     else
       throw "modules.nixos.services.tuigreet: unable to determine the cmd for desktop '${desktop}'";
 in

@@ -87,23 +87,37 @@ in
     }
 
     # for desktop
-    (lib.mkIf (desktop == "hyprland") {
-      programs.hyprland.settings = {
-        binds."Mod+V".dsp.exec_cmd = "kitty --class clipse -e clipse";
+    (
+      if (desktop == "hyprland") then
+        {
+          programs.hyprland.settings = {
+            binds."Mod+V".dsp.exec_cmd = "kitty --class clipse -e clipse";
 
-        rules.win = [
-          {
-            match.class = "^clipse$";
-            float = true;
-            size = [
-              600
-              650
+            rules.win = [
+              {
+                match.class = "^clipse$";
+                float = true;
+                size = [
+                  600
+                  650
+                ];
+                center = true;
+                suppress_event = "maximize fullscreen";
+              }
             ];
-            center = true;
-            suppress_event = "maximize fullscreen";
-          }
-        ];
-      };
-    })
+          };
+        }
+      else if (desktop == "mango") then
+        {
+          programs.mango.settings.bind = [
+            "SUPER,V,spawn,kitty --class clipse -e clipse"
+          ];
+          wayland.windowManager.mango.settings.windowrule = [
+            "isfloating:1,width:600,height:650,appid:clipse"
+          ];
+        }
+      else
+        throw ""
+    )
   ];
 }
