@@ -17,25 +17,21 @@
   nixos = {
     default = {
       profile = "desktop";
-      desktop = "niri";
       host = "dp7530";
     };
 
     dp7530 = {
       profile = "desktop";
-      desktop = "hyprland";
       host = "dp7530";
     };
 
     nixos-live = {
       profile = "live";
-      desktop = "niri";
       host = "live";
     };
 
     ci = {
       profile = "desktop";
-      desktop = "tty";
       host = "ci-runner";
     };
   };
@@ -92,38 +88,42 @@
     };
   };
 
-  roles = [
+  roleGroups = [
+    "graphical"
+    "interactive"
+    "headless"
+    "physical"
+    "portable"
+    "ephemeral"
     "container"
-    "desktop"
-    "laptop"
-    "live"
-    "server"
   ];
 
-  groupsRole = {
-    graphical = [
-      "desktop"
-      "laptop"
-      "live"
-    ];
-    interactive = [
-      "desktop"
-      "laptop"
-      "live"
-    ];
-    headless = [
-      "server"
+  roles = {
+    container.groups = [
+      "headless"
       "container"
     ];
-    physical = [
-      "desktop"
-      "laptop"
-      "server"
-      "live"
+    desktop.groups = [
+      "graphical"
+      "interactive"
+      "physical"
     ];
-    portable = [ "laptop" ];
-    ephemeral = [ "live" ];
-    container = [ "container" ];
+    laptop.groups = [
+      "graphical"
+      "interactive"
+      "physical"
+      "portable"
+    ];
+    live.groups = [
+      "graphical"
+      "interactive"
+      "physical"
+      "ephemeral"
+    ];
+    server.groups = [
+      "headless"
+      "physical"
+    ];
   };
 
   flake.lib = inputs.nixpkgs.lib;
@@ -131,6 +131,7 @@
   imports = [
     ./pkgs
     ./profiles
+    ./desktops
     ./hosts
     ./features
     ./lib

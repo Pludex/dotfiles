@@ -1,5 +1,6 @@
 {
   profiles.desktop = {
+    desktop = "hyprland";
     modules = {
       home = {
         apps = [

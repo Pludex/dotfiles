@@ -1,5 +1,6 @@
 {
   profiles.live.modules = {
+    desktop = "hyprland";
     home = {
       apps = [
         "spotify"
