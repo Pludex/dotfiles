@@ -3,40 +3,38 @@ name: "Update Flake Lock"
 on:
   workflow_dispatch:
   schedule:
-    # Every Sunday at 00:00 UTC
     - cron: "0 0 * * 0"
 
 permissions:
   contents: write
   pull-requests: write
-  actions: write
 
 jobs:
   update-flake-lock:
-    name: "Update Flake Lock"
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v16
-
-      - name: Update flake.lock and create PR
-        id: update
-        uses: DeterminateSystems/update-flake-lock@v24
+      - uses: actions/create-github-app-token@v1
+        id: app-token
         with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - uses: DeterminateSystems/nix-installer-action@v16
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: pludex
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - uses: DeterminateSystems/update-flake-lock@v24
+        with:
+          token: ${{ steps.app-token.outputs.token }}
           branch: update-flake-lock
           pr-title: "chore(deps): update flake.lock"
           pr-labels: |
             dependencies
             automated
-
-      # PRs opened with GITHUB_TOKEN don't trigger pull_request workflows,
-      # but workflow_dispatch is allowed, and checks attach to the commit.
-      - name: Trigger build on the PR branch
-        if: steps.update.outputs.pull-request-number != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run build.yml --ref update-flake-lock
