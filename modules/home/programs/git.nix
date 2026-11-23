@@ -1,6 +1,7 @@
 {
   pkgs,
   base,
+lib,
   ...
 }:
 {
@@ -18,11 +19,11 @@
       # github
       "credential \"https://github.com\"".helper = [
         ""
-        "${pkgs.github-cli} auth git-credential"
+        "${lib.getExe pkgs.github-cli} auth git-credential"
       ];
       "credential \"https://gist.github.com\"".helper = [
         ""
-        "${pkgs.github-cli}/bin/gh auth git-credential"
+        "${lib.getExe pkgs.github-cli} auth git-credential"
       ];
 
       # sign

@@ -2,10 +2,11 @@
   base,
   lib,
   config,
+meta,
   ...
 }:
 {
-  config = lib.mkIf (!config.isContainer) {
+  config = lib.mkIf (!meta.isContainer) {
     services.ssh-agent = {
       enable = true;
     };

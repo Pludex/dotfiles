@@ -1,7 +1,6 @@
 {
   base,
   lib,
-  osConfig ? null,
   config,
   meta,
   inputs,
@@ -9,24 +8,22 @@
 }:
 let
   inherit (base) libx;
-  inherit (config) isContainer;
 
   app = libx.tryOr (base.app meta.name) null;
+  hasApp = app != null;
 
+  # Hosts with their own app record (containers) take identity from it
   env =
-    if isContainer then
+    if hasApp then
       {
         identity = {
-          inherit (app) username;
-          inherit (app) home;
+          inherit (app) username home;
         };
         secrets = {
           file = app.age.defaultFile;
           key = app.age.privateKeyPath;
         };
-        registry = {
-          nixpkgs = "file:///workspaces/dotfiles-ref";
-        };
+        nixpkgsRegistry = "file:///workspaces/dotfiles-ref";
       }
     else
       {
@@ -38,12 +35,10 @@ let
           file = base.age.defaultFile;
           key = base.age.privateKeyPath;
         };
-        registry = {
-          nixpkgs = "file:///workspaces/dotfiles";
-        };
+        nixpkgsRegistry = "file:///workspaces/dotfiles";
       };
 
-  forceIfContainer = if isContainer then lib.mkForce else lib.id;
+  forceIfApp = if hasApp then lib.mkForce else lib.id;
 in
 {
   imports = [
@@ -55,32 +50,22 @@ in
     inputs.sops-nix.homeManagerModules.sops
   ];
 
-  options = {
-    isContainer = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-    };
-    app = lib.mkOption {
-      type = lib.types.raw;
-      default = app;
-    };
+  options.app = lib.mkOption {
+    type = lib.types.raw;
+    default = app;
   };
 
   config = lib.mkMerge [
     {
       home.stateVersion = "26.05";
-      isContainer = if osConfig == null then lib.mkDefault false else osConfig.isContainer;
-    }
-
-    {
       programs.man.generateCaches = false;
       systemd.user.startServices = "sd-switch";
       home.sessionVariables = base.tools.envvars;
     }
 
     {
-      home.username = forceIfContainer env.identity.username;
-      home.homeDirectory = forceIfContainer env.identity.home;
+      home.username = forceIfApp env.identity.username;
+      home.homeDirectory = forceIfApp env.identity.home;
     }
 
     {
@@ -93,17 +78,17 @@ in
     {
       nix.registry.nixpkgs.to = {
         type = "git";
-        url = env.registry.nixpkgs;
+        url = env.nixpkgsRegistry;
       };
     }
 
-    (lib.mkIf (!isContainer) {
+    (lib.mkIf (!meta.isContainer) {
       nix.registry.dotfiles.to = {
         type = "git";
         url = "file:///workspaces/dotfiles";
       };
     })
 
-    (lib.mkIf isContainer { inherit app; })
+    (lib.mkIf hasApp { inherit app; })
   ];
 }
