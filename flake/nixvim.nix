@@ -28,14 +28,15 @@ let
       resolved = cfg.resolve meta;
     in
     inputs.nixvim.lib.evalNixvim {
-      extraSpecialArgs = base.extraSpecialArgs // { inherit base host meta; };
+      extraSpecialArgs = base.extraSpecialArgs // {
+        inherit base host meta;
+      };
       modules =
         cfg.nixvimModules
         ++ c.extraModules
         ++ cfg.builders.hostModules host "nixvim"
         ++ (resolved.nixvim or [ ])
         ++ [
-          "${cfg.paths.modules}/nixvim"
           # Overlays are baked into base.pkgs
           { nixpkgs.pkgs = base.pkgs; }
           {

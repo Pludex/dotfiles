@@ -135,6 +135,7 @@
     ./hosts
     ./features
     ./lib
+    ./modules
     ./settings.nix
     ./devshells.nix
 

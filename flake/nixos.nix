@@ -70,7 +70,6 @@ let
     name: c:
     let
       inherit (contextOf name c) host base meta;
-      inherit (base) paths;
       resolved = cfg.resolve meta;
     in
     cfg.nixosModules
@@ -78,7 +77,6 @@ let
     ++ (resolved.nixos or [ ])
     ++ c.extraModules
     ++ [
-      "${paths.modules}/nixos"
       cfg.builders.roleFlagsModule
       configOptions
       (meta // { networking.hostName = lib.mkDefault host.name; })

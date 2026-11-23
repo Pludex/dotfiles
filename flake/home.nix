@@ -67,7 +67,6 @@ let
     ++ (cfg.resolve meta).home or [ ]
     ++ cfg.builders.hostModules host "home"
     ++ [
-      "${cfg.paths.modules}/home"
       cfg.builders.roleFlagsModule
       configOptions
       meta

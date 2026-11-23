@@ -6,6 +6,12 @@ let
   names = attrs: lib.concatStringsSep ", " (lib.attrNames attrs);
   join = lib.concatStringsSep ", ";
 
+  # Catalog names that cannot hold registered names in a selection
+  reservedCatalogs = [
+    "extra"
+    "commons"
+  ];
+
   # ── Roles and role groups ────────────────────────────────────────────
   roleNames = lib.attrNames cfg.roles;
 
@@ -70,7 +76,7 @@ let
       entries =
         catalogs.${catalog} or (throw ''
           registry: catalog "${catalog}" does not exist in modules.${framework}.
-          Defined catalogs: ${names catalogs}
+          Defined catalogs: ${names (removeAttrs catalogs [ "commons" ])}
         '');
     in
     entries.${name} or (throw ''
@@ -94,7 +100,7 @@ let
         ${checkFramework framework} =
           lib.concatLists (
             lib.mapAttrsToList (catalog: names': map (entry framework catalog) (lib.unique names')) (
-              removeAttrs catalogs [ "extra" ]
+              removeAttrs catalogs reservedCatalogs
             )
           )
           ++ catalogs.extra;
@@ -211,9 +217,18 @@ let
       features = featuresOf "profiles.${profile}" profileChecked;
       upper = roleCfg ++ desktopCfg ++ [ profileChecked ];
       selected = lib.foldl' (acc: l: acc // toFlat l.tools) (featureToolsFlat features) upper;
+
+      # Only frameworks the profile declares (even as `{ }`) get their commons
+      commons = mergeByFramework (
+        lib.mapAttrsToList (fw: _: {
+          ${checkFramework fw} = cfg.modules.${fw}.commons or [ ];
+        }) profileChecked.modules
+      );
     in
     mergeByFramework (
-      map (l: resolveModules l.modules) (features ++ upper) ++ map resolveTool (lib.attrValues selected)
+      [ commons ]
+      ++ map (l: resolveModules l.modules) (features ++ upper)
+      ++ map resolveTool (lib.attrValues selected)
     );
 
   # ── Static checks, expected to be empty (wire into flake checks) ─────
@@ -253,6 +268,17 @@ let
       ) (lib.attrNames e.value.modules)
     ) entities)
 
+    # `commons` only lives in the registry, never in a selection
+    (lib.concatMap (
+      e:
+      lib.concatLists (
+        lib.mapAttrsToList (
+          fw: catalogs:
+          lib.optional (catalogs ? commons) "${e.name}.modules.${fw}.commons: 'commons' is a reserved catalog"
+        ) e.value.modules
+      )
+    ) entities)
+
     (lib.concatMap (
       e:
       lib.concatLists (
@@ -267,7 +293,7 @@ let
                   !((cfg.modules.${fw}.${catalog} or { }) ? ${n})
                 ) "${e.name}.modules.${fw}.${catalog}: '${n}' is not registered"
               ) ns
-            ) (removeAttrs catalogs [ "extra" ])
+            ) (removeAttrs catalogs reservedCatalogs)
           )
         ) e.value.modules
       )
@@ -406,17 +432,29 @@ in
     };
 
     modules = mkOption {
-      type = types.attrsOf (types.attrsOf (types.attrsOf types.deferredModule));
+      type = types.attrsOf (
+        types.submodule {
+          # Any other key is a catalog: name -> module
+          freeformType = types.attrsOf (types.attrsOf types.deferredModule);
+          options.commons = mkOption {
+            type = types.listOf types.deferredModule;
+            default = [ ];
+            description = "Modules embedded in every profile that declares this framework, selected or not";
+          };
+        }
+      );
       default = { };
       example = lib.literalExpression ''
         {
           home.programs.fish = ./fish.nix;
+          home.commons = [ ./base.nix ];
           nixos.services.vaultwarden = ./vaultwarden.nix;
         }
       '';
       description = ''
         Single-framework, additive entries: modules.<framework>.<catalog>.<name>.
         A value is any module: an attrset, a function or a path.
+        The catalog `commons` is a list applied to every profile declaring the framework.
       '';
     };
 
