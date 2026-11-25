@@ -14,7 +14,7 @@ pkgs.writeShellApplication {
 
   text = ''
     NIX_CONFIG_DIR="${base.abs.dotfilesBot}"
-    DATA_DIR="data"
+    DATA_DIR="secrets"
     AGE_PUBLIC_KEY="${base.age.publicKey}"
     AGE_PRIVATE_KEY_PATH="${base.age.privateKeyPath}"
     USER_MAIN="${base.username}"

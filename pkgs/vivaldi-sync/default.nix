@@ -11,7 +11,7 @@ pkgs.writeShellApplication {
 
   text = ''
     NIX_CONFIG_DIR="${base.abs.dotfilesBot}"
-    DATA_DIR="data"
+    DATA_DIR="secrets"
     export NIX_CONFIG_DIR
     export DATA_DIR
 
