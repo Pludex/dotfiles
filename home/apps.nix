@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ inputs, base, ... }:
 let
   zaloPkg =
     pkgs: inputs:
@@ -41,7 +41,7 @@ in
 
         vaults.main = {
           enable = true;
-          target = "/workspaces/vaults/main";
+          target = "${base.abs.workspaces}/vaults/main";
         };
       };
 

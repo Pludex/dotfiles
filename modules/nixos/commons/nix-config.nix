@@ -6,7 +6,7 @@
 }:
 let
   inherit (meta) isContainer;
-  dotfiles = if isContainer then "/workspaces/dotfiles-ref" else "/workspaces/dotfiles";
+  dotfiles = if isContainer then "${base.abs.workspaces}/dotfiles-ref" else "${base.abs.workspaces}/dotfiles";
 in
 {
   config = lib.mkMerge [

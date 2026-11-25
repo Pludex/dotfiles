@@ -2,6 +2,7 @@
   config,
   lib,
   modulesPath,
+  base,
   ...
 }:
 
@@ -68,6 +69,12 @@ in
     device = dataDevice;
     fsType = "btrfs";
     options = btrfsOptions "@data";
+  };
+
+  fileSystems.${base.abs.hub} = {
+    device = dataDevice;
+    fsType = "btrfs";
+    options = btrfsOptions "@hub";
   };
 
   fileSystems."/boot" = {

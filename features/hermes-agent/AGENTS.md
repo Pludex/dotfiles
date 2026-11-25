@@ -47,7 +47,7 @@ features/hermes-agent/
 | `app.age.sopsSecret`       | `"age-keys/hermes"`                                          |
 | `app.container.name`       | `"hermes"`                                                   |
 | `app.container.data`       | `"/app/data"`                                                |
-| `app.container.workspaces` | `"/workspaces"`                                              |
+| `app.container.workspaces` | `"/hub/workspaces"`                                              |
 
 ---
 

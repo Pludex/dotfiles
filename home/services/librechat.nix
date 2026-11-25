@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  base,
   ...
 }:
 let
@@ -77,7 +78,7 @@ let
         args = [
           "-y"
           "@modelcontextprotocol/server-filesystem"
-          "/workspaces"
+          base.abs.workspaces
         ];
       };
     };

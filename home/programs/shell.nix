@@ -61,8 +61,7 @@
         zoxidePaths = [
           base.abs.home
           "${base.abs.home}/.config"
-
-          "/workspaces"
+          base.abs.workspaces
           base.abs.dotfiles
           base.abs.dotfilesBot
         ];

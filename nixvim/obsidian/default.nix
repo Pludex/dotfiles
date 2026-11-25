@@ -1,3 +1,4 @@
+{ base, ... }:
 {
   plugins.obsidian = {
     enable = true;
@@ -5,7 +6,7 @@
       workspaces = [
         {
           name = "main";
-          path = "/workspaces/pkm";
+          path = "${base.workspaces}/pkm";
         }
       ];
 

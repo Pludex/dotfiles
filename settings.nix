@@ -18,9 +18,11 @@
     };
 
     groups = {
-      coding.gid = 1200;
       users-host.gid = 1002;
       data.gid = 1201;
+      hub.gid = 3000;
+      secrets.gid = 3001;
+      coding.gid = 1200;
     };
     group = name: base.groups.${name};
 
@@ -28,8 +30,8 @@
     age = {
       publicKey = "age1mwp4mujj0cq40sc4yn33el4lxaap86wlrxzhyf73h7ecsm0gx5yqas8pf0";
       # privateKeyPath = "${config.paths.abs.home}/.config/sops/age/keys.txt";
-      privateKeyPath = "${config.paths.abs.keys}/dotfiles.age-key.txt";
-      defaultFile = "${config.paths.secrets}/main.enc.yaml";
+      privateKeyPath = "${config.paths.abs.secrets}/dotfiles.age-key.txt";
+      defaultFile = "${config.paths.secretsEnc}/main.enc.yaml";
     };
 
     ssh = {
@@ -60,7 +62,7 @@
   paths = {
     # ── Top-level dirs ──────────────────────────────────────
     flake = inputs.self;
-    secrets = ./secrets;
+    secretsEnc = ./secrets;
     desktops = ./desktops;
     commonDesktop = ./desktops/common;
     emacs = ./emacs;
@@ -96,14 +98,17 @@
     };
 
     # ── Absolute paths on the machine ───────────────────────
-    abs = {
+    abs = rec {
       home = "/home/${base.username}";
-      workspaces = "/workspaces";
-      dotfiles = "${config.paths.abs.workspaces}/dotfiles";
-      emacs = "${config.paths.abs.dotfiles}/emacs";
-      dotfilesBot = "/workspaces/dotfiles-bot";
-      secrets = "${config.paths.abs.dotfilesBot}/secrets";
-      keys = "/keys";
+      dotfiles = "${workspaces}/dotfiles";
+      emacs = "${dotfiles}/emacs";
+      dotfilesBot = "${workspaces}/dotfiles-bot";
+      # secretsEnc = "${config.paths.abs.dotfilesBot}/secrets";
+
+      hub = "/hub";
+      dotfiles-ref = "${hub}/dotfiles";
+      workspaces = "${hub}/workspaces";
+      secrets = "${hub}/secrets";
     };
   };
 

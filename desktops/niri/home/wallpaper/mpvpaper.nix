@@ -1,3 +1,4 @@
+{ base, ... }:
 {
   programs.mpvpaper = {
     enable = true;
@@ -9,7 +10,7 @@
         "-o"
         "no-audio --loop-inf"
         "ALL"
-        "/workspaces/nix-config/assets/kawaii-cat-girl.png"
+        "${base.abs.workspaces}/nix-config/assets/kawaii-cat-girl.png"
       ];
     }
   ];

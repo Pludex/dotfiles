@@ -1,3 +1,4 @@
+{ base, ... }:
 {
   plugins.nui.enable = true;
 
@@ -7,7 +8,7 @@
       lang = "cpp";
 
       storage = {
-        home = "/workspaces/learn/leetcode";
+        home = "${base.abs.workspaces}/learn/leetcode";
         kaggle = false;
       };
 
@@ -25,7 +26,7 @@
           __raw = ''
             function(question)
               local q = question.q
-              local dir = vim.fs.joinpath("/workspaces/learn/leetcode", "desc")
+              local dir = vim.fs.joinpath("${base.abs.workspaces}/learn/leetcode", "desc")
               vim.fn.mkdir(dir, "p")
 
               local md = q.content or ""

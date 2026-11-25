@@ -8,7 +8,7 @@
 let
   omnirouteKey = config.sops.placeholder."api-keys/omniroute/hermes";
   omniroute = base.appOf "omniroute";
-  hermesHome = "/workspaces/hermes";
+  hermesHome = "${base.abs.workspaces}/hermes";
 
   syncBody = pkgs.writeShellScript "hermes-git-sync-body" ''
     set -euo pipefail

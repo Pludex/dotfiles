@@ -12,10 +12,10 @@ let
 
   # mounted at boot by hermes-refs.service (see the mount module)
   refs = {
-    dotfiles-ref = {
-      src = "/workspaces/dotfiles";
-      mode = "ro";
-    };
+    # dotfiles-ref = {
+    #   src = "${base.abs.hub}/dotfiles";
+    #   mode = "ro";
+    # };
   };
 
   refsUnit = "hermes-refs.service";

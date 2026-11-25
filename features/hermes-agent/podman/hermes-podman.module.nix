@@ -21,7 +21,7 @@
 #   services.hermes-podman = {
 #     enable = true;
 #     gateway.enable = true;
-#     hermesHome = "/workspaces/hermes";
+#     hermesHome = "/hub/workspaces/hermes";
 #     environmentFiles = [ config.sops.secrets."hermes/env".path ];
 #     settings.model.default = "anthropic/claude-sonnet-4";
 #   };
@@ -33,6 +33,7 @@
   config,
   lib,
   pkgs,
+  base,
   ...
 }:
 
@@ -685,7 +686,7 @@ in
       type = types.str;
       default = "${config.home.homeDirectory}/.hermes";
       description = "Host directory mounted into the container as HERMES_HOME (/opt/data).";
-      example = "/workspaces/hermes";
+      example = "${base.abs.workspaces}/hermes";
     };
 
     workingDirectory = mkOption {

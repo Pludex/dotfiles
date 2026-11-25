@@ -1,6 +1,5 @@
 {
   inputs,
-  config,
   base,
   ...
 }:
@@ -73,12 +72,12 @@ in
         username = "hermes";
         uid = 2000;
         home = "/home/${username}";
-        data = "/workspaces/hermes";
+        data = "${base.abs.workspaces}/hermes";
 
         age = {
           publicKey = "age158va6e0syfx3cm2rwj7un2yu7p8zwqnxdqtedk5tkwk3g7nuxflspzs0em";
-          privateKeyPath = "${app.container.keys}/${username}.age-key.txt";
-          defaultFile = "${config.paths.secrets}/hermes.enc.yaml";
+          privateKeyPath = "${app.container.secrets}/${username}.age-key.txt";
+          defaultFile = "${base.paths.secretsEnc}/hermes.enc.yaml";
           sopsSecret = "age-keys/${username}";
         };
 
@@ -95,8 +94,7 @@ in
           };
           appDir = "/app";
           data = "${appDir}/data";
-          workspaces = "/workspaces";
-          keys = "/keys";
+          inherit (base.abs) workspaces secrets;
         };
 
         # Users and id mapping

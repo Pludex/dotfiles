@@ -1,3 +1,4 @@
+{ base, ... }:
 {
   features.omniroute = {
     app = rec {
@@ -12,7 +13,7 @@
       # Same service seen from another address
       urlFrom = host: "http://${host}:${toString port}";
       listenHost = "localhost";
-      data = "/workspaces/omniroute";
+      data = "${base.abs.workspaces}/omniroute";
 
       container = rec {
         name = "omniroute";

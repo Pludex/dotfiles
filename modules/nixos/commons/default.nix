@@ -19,6 +19,7 @@ in
     ./nix-config.nix
     ./users.nix
     ./desktop.nix
+    ./systemd.nix
 
     app.modules.nixos or { }
     inputs.sops-nix.nixosModules.sops
@@ -74,5 +75,62 @@ in
         useSystemdActivation = true;
       };
     }
+
+    # TODO: setup for container
+    (lib.mkIf (!meta.isContainer) (
+      let
+        hub = base.group "hub";
+        secrets = base.group "secrets";
+      in
+      {
+        tmpfiles = {
+          ${base.abs.hub} = {
+            user = base.username;
+            group = "hub";
+            mode = "550";
+          };
+
+          "/hub/secrets" = {
+            user = base.username;
+            group = "secrets";
+            mode = "770";
+            type = "Z";
+          };
+
+          "/hub/workspaces" = {
+            user = base.username;
+            group = "coding";
+            mode = "770";
+            type = "Z";
+          };
+
+          "/hub/dotfiles" = {
+            user = base.username;
+            mode = "777";
+          };
+        };
+
+        users = {
+          groups = {
+            inherit hub secrets;
+          };
+
+          users.${base.username} = {
+            extraGroups = [ "secrets" ];
+          };
+        };
+
+        systemd.services.systemd-tmpfiles-setup.unitConfig.RequiresMountsFor = [ "/hub" ];
+
+        fileSystems."/hub/dotfiles" = {
+          device = "/hub/workspaces/dotfiles";
+          fsType = "none";
+          options = [
+            "bind"
+            "ro"
+          ];
+        };
+      }
+    ))
   ];
 }
