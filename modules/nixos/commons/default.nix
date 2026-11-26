@@ -76,7 +76,6 @@ in
       };
     }
 
-    # TODO: setup for container
     (lib.mkIf (!meta.isContainer) (
       let
         hub = base.group "hub";
@@ -90,21 +89,21 @@ in
             mode = "550";
           };
 
-          "/hub/secrets" = {
+          ${base.abs.secrets} = {
             user = base.username;
             group = "secrets";
             mode = "770";
             type = "Z";
           };
 
-          "/hub/workspaces" = {
+          ${base.abs.workspaces} = {
             user = base.username;
             group = "coding";
             mode = "770";
             type = "Z";
           };
 
-          "/hub/dotfiles" = {
+          ${base.abs.dotfiles-ref} = {
             user = base.username;
             mode = "777";
           };
