@@ -1,5 +1,0 @@
-{
-  globals = {
-    editorconfig.enable = true;
-  };
-}

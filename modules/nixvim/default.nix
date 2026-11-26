@@ -1,7 +1,6 @@
 {
   modules.nixvim = {
     commons = [
-      ./core
       ./edit
       ./file
       ./git
@@ -10,7 +9,6 @@
       ./ui
       ./utils
       ./img.nix
-      ./neovide.nix
       ./session.nix
       ./window.nix
     ];
