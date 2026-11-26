@@ -92,7 +92,7 @@ in
           "PATH=/run/current-system/sw/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
         ];
         runAsRoot = ''
-          mkdir -p ${container.secrets} ${container.workspaces} ${container.data}
+          mkdir -p ${container.secrets} ${container.workspaces} ${container.data} ${base.abs.dotfiles-ref}
           touch ${age.privateKeyPath}
           chown ${toString app.uid}:${toString coding.gid} -R ${base.abs.hub}
           chown ${toString app.uid}:${toString coding.gid} -R ${container.workspaces}
@@ -105,6 +105,7 @@ in
         "/nix/var/nix/daemon-socket:/nix/var/nix/daemon-socket"
         "${app.data}:${container.data}"
         "${keyPath}:${age.privateKeyPath}:ro,Z"
+        "${base.abs.dotfiles}:${base.abs.dotfiles-ref}:ro"
       ];
       ports = lib.mapAttrsToList (_: p: "${app.loopback}:${toString p}:${toString p}") app.ports;
       extraOptions = [

@@ -23,7 +23,6 @@ let
           file = app.age.defaultFile;
           key = app.age.privateKeyPath;
         };
-        nixpkgsRegistry = "file:///workspaces/dotfiles-ref";
       }
     else
       {
@@ -35,7 +34,6 @@ let
           file = base.age.defaultFile;
           key = base.age.privateKeyPath;
         };
-        nixpkgsRegistry = "file:///workspaces/dotfiles";
       };
 
   forceIfApp = if hasApp then lib.mkForce else lib.id;
@@ -78,16 +76,9 @@ in
     {
       nix.registry.nixpkgs.to = {
         type = "git";
-        url = env.nixpkgsRegistry;
+        url = "file://${base.abs.dotfiles-ref}";
       };
     }
-
-    (lib.mkIf (!meta.isContainer) {
-      nix.registry.dotfiles.to = {
-        type = "git";
-        url = "file:///workspaces/dotfiles";
-      };
-    })
 
     (lib.mkIf hasApp { inherit app; })
   ];
