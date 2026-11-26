@@ -94,6 +94,7 @@ in
         runAsRoot = ''
           mkdir -p ${container.secrets} ${container.workspaces} ${container.data}
           touch ${age.privateKeyPath}
+          chown ${toString app.uid}:${toString coding.gid} -R ${base.abs.hub}
           chown ${toString app.uid}:${toString coding.gid} -R ${container.workspaces}
           chown ${toString app.uid}:${toString coding.gid} -R ${container.appDir}
         '';
