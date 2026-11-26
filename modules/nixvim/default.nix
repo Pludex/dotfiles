@@ -1,15 +1,15 @@
 {
   modules.nixvim = {
     commons = [
-      ./edit
-      ./file
-      ./git
-      ./languages
-      ./terminal
-      ./ui
-      ./utils
-      ./img.nix
-      ./session.nix
+      ({ pkgs, ... }: {
+        extraPlugins = with pkgs.vimPlugins; [
+          plenary-nvim
+        ];
+      })
+
+      ./diagnostic.nix
+      ./keymaps.nix
+      ./options.nix
       ./window.nix
     ];
   };
@@ -21,11 +21,8 @@
     ./languages/scripting.nix
     ./languages/system.nix
     ./languages/web.nix
-  ];
 
-  modules.nixvim = {
-    root = {
-      leetcode = ./leetcode.nix;
-    };
-  };
+    ./themes
+    ./plugins
+  ];
 }
