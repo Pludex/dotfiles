@@ -1,7 +1,7 @@
 {
-  imports = [
-    ./home
-    ./nixos
-    ./nixvim
-  ];
+  modules = {
+    home.commons = [ ./home ];
+    nixos.commons = [ ./nixos ];
+    nixvim.commons = [ ./nixvim ];
+  };
 }
