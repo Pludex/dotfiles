@@ -1,24 +1,22 @@
 { lib
-, buildPythonPackage
-, setuptools
-, requests
+, python3Packages
 , base
 }:
 
 let
   omnirouteUrl = (base.app "omniroute").internalUrl;
 in
-buildPythonPackage {
+python3Packages.buildPythonPackage {
   pname = "omniroute-clients";
   version = "0.1.0";
   pyproject = true;
 
   src = lib.cleanSource ./.;
 
-  build-system = [ setuptools ];
+  build-system = [ python3Packages.setuptools ];
 
   dependencies = [
-    requests
+    python3Packages.requests
   ];
 
   # Bake the OmniRoute URL into all clients
