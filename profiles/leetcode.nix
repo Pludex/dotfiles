@@ -9,10 +9,6 @@
         "yml-yaml"
         "json"
       ];
-
-      root = [
-        "leetcode"
-      ];
     };
   };
 }
