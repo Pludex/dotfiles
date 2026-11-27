@@ -230,6 +230,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    soundcloud-desktop = {
+      url = "github:zxcloli666/SoundCloud-Desktop";
+      flake = false;
+    };
+
     # AI
     omniroute = {
       url = "github:diegosouzapw/OmniRoute";

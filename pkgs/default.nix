@@ -23,6 +23,7 @@
     screenshot.path = ./screenshot.nix;
     sklauncher.path = ./sklauncher.nix;
     wallpapers.path = ./wallpapers.nix;
+    soundcloud-desktop.path = ./soundcloud-desktop.nix;
     screenrecord.path = ./sreenrecord.nix;
     waycal.path = ./waycal.nix;
   };

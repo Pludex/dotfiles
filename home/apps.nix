@@ -56,7 +56,7 @@ in
 
     soundcloud = { pkgs, ... }: {
       home.packages = [
-        pkgs.myPkgs.soundcloud
+        pkgs.myPkgs.soundcloud-desktop
       ];
     };
 

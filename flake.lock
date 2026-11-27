@@ -1942,6 +1942,7 @@
         "plasma-manager": "plasma-manager",
         "schemes": "schemes",
         "sops-nix": "sops-nix",
+        "soundcloud-desktop": "soundcloud-desktop",
         "stylix": "stylix",
         "sunix": "sunix",
         "treefmt-nix": "treefmt-nix_4",
@@ -2032,6 +2033,22 @@
       "original": {
         "owner": "Mic92",
         "repo": "sops-nix",
+        "type": "github"
+      }
+    },
+    "soundcloud-desktop": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795696806,
+        "narHash": "sha256-fDxOIXZ2TSPuDC8CF5OSLXyMxk95blmJhmL84j9fNlM=",
+        "owner": "zxcloli666",
+        "repo": "SoundCloud-Desktop",
+        "rev": "2c3ed6ba5d7c9bf2c0e10cab80ff1033cb738022",
+        "type": "github"
+      },
+      "original": {
+        "owner": "zxcloli666",
+        "repo": "SoundCloud-Desktop",
         "type": "github"
       }
     },
