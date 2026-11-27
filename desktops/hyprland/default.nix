@@ -42,7 +42,7 @@ in
       ];
     };
 
-    tools = {
+    tools.desktop = {
       launcher = "walker";
       lock-screen = "hyprlock";
       status-bar = "waybar";
