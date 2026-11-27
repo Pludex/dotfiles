@@ -76,11 +76,10 @@
         '';
       };
 
-    starship = ./starship.nix;
-
-    bash = ./bash.nix;
-    fish = ./fish.nix;
-    zsh = ./zsh.nix;
+    starship = ./starship;
+    bash = ./bash;
+    fish = ./fish;
+    zsh = ./zsh;
     nushell = ./nushell;
   };
 }

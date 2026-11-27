@@ -8,7 +8,7 @@
         ];
       };
 
-    claude-code = ./claude-code.nix;
+    claude-code = ./claude-code;
     quiz-bot = ./quiz-bot;
   };
 }
