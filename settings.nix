@@ -57,6 +57,16 @@
       musicIcon = " ";
       soundcloud = "SoundColud";
     };
+
+    vivaldi = {
+      profiles.work = {
+        nameDir = "Default";
+      };
+
+      profiles.society = {
+        nameDir = "Profile 1";
+      };
+    };
   };
 
   paths = {
@@ -128,11 +138,6 @@
           pager = pkgs.bat;
           term = pkgs.ghostty;
 
-          vivaldi = {
-            cmdProfileWork = ''${lib.getExe pkgs.vivaldi} --profile-directory="Default" &'';
-            cmdProfileSociety = ''${lib.getExe pkgs.vivaldi} --profile-directory="Profile 1" &'';
-          };
-
           shellAliases = {
             cd = "z";
             cat = "bat";
@@ -145,7 +150,7 @@
 
           envvars = {
             EDITOR = "${lib.getExe editor}";
-            BROWSER = vivaldi.cmdProfileWork;
+            BROWSER = "${pkgs.vivaldi}/bin/vivaldi-work";
           };
         };
       }
