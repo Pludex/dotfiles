@@ -93,19 +93,19 @@ in
             user = base.username;
             group = "secrets";
             mode = "770";
-            type = "Z";
+            type = "d";
           };
 
           ${base.abs.workspaces} = {
             user = base.username;
             group = "coding";
             mode = "770";
-            type = "Z";
+            type = "d";
           };
 
           ${base.abs.dotfiles-ref} = {
             user = base.username;
-            mode = "777";
+            mode = "555";
           };
         };
 
