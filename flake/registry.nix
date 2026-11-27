@@ -107,22 +107,22 @@ let
       }) modules
     );
 
-  # ── tools: defined as <domain>.<slot>.<backend>, chosen as <slot> = <backend>
-  # slot -> [ domains defining it ]; a slot must belong to exactly one domain
-  slotOwners = lib.zipAttrsWith (_: lib.id) (
-    lib.mapAttrsToList (domain: slots: lib.mapAttrs (_: _: domain) slots) cfg.tools
-  );
-
-  toFlat = lib.mapAttrs (slot: backend: { inherit slot backend; });
-
-  flattenTools = tools: lib.attrValues (toFlat tools);
+  # ── tools.<domain>.<slot>.<backend> ──────────────────────────────────
+  flattenTools =
+    tools:
+    lib.concatLists (
+      lib.mapAttrsToList (
+        domain: slots: lib.mapAttrsToList (slot: backend: { inherit domain slot backend; }) slots
+      ) tools
+    );
 
   # Features add up, so two of them choosing different backends is an error
-  featureToolsFlat =
+  mergeFeatureTools =
     features:
     let
-      all = lib.concatMap (f: flattenTools f.tools) features;
-      bySlot = lib.groupBy (x: x.slot) all;
+      bySlot = lib.groupBy (x: "${x.domain}.${x.slot}") (
+        lib.concatMap (f: flattenTools f.tools) features
+      );
       backendsOf = xs: lib.unique (map (x: x.backend) xs);
       conflicts = lib.filterAttrs (_: xs: lib.length (backendsOf xs) > 1) bySlot;
     in
@@ -130,36 +130,32 @@ let
       "registry: features select different backends for the same slot: ${
         lib.concatStringsSep "; " (lib.mapAttrsToList (k: xs: "${k} = ${join (backendsOf xs)}") conflicts)
       }"
-      (lib.foldl' (acc: f: acc // toFlat f.tools) { } features);
+      (lib.foldl' lib.recursiveUpdate { } (map (f: f.tools) features));
 
-  domainOf =
-    slot:
-    let
-      owners =
-        slotOwners.${slot} or (throw ''
-          registry: unknown tool slot "${slot}".
-          Defined slots: ${names slotOwners}
-        '');
-    in
-    lib.throwIf (lib.length owners > 1)
-      "registry: tool slot \"${slot}\" is defined in several domains (${join owners}); slot names must be unique"
-      (lib.head owners);
-
+  # Parts of a backend for frameworks the profile does not declare are dropped
   resolveTool =
-    { slot, backend }:
+    declared: domain: slot: backend:
     if backend == "none" then
       { }
     else
       let
-        domain = domainOf slot;
-        backends = cfg.tools.${domain}.${slot};
-        def =
+        slots =
+          cfg.tools.${domain} or (throw ''
+            registry: unknown tool domain "${domain}".
+            Defined domains: ${names cfg.tools}
+          '');
+        backends =
+          slots.${slot} or (throw ''
+            registry: unknown tool slot "${slot}" in tools.${domain}.
+            Defined slots: ${names slots}
+          '');
+        selection =
           backends.${backend} or (throw ''
             registry: "${backend}" is not registered in tools.${domain}.${slot}.
             Registered: ${names backends}
           '');
       in
-      resolveModules def.modules;
+      resolveModules (lib.filterAttrs (fw: _: lib.elem fw declared) selection.modules);
 
   # ── Meta and resolution ──────────────────────────────────────────────
   # host is the host record or null; with null, role and host are null
@@ -178,25 +174,29 @@ let
         '');
       role = if host == null then null else host.role;
     in
-    {
+    extra
+    // {
       inherit name profile role;
       inherit (profileCfg) desktop;
       host = if host == null then null else host.name;
     }
-    // roleFlags role
-    // extra;
+    // roleFlags role;
 
   featuresOf =
-    what: entity:
+    what: role: entity:
     map (
       n:
-      cfg.features.${n} or (throw ''
-        registry: ${what}.features: unknown feature "${n}".
-        Defined features: ${names cfg.features}
-      '')
+      let
+        f =
+          cfg.features.${n} or (throw ''
+            registry: ${what}.features: unknown feature "${n}".
+            Defined features: ${names cfg.features}
+          '');
+      in
+      guard "feature '${n}'" f.requires role f
     ) (lib.unique entity.features);
 
-  # Layer order, later wins for tools: features, role, desktop, profile
+  # Layer order, later wins for tools: defaults, features, role, desktop, profile
   resolve =
     meta:
     let
@@ -214,9 +214,13 @@ let
       roleCfg = lib.optional (role != null) cfg.roles.${checkRole role};
       profileChecked = guard "profile '${profile}'" profileCfg.requires role profileCfg;
 
-      features = featuresOf "profiles.${profile}" profileChecked;
+      features = featuresOf "profiles.${profile}" role profileChecked;
       upper = roleCfg ++ desktopCfg ++ [ profileChecked ];
-      selected = lib.foldl' (acc: l: acc // toFlat l.tools) (featureToolsFlat features) upper;
+      declared = lib.attrNames profileChecked.modules;
+
+      selected = lib.foldl' lib.recursiveUpdate (lib.recursiveUpdate cfg.defaults.tools (
+        mergeFeatureTools features
+      )) (map (l: l.tools) upper);
 
       # Only frameworks the profile declares (even as `{ }`) get their commons
       commons = mergeByFramework (
@@ -224,12 +228,22 @@ let
           ${checkFramework fw} = cfg.modules.${fw}.commons or [ ];
         }) profileChecked.modules
       );
+
+      toolModules = lib.concatLists (
+        lib.mapAttrsToList (domain: slots: lib.mapAttrsToList (resolveTool declared domain) slots) selected
+      );
     in
     mergeByFramework (
-      [ commons ]
-      ++ map (l: resolveModules l.modules) (features ++ upper)
-      ++ map resolveTool (lib.attrValues selected)
+      [ commons ] ++ map (l: resolveModules l.modules) (features ++ upper) ++ toolModules
     );
+
+  profilesResult = lib.mapAttrs (
+    profile: _:
+    resolve (mkMeta {
+      name = profile;
+      inherit profile;
+    })
+  ) cfg.profiles;
 
   # ── Static checks, expected to be empty (wire into flake checks) ─────
   entities =
@@ -240,17 +254,72 @@ let
           name = "${prefix}${n}";
           inherit value;
         }) attrs;
-      toolEntries = lib.concatLists (
-        lib.mapAttrsToList (
-          d: slots: lib.concatLists (lib.mapAttrsToList (s: backends: tag "tools.${d}.${s}." backends) slots)
-        ) cfg.tools
-      );
     in
     tag "features." cfg.features
     ++ tag "desktops." cfg.desktops
     ++ tag "roles." cfg.roles
-    ++ tag "profiles." cfg.profiles
-    ++ toolEntries;
+    ++ tag "profiles." cfg.profiles;
+
+  # A tool choice: the domain and slot must exist and the backend be registered
+  choiceErrors =
+    where: domain: slot: backend:
+    if backend == "none" then
+      [ ]
+    else if !(cfg.tools ? ${domain}) then
+      [ "${where}: unknown tool domain" ]
+    else if !(cfg.tools.${domain} ? ${slot}) then
+      [ "${where}: unknown slot" ]
+    else
+      lib.optional (
+        !(cfg.tools.${domain}.${slot} ? ${backend})
+      ) "${where}: '${backend}' is not registered";
+
+  toolChoiceErrors =
+    prefix: tools:
+    lib.concatLists (
+      lib.mapAttrsToList (
+        domain: slots:
+        lib.concatLists (
+          lib.mapAttrsToList (
+            slot: backend: choiceErrors "${prefix}.${domain}.${slot}" domain slot backend
+          ) slots
+        )
+      ) tools
+    );
+
+  # Checks for a `modules` selection, shared by entities and tool backends
+  selectionErrors =
+    where: modules:
+    lib.concatLists [
+      (lib.concatMap (
+        fw: lib.optional (!lib.elem fw cfg.frameworks) "${where}.modules.${fw}: unknown framework"
+      ) (lib.attrNames modules))
+
+      # `commons` only lives in the registry, never in a selection
+      (lib.concatLists (
+        lib.mapAttrsToList (
+          fw: catalogs:
+          lib.optional (catalogs ? commons) "${where}.modules.${fw}.commons: 'commons' is a reserved catalog"
+        ) modules
+      ))
+
+      (lib.concatLists (
+        lib.mapAttrsToList (
+          fw: catalogs:
+          lib.concatLists (
+            lib.mapAttrsToList (
+              catalog: ns:
+              lib.concatMap (
+                n:
+                lib.optional (
+                  !((cfg.modules.${fw}.${catalog} or { }) ? ${n})
+                ) "${where}.modules.${fw}.${catalog}: '${n}' is not registered"
+              ) ns
+            ) (removeAttrs catalogs reservedCatalogs)
+          )
+        ) modules
+      ))
+    ];
 
   registryErrors = lib.concatLists [
     (lib.concatMap (fw: lib.optional (!lib.elem fw cfg.frameworks) "modules.${fw}: unknown framework") (
@@ -261,81 +330,55 @@ let
       fw: lib.optional (cfg.modules.${fw} ? extra) "modules.${fw}.extra: 'extra' is a reserved catalog"
     ) (lib.attrNames cfg.modules))
 
-    (lib.concatMap (
-      e:
-      lib.concatMap (
-        fw: lib.optional (!lib.elem fw cfg.frameworks) "${e.name}.modules.${fw}: unknown framework"
-      ) (lib.attrNames e.value.modules)
-    ) entities)
-
-    # `commons` only lives in the registry, never in a selection
-    (lib.concatMap (
-      e:
-      lib.concatLists (
-        lib.mapAttrsToList (
-          fw: catalogs:
-          lib.optional (catalogs ? commons) "${e.name}.modules.${fw}.commons: 'commons' is a reserved catalog"
-        ) e.value.modules
-      )
-    ) entities)
-
-    (lib.concatMap (
-      e:
-      lib.concatLists (
-        lib.mapAttrsToList (
-          fw: catalogs:
-          lib.concatLists (
-            lib.mapAttrsToList (
-              catalog: ns:
-              lib.concatMap (
-                n:
-                lib.optional (
-                  !((cfg.modules.${fw}.${catalog} or { }) ? ${n})
-                ) "${e.name}.modules.${fw}.${catalog}: '${n}' is not registered"
-              ) ns
-            ) (removeAttrs catalogs reservedCatalogs)
-          )
-        ) e.value.modules
-      )
-    ) entities)
-
-    # Tool choices: the slot must exist, be unambiguous and have that backend
-    (lib.concatMap (
-      e:
-      lib.concatMap (
-        x:
-        let
-          owners = slotOwners.${x.slot} or [ ];
-        in
-        if x.backend == "none" || lib.length owners > 1 then
-          [ ]
-        else if owners == [ ] then
-          [ "${e.name}.tools.${x.slot}: unknown slot" ]
-        else
-          lib.optional (
-            !(cfg.tools.${lib.head owners}.${x.slot} ? ${x.backend})
-          ) "${e.name}.tools.${x.slot}: '${x.backend}' is not registered"
-      ) (flattenTools (e.value.tools or { }))
-    ) entities)
+    (lib.concatMap (e: selectionErrors e.name e.value.modules) entities)
 
     (lib.concatLists (
       lib.mapAttrsToList (
-        s: ds:
-        lib.optional (
-          lib.length ds > 1
-        ) "tools.${s}: slot is defined in several domains (${join ds}); slot names must be unique"
-      ) slotOwners
-    ))
-
-    (lib.concatLists (
-      lib.mapAttrsToList (
-        d: slots:
+        domain: slots:
         lib.concatLists (
           lib.mapAttrsToList (
-            s: backends: lib.optional (backends ? none) "tools.${d}.${s}: 'none' is a reserved backend name"
+            slot: backends:
+            lib.concatLists (
+              lib.mapAttrsToList (
+                backend: b: selectionErrors "tools.${domain}.${slot}.${backend}" b.modules
+              ) backends
+            )
           ) slots
         )
       ) cfg.tools
+    ))
+
+    (lib.concatMap (e: toolChoiceErrors "${e.name}.tools" e.value.tools) entities)
+
+    (toolChoiceErrors "defaults.tools" cfg.defaults.tools)
+
+    (lib.concatLists (
+      lib.mapAttrsToList (
+        domain: slots:
+        lib.concatLists (
+          lib.mapAttrsToList (
+            s: backends:
+            lib.optional (backends ? none) "tools.${domain}.${s}: 'none' is a reserved backend name"
+          ) slots
+        )
+      ) cfg.tools
+    ))
+
+    # requires: every group must exist, even when no host role is known
+    (lib.concatMap (
+      e:
+      lib.optionals (e.value ? requires) (
+        map (g: "${e.name}.requires: unknown group '${g}'") (
+          lib.filter (g: !lib.elem g cfg.roleGroups) (e.value.requires.groups ++ e.value.requires.notGroups)
+        )
+      )
+    ) entities)
+
+    (lib.concatLists (
+      lib.mapAttrsToList (
+        n: p:
+        map (f: "profiles.${n}: unknown feature '${f}'") (lib.filter (f: !(cfg.features ? ${f})) p.features)
+      ) cfg.profiles
     ))
 
     (lib.concatLists (
@@ -383,14 +426,21 @@ let
     description = "modules.<framework>.<catalog> = [ names ]; the catalog `extra` takes modules.";
   };
 
+  toolChoices = types.attrsOf (types.attrsOf types.str);
+
   toolsChoiceOption = mkOption {
-    type = types.attrsOf types.str;
+    type = toolChoices;
     default = { };
-    example = lib.literalExpression ''{ launcher = "walker"; display-manager = "none"; }'';
+    example = lib.literalExpression ''
+      {
+        desktop.launcher = "walker";
+        desktop.display-manager = "none";
+      }
+    '';
     description = ''
-      Exactly one backend per slot, as tools.<slot> = "<backend>". The domain is
-      looked up from the slot, so slot names are unique across domains.
+      Exactly one backend per slot, as tools.<domain>.<slot> = "<backend>".
       "none" selects nothing. Later layers override earlier ones.
+      Parts of a backend for frameworks the profile does not declare in `modules` are dropped.
     '';
   };
 
@@ -460,22 +510,47 @@ in
 
     tools = mkOption {
       type = types.attrsOf (
-        types.attrsOf (types.attrsOf (types.submodule { options.modules = modulesOption; }))
+        types.attrsOf (
+          types.attrsOf (
+            types.submodule {
+              options.modules = modulesOption;
+            }
+          )
+        )
       );
       default = { };
       example = lib.literalExpression ''
         {
           desktop.launcher.walker.modules.home.programs = [ "walker" ];
-          desktop.lock-screen.hyprlock.modules = {
-            home.programs = [ "hyprlock" ];
-            nixos.extra = [ ./hyprlock.pam.nix ];
+          desktop.display-manager.tuigreet.modules.nixos.services = [ "tuigreet" ];
+          nixvim.picker.telescope.modules.nixvim.plugins = [ "telescope" ];
+        }
+      '';
+      description = ''
+        Mutually exclusive backends:
+        tools.<domain>.<slot>.<backend>.modules.<framework>.<catalog> = [ names ].
+        A domain is a free-form namespace (desktop, nixvim, ...), not a framework.
+        A backend may span several frameworks; the parts for frameworks the
+        profile does not declare in `modules` are dropped.
+        Slots are chosen with `tools.<domain>.<slot>` in a desktop, role, feature or profile.
+      '';
+    };
+
+    defaults.tools = mkOption {
+      type = toolChoices;
+      default = { };
+      example = lib.literalExpression ''
+        {
+          nixvim = {
+            picker = "telescope";
+            completion = "blink-cmp";
           };
         }
       '';
       description = ''
-        Mutually exclusive backends: tools.<domain>.<slot>.<backend>.modules.
-        A backend may span several frameworks and is chosen with `tools.<slot>`
-        in a desktop, role, feature or profile. Slot names are unique across domains.
+        defaults.tools.<domain>.<slot> = "<backend>". Lowest layer: used when no
+        other layer selects a backend for the slot. Only the parts for frameworks
+        the profile declares in `modules` take effect.
       '';
     };
 
@@ -483,11 +558,7 @@ in
       type = types.attrsOf (
         types.submodule {
           options = selectionOptions // {
-            app = mkOption {
-              type = types.raw;
-              default = null;
-              description = "Pure data, forwarded to base.pure.apps.<feature>";
-            };
+            requires = requiresOption;
           };
         }
       );
@@ -495,6 +566,7 @@ in
       description = ''
         Cross-framework concepts that add up. A profile pulls them in
         with profiles.<profile>.features = [ "<name>" ].
+        `requires` is checked against the role of the host using the profile.
       '';
     };
 
@@ -578,12 +650,6 @@ in
       '';
     };
 
-    profilesResult = mkOption {
-      type = types.attrsOf (types.attrsOf (types.listOf types.raw));
-      readOnly = true;
-      description = "Profiles resolved without a host (no role), for older callers.";
-    };
-
     registryErrors = mkOption {
       type = types.listOf types.str;
       readOnly = true;
@@ -594,19 +660,11 @@ in
   config = {
     inherit resolve registryErrors;
 
-    profilesResult = lib.mapAttrs (
-      profile: _:
-      resolve (mkMeta {
-        name = profile;
-        inherit profile;
-      })
-    ) cfg.profiles;
-
+    # `base.pure` and `builders` are declared in another module
     base.pure = {
       roles = roleNames;
       inherit groupsRole isInGroup;
-      profiles = config.profilesResult;
-      apps = lib.mapAttrs (_: f: f.app) (lib.filterAttrs (_: f: f.app != null) cfg.features);
+      profiles = profilesResult;
     }
     // groupFns;
 
