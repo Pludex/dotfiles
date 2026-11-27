@@ -23,8 +23,12 @@
     updatetime = 300;
     mouse = "a";
     exrc = true;
+  };
 
-    neovide_opacity = 1;
+  globals = {
+    editorconfig.enable = true;
+
+        neovide_opacity = 1;
 
     neovide_normal_opacity = 0.4;
     neovide_floating_shadow = true;
@@ -39,10 +43,6 @@
     neovide_hide_mouse_when_typing = true;
 
     neovide_confirm_quit = true;
-  };
-
-  globals = {
-    editorconfig.enable = true;
   };
 
   globals.mapleader = " ";
