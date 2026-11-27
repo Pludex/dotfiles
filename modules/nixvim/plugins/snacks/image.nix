@@ -1,7 +1,11 @@
 { pkgs, ... }:
 {
   extraPackages = [ pkgs.imagemagick ];
-  plugins.snacks.settings.image = {
-    enabled = true;
+  plugins.snacks = {
+    enable = true;
+
+    settings.image = {
+      enabled = true;
+    };
   };
 }
