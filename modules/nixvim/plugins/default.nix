@@ -48,7 +48,12 @@ in
   # Slot names are prefixed with `nvim-` because they must be unique across all domains
   tools.nixvim = {
     completion = {
-      blink-cmp = plugin "blink-cmp";
+      blink-cmp = {
+        modules.nixvim.plugins = [
+          "blink-cmp"
+          "lspkind"
+        ];
+      };
       cmp = {
         modules.nixvim.plugins = [
           "cmp"
